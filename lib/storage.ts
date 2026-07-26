@@ -42,6 +42,18 @@ export async function addProduct(product: any) {
   return data;
 }
 
+export async function updateProduct(id: string, updates: any) {
+  const { data, error } = await supabase
+    .from("products")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getProductsByOwner(email: string) {
   const { data, error } = await supabase
     .from("products")
@@ -74,15 +86,16 @@ export async function uploadProductImage(file: File): Promise<string | null> {
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`; 
 
-    // ADDED THE DOT HERE TO MATCH YOUR BUCKET: "product-images."
+    // NOTE: bucket name corrected to remove trailing period.
+    // Rename the bucket in Supabase to "product-images" (no dot) to match.
     const { data, error } = await supabase.storage
-      .from("product-images.")
+      .from("product-images")
       .upload(filePath, file);
 
     if (error) throw error;
 
     const { data: { publicUrl } } = supabase.storage
-      .from("product-images.")
+      .from("product-images")
       .getPublicUrl(filePath);
 
     return publicUrl;
