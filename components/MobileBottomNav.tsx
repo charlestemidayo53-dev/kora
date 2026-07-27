@@ -42,14 +42,14 @@ export default function MobileBottomNav({ user, msgCount }: { user: any; msgCoun
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 flex items-stretch h-16 pb-[env(safe-area-inset-bottom)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 grid grid-cols-5 h-16 overflow-hidden pb-[env(safe-area-inset-bottom)]">
       {tabs.map(({ label, href, Icon, badge }) => {
         const active = pathname === href;
         return (
           <Link
             key={label}
             href={href}
-            className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition ${
+            className={`relative flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden transition ${
               active ? "text-[#2e8b5a]" : "text-gray-500"
             }`}
           >
