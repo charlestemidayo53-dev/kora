@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getMyConversations, getMessagesBetween, sendMessage } from "@/lib/storage";
 
@@ -24,6 +24,7 @@ type Conversation = {
 
 export default function MessagesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -45,9 +46,17 @@ export default function MessagesPage() {
       setUser(data.user);
       await loadConversations(data.user.email || "");
       setLoading(false);
+
+      // If arriving from a "Message" button on a product card (?to=seller@email.com),
+      // open that chat directly — even if there's no conversation with them yet.
+      const toEmail = searchParams.get("to");
+      if (toEmail && toEmail !== data.user.email) {
+        openChat(toEmail);
+      }
     }
 
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   async function loadConversations(email: string) {
@@ -86,16 +95,18 @@ export default function MessagesPage() {
   }
 
   async function openChat(otherEmail: string) {
-    if (!user?.email) return;
+    if (!user?.email && !otherEmail) return;
 
     setActiveChat(otherEmail);
     setLoadingMessages(true);
 
     try {
-      const msgs = await getMessagesBetween(user.email, otherEmail);
+      const currentEmail = user?.email || (await supabase.auth.getUser()).data?.user?.email || "";
+      const msgs = await getMessagesBetween(currentEmail, otherEmail);
       setMessages(Array.isArray(msgs) ? msgs : []);
     } catch (err) {
       console.error("openChat error:", err);
+      setMessages([]);
     } finally {
       setLoadingMessages(false);
     }
@@ -160,18 +171,19 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-[#f0faf4]">
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-black text-[#1a4731]">Messages</h1>
-          <p className="text-gray-500 text-sm mt-1">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        <div className="mb-4 sm:mb-6 px-1">
+          <h1 className="text-xl sm:text-2xl font-black text-[#1a4731]">Messages</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1">
             Chat directly with buyers and sellers
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden" style={{ height: "600px" }}>
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden h-[75vh] sm:h-[600px]">
           <div className="flex h-full">
-            <div className="w-80 border-r border-gray-100 flex flex-col flex-shrink-0">
-              <div className="p-4 border-b border-gray-100">
+            {/* Conversation list — hidden on mobile once a chat is open */}
+            <div className={`w-full sm:w-80 border-r border-gray-100 flex-col flex-shrink-0 ${activeChat ? "hidden sm:flex" : "flex"}`}>
+              <div className="p-3 sm:p-4 border-b border-gray-100">
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -247,24 +259,34 @@ export default function MessagesPage() {
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col min-w-0">
+            {/* Chat panel */}
+            <div className={`flex-1 flex-col min-w-0 ${activeChat ? "flex" : "hidden sm:flex"}`}>
               {activeChat ? (
                 <>
-                  <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3 flex-shrink-0">
-                    <div className="w-10 h-10 bg-[#2e8b5a] rounded-full flex items-center justify-center">
+                  <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center gap-3 flex-shrink-0">
+                    {/* Back button — mobile only */}
+                    <button
+                      onClick={() => setActiveChat(null)}
+                      className="sm:hidden p-1 -ml-1 text-gray-500 hover:text-[#2e8b5a] transition"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <div className="w-10 h-10 bg-[#2e8b5a] rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold">
                         {getInitial(activeChat)}
                       </span>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-800 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-800 text-sm truncate">
                         {activeChat}
                       </p>
                       <p className="text-xs text-[#2e8b5a]">Active now</p>
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center h-full">
                         <div className="w-8 h-8 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
@@ -285,8 +307,8 @@ export default function MessagesPage() {
                         const isMe = msg.sender_email === user.email;
                         const bubbleClass = isMe ? "flex justify-end" : "flex justify-start";
                         const msgClass = isMe
-                          ? "bg-[#2e8b5a] text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-xs"
-                          : "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-xs";
+                          ? "bg-[#2e8b5a] text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[80%] sm:max-w-xs"
+                          : "bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-[80%] sm:max-w-xs";
 
                         return (
                           <div key={msg.id || i} className={bubbleClass}>
@@ -304,8 +326,8 @@ export default function MessagesPage() {
                     )}
                   </div>
 
-                  <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0">
-                    <div className="flex items-center gap-3">
+                  <div className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex-shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <input
                         type="text"
                         placeholder="Type your message..."
@@ -367,7 +389,7 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      <div className="text-center py-8 text-xs text-gray-400">
+      <div className="text-center py-6 sm:py-8 text-xs text-gray-400">
         2025 Kora Marketplace · Empowering Nigerian Agriculture
       </div>
     </div>
