@@ -587,14 +587,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </div>
-
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition flex-shrink-0"
-          >
-            {mobileMenuOpen ? <IconClose /> : <IconMenu />}
-          </button>
         </div>
 
         {/* ── Navigation bar ─────────────────────────────────────────────── */}
