@@ -143,70 +143,39 @@ export default function DashboardPage() {
 
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions — Alibaba-style list */}
         <h2 className="text-lg font-bold text-gray-700 mb-4">Quick Actions</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-
-          <a href="/marketplace" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {[
+            { label: "Marketplace", desc: "Browse and buy agricultural products", href: "/marketplace", icon: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" },
+            { label: "Add Product", desc: "List a new product for sale", href: "/add-product", icon: "M12 4v16m8-8H4" },
+            { label: "Seller Dashboard", desc: "Manage your listings and orders", href: "/seller-dashboard", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
+            { label: "My Orders", desc: "Track your purchases and sales", href: "/orders", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
+            { label: "Escrow Payments", desc: "Secure payment protection", href: "/escrow", icon: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
+            { label: "My Profile", desc: "Update your account settings", href: "/profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+          ].map((item, i, arr) => (
+            <a
+            
+              key={item.label}
+              href={item.href}
+              className={`flex items-center gap-4 px-5 py-4 hover:bg-[#f9fdf7] transition ${
+                i < arr.length - 1 ? "border-b border-gray-100" : ""
+              }`}
+            >
+              <div className="w-9 h-9 rounded-lg bg-[#f0faf4] flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800">{item.label}</p>
+                <p className="text-xs text-gray-500 truncate">{item.desc}</p>
+              </div>
+              <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Marketplace</h3>
-            <p className="text-gray-500 text-sm">Browse and buy agricultural products</p>
-          </a>
-
-          <a href="/add-product" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Add Product</h3>
-            <p className="text-gray-500 text-sm">List a new product for sale</p>
-          </a>
-
-          <a href="/seller-dashboard" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Seller Dashboard</h3>
-            <p className="text-gray-500 text-sm">Manage your listings and orders</p>
-          </a>
-
-          <a href="/orders" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">My Orders</h3>
-            <p className="text-gray-500 text-sm">Track your purchases and sales</p>
-          </a>
-
-          <a href="/escrow" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Escrow Payments</h3>
-            <p className="text-gray-500 text-sm">Secure payment protection</p>
-          </a>
-
-          <a href="/profile" className="group bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#2e8b5a] transition-all">
-            <div className="w-12 h-12 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-4 group-hover:bg-[#2e8b5a] transition-all">
-              <svg className="w-6 h-6 text-[#2e8b5a] group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">My Profile</h3>
-            <p className="text-gray-500 text-sm">Update your account settings</p>
-          </a>
-
+            </a>
+          ))}
         </div>
       </div>
 
