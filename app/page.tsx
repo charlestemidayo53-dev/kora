@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
-
+import MobileBottomNav from "@/components/MobileBottomNav";
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 const ArrowRight = ({ className = "" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
