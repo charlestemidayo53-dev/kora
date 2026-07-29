@@ -35,7 +35,7 @@ export default function MobileBottomNav({ user, msgCount }: { user: any; msgCoun
 
   const tabs = [
     { label: "Home", href: "/", Icon: IconHome },
-    { label: "Categories", href: "/marketplace", Icon: IconGrid },
+    { label: "Categories", href: "/categories", Icon: IconGrid },
     { label: "Messenger", href: "/message", Icon: IconMessenger, badge: msgCount },
     { label: "Cart", href: "/cart", Icon: IconCart },
     { label: "My Kora", href: user ? "/dashboard" : "/auth/login", Icon: IconUser },

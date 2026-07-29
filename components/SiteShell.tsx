@@ -174,21 +174,9 @@ const IconChevronDown = () => (
   </svg>
 );
 
-const IconChevronRight = () => (
-  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-);
-
 const IconSignOut = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-  </svg>
-);
-
-const IconUser = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 
@@ -207,12 +195,6 @@ const IconPlus = () => (
 const IconMenu = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-  </svg>
-);
-
-const IconClose = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
@@ -277,8 +259,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const [profile, setProfile]                 = useState<any>(null);
   const [searchQuery, setSearchQuery]         = useState("");
   const [searchCategory, setSearchCategory]   = useState("All Categories");
-  const [megaOpen, setMegaOpen]               = useState(false);
-  const [openCategory, setOpenCategory]       = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen]   = useState(false);
 
   const [language, setLanguage]               = useState("en");
@@ -289,8 +269,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
   const [msgCount, setMsgCount]               = useState(0);
 
-  const megaRef    = useRef<HTMLDivElement>(null);
-  const megaBtnRef = useRef<HTMLButtonElement>(null);
   const langRef    = useRef<HTMLDivElement>(null);
   const currRef    = useRef<HTMLDivElement>(null);
   const userRef    = useRef<HTMLDivElement>(null);
@@ -346,9 +324,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function handler(e: MouseEvent) {
       const t = e.target as Node;
-      if (megaRef.current && !megaRef.current.contains(t) && megaBtnRef.current && !megaBtnRef.current.contains(t)) {
-        setMegaOpen(false); setOpenCategory(null);
-      }
       if (langRef.current && !langRef.current.contains(t))  setShowLangMenu(false);
       if (currRef.current && !currRef.current.contains(t))  setShowCurrMenu(false);
       if (userRef.current && !userRef.current.contains(t))  setShowUserMenu(false);
@@ -401,31 +376,33 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <div className="text-[9px] text-gray-400 leading-none tracking-wide uppercase font-medium mt-0.5">B2B Marketplace</div>
             </div>
           </Link>
-
+          
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
-            <div className="flex rounded-xl border-2 border-[#2e8b5a] overflow-hidden h-11 shadow-sm focus-within:shadow-md focus-within:border-[#1a4731] transition-all">
-              <select
-                value={searchCategory}
-                onChange={(e) => setSearchCategory(e.target.value)}
-                className="bg-[#f0faf4] border-r-2 border-[#2e8b5a] text-[11px] font-semibold text-[#1a4731] pl-3 pr-2 outline-none cursor-pointer flex-shrink-0 hidden sm:block"
-              >
-                <option>All Categories</option>
-                {categories.map((c) => <option key={c.slug}>{c.name}</option>)}
-              </select>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products, suppliers, categories..."
-                className="flex-1 px-4 text-sm outline-none bg-white placeholder-gray-400 min-w-0"
-              />
-              <button type="submit" className="bg-[#2e8b5a] hover:bg-[#1a4731] transition px-5 flex items-center justify-center gap-2 flex-shrink-0">
-                <IconSearch />
-                <span className="text-white text-sm font-bold hidden md:inline">Search</span>
-              </button>
-            </div>
-          </form>
+          {isHome && (
+            <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
+              <div className="flex rounded-xl border-2 border-[#2e8b5a] overflow-hidden h-11 shadow-sm focus-within:shadow-md focus-within:border-[#1a4731] transition-all">
+                <select
+                  value={searchCategory}
+                  onChange={(e) => setSearchCategory(e.target.value)}
+                  className="bg-[#f0faf4] border-r-2 border-[#2e8b5a] text-[11px] font-semibold text-[#1a4731] pl-3 pr-2 outline-none cursor-pointer flex-shrink-0 hidden sm:block"
+                >
+                  <option>All Categories</option>
+                  {categories.map((c) => <option key={c.slug}>{c.name}</option>)}
+                </select>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search products, suppliers, categories..."
+                  className="flex-1 px-4 text-sm outline-none bg-white placeholder-gray-400 min-w-0"
+                />
+                <button type="submit" className="bg-[#2e8b5a] hover:bg-[#1a4731] transition px-5 flex items-center justify-center gap-2 flex-shrink-0">
+                  <IconSearch />
+                  <span className="text-white text-sm font-bold hidden md:inline">Search</span>
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* ── Right side icons (desktop only — mobile uses bottom nav) ──── */}
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
@@ -595,18 +572,14 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block border-t border-gray-100 bg-white">
           <div className="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center">
 
-            {/* All Categories mega trigger */}
-            <button
-              ref={megaBtnRef}
-              onClick={() => setMegaOpen(!megaOpen)}
-              className={`hidden md:flex items-center gap-2 px-4 py-3 text-sm font-bold transition flex-shrink-0 border-r border-gray-100 ${megaOpen ? "bg-[#2e8b5a] text-white" : "text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a]"}`}
+            {/* All Categories link */}
+            <Link
+              href="/categories"
+              className="hidden md:flex items-center gap-2 px-4 py-3 text-sm font-bold transition flex-shrink-0 border-r border-gray-100 text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a]"
             >
               <IconMenu />
               All Categories
-              <svg className={`w-3.5 h-3.5 transition-transform ${megaOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            </Link>
 
             {/* Nav links */}
             <nav className="hidden md:flex items-center flex-1">
@@ -631,65 +604,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-
-        {/* ── Mega menu ──────────────────────────────────────────────────── */}
-        {megaOpen && (
-          <div ref={megaRef} className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-2xl z-50">
-            <div className="max-w-[1400px] mx-auto flex" style={{ maxHeight: "520px" }}>
-
-              {/* Left: category list */}
-              <div className="w-72 border-r border-gray-100 py-2 flex-shrink-0 bg-[#f8faf8] overflow-y-auto">
-                {categories.map((cat) => {
-                  const isActive = openCategory === cat.name;
-                  return (
-                    <button key={cat.slug}
-                      onMouseEnter={() => setOpenCategory(cat.name)}
-                      onClick={() => { window.location.href = `/marketplace?category=${encodeURIComponent(cat.name)}`; setMegaOpen(false); }}
-                      className={`w-full flex items-center justify-between px-5 py-2.5 text-sm transition ${isActive ? "bg-white text-[#2e8b5a] font-semibold border-r-2 border-[#2e8b5a]" : "text-gray-700 hover:bg-white hover:text-[#2e8b5a]"}`}>
-                      <span className="flex items-center gap-3">
-                        <span className={isActive ? "text-[#2e8b5a]" : "text-gray-400"}>{cat.icon}</span>
-                        {cat.name}
-                      </span>
-                      <IconChevronRight />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Right: subcategories */}
-              <div className="flex-1 p-6 overflow-y-auto">
-                {openCategory ? (
-                  <>
-                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-                      <h3 className="text-base font-black text-[#1a4731]">{openCategory}</h3>
-                      <Link href={`/marketplace?category=${encodeURIComponent(openCategory)}`}
-                        onClick={() => setMegaOpen(false)}
-                        className="text-xs font-bold text-[#2e8b5a] hover:text-[#1a4731] transition flex items-center gap-1">
-                        View All Products
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                      </Link>
-                    </div>
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-1">
-                      {(categories.find((c) => c.name === openCategory)?.subcategories || []).map((sub) => (
-                        <Link key={sub}
-                          href={`/marketplace?category=${encodeURIComponent(openCategory)}&sub=${encodeURIComponent(sub)}`}
-                          onClick={() => { setMegaOpen(false); setOpenCategory(null); }}
-                          className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition group">
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-[#2e8b5a] flex-shrink-0 transition" />
-                          {sub}
-                        </Link>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <p className="text-sm text-gray-400">Hover a category to explore</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ── Mobile menu ────────────────────────────────────────────────── */}
         {mobileMenuOpen && (
@@ -785,16 +699,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p className="text-xs text-white/40">© 2025 Kora Marketplace Ltd. All rights reserved.</p>
+              <p className="text-xs text-white/40">© 2026 Kora Marketplace Ltd. All rights reserved.</p>
               <p className="text-xs text-white/30">Built for African Trade</p>
             </div>
           </div>
         </footer>
-      )}
-
-      {/* Mega menu backdrop */}
-      {megaOpen && (
-        <div className="fixed inset-0 bg-black/20 z-30" onClick={() => { setMegaOpen(false); setOpenCategory(null); }} />
       )}
 
       {/* ══ MOBILE BOTTOM NAV (Alibaba-style) ══════════════════════════════ */}
