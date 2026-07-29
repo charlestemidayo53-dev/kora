@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { usePathname } from "next/navigation";
 
 // ─── Category data ────────────────────────────────────────────────────────────
 const categories = [
@@ -101,39 +102,39 @@ const categories = [
 
 // ─── Languages ────────────────────────────────────────────────────────────────
 const LANGUAGES = [
-  { code: "en", label: "English",        native: "English"     },
-  { code: "yo", label: "Yoruba",         native: "Yoruba"      },
-  { code: "ha", label: "Hausa",          native: "Hausa"       },
-  { code: "ig", label: "Igbo",           native: "Igbo"        },
-  { code: "pcm", label: "Pidgin",        native: "Naija Pidgin"},
-  { code: "fr", label: "French",         native: "Francais"    },
-  { code: "sw", label: "Swahili",        native: "Kiswahili"   },
-  { code: "am", label: "Amharic",        native: "Amharic"     },
-  { code: "zu", label: "Zulu",           native: "isiZulu"     },
-  { code: "ar", label: "Arabic",         native: "Arabic"      },
-  { code: "pt", label: "Portuguese",     native: "Portugues"   },
+  { code: "en",  label: "English",    native: "English"      },
+  { code: "yo",  label: "Yoruba",     native: "Yoruba"       },
+  { code: "ha",  label: "Hausa",      native: "Hausa"        },
+  { code: "ig",  label: "Igbo",       native: "Igbo"         },
+  { code: "pcm", label: "Pidgin",     native: "Naija Pidgin" },
+  { code: "fr",  label: "French",     native: "Francais"     },
+  { code: "sw",  label: "Swahili",    native: "Kiswahili"    },
+  { code: "am",  label: "Amharic",    native: "Amharic"      },
+  { code: "zu",  label: "Zulu",       native: "isiZulu"      },
+  { code: "ar",  label: "Arabic",     native: "Arabic"       },
+  { code: "pt",  label: "Portuguese", native: "Portugues"    },
 ];
 
 // ─── Currencies ───────────────────────────────────────────────────────────────
 const CURRENCIES = [
-  { code: "NGN", symbol: "N",   label: "Nigerian Naira"      },
-  { code: "USD", symbol: "$",   label: "US Dollar"           },
-  { code: "GBP", symbol: "L",   label: "British Pound"       },
-  { code: "EUR", symbol: "E",   label: "Euro"                },
-  { code: "GHS", symbol: "GH",  label: "Ghanaian Cedi"       },
-  { code: "KES", symbol: "KSh", label: "Kenyan Shilling"     },
-  { code: "ZAR", symbol: "R",   label: "South African Rand"  },
-  { code: "XOF", symbol: "CFA", label: "West African CFA"    },
-  { code: "ETB", symbol: "Br",  label: "Ethiopian Birr"      },
+  { code: "NGN", symbol: "₦",   label: "Nigerian Naira"     },
+  { code: "USD", symbol: "$",   label: "US Dollar"          },
+  { code: "GBP", symbol: "£",   label: "British Pound"      },
+  { code: "EUR", symbol: "€",   label: "Euro"               },
+  { code: "GHS", symbol: "GH₵", label: "Ghanaian Cedi"      },
+  { code: "KES", symbol: "KSh", label: "Kenyan Shilling"    },
+  { code: "ZAR", symbol: "R",   label: "South African Rand" },
+  { code: "XOF", symbol: "CFA", label: "West African CFA"   },
+  { code: "ETB", symbol: "Br",  label: "Ethiopian Birr"     },
 ];
 
 const navLinks = [
-  { label: "Products",      href: "/marketplace" },
-  { label: "Suppliers",     href: "/suppliers" },
-  { label: "Manufacturers", href: "/manufacturers" },
-  { label: "RFQ",           href: "/rfq" },
-  { label: "About Us",      href: "/about" },
-  { label: "Contact",       href: "/contact" },
+  { label: "Products",      href: "/marketplace"    },
+  { label: "Suppliers",     href: "/suppliers"      },
+  { label: "Manufacturers", href: "/manufacturers"  },
+  { label: "RFQ",           href: "/rfq"            },
+  { label: "About Us",      href: "/about"          },
+  { label: "Contact",       href: "/contact"        },
 ];
 
 // ─── SVG icon components ──────────────────────────────────────────────────────
@@ -269,6 +270,9 @@ function getInitials(profile: any, user: any): string {
 
 // ─── Site Shell (client) ───────────────────────────────────────────────────────
 export default function SiteShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
   const [user, setUser]                       = useState<any>(null);
   const [profile, setProfile]                 = useState<any>(null);
   const [searchQuery, setSearchQuery]         = useState("");
@@ -372,8 +376,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const currentLang = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
   const currentCurr = CURRENCIES.find((c) => c.code === currency) || CURRENCIES[0];
   const initials     = getInitials(profile, user);
-  const firstName     = getFirstName(profile, user);
-  const avatarUrl     = profile?.avatar_url || null;
+  const firstName    = getFirstName(profile, user);
+  const avatarUrl    = profile?.avatar_url || null;
 
   return (
     <>
@@ -541,9 +545,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">
-                          Hi, {firstName}
-                        </p>
+                        <p className="text-sm font-bold text-gray-900 truncate">Hi, {firstName}</p>
                         <p className="text-[10px] text-gray-400 capitalize">
                           {profile?.role || user.user_metadata?.role || "Buyer"}
                         </p>
@@ -551,11 +553,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     </div>
 
                     {[
-                      { label: "My Store",         href: "/dashboard",        Icon: <IconStore /> },
-                      { label: "Wallet",           href: "/wallet",           Icon: <IconWallet /> },
-                      { label: "Profile Settings", href: "/settings",         Icon: <IconSettings /> },
-                      { label: "Orders",           href: "/orders",           Icon: <IconOrders /> },
-                      { label: "Messages",         href: "/message",          Icon: <IconMessage /> },
+                      { label: "My Store",         href: "/dashboard", Icon: <IconStore />    },
+                      { label: "Wallet",           href: "/wallet",    Icon: <IconWallet />   },
+                      { label: "Profile Settings", href: "/settings",  Icon: <IconSettings /> },
+                      { label: "Orders",           href: "/orders",    Icon: <IconOrders />   },
+                      { label: "Messages",         href: "/message",   Icon: <IconMessage />  },
                     ].map((item) => (
                       <Link key={item.label} href={item.href} onClick={() => setShowUserMenu(false)}
                         className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
@@ -590,7 +592,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* ── Navigation bar ─────────────────────────────────────────────── */}
-<div className="hidden md:block border-t border-gray-100 bg-white">          <div className="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center">
+        <div className="hidden md:block border-t border-gray-100 bg-white">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center">
 
             {/* All Categories mega trigger */}
             <button
@@ -692,7 +695,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
             {navLinks.map((link) => (
-             <Link key={link.label} href={link.href}
+              <Link key={link.label} href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
                 {link.label}
@@ -725,67 +728,69 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       {/* ══ MAIN CONTENT (bottom padding so mobile nav doesn't overlap it) ══ */}
       <main className="min-h-screen pb-16 md:pb-0">{children}</main>
 
-      {/* ══ FOOTER ═══════════════════════════════════════════════════════════ */}
-      <footer className="bg-[#0f2d1c] text-white">
-        <div className="max-w-[1400px] mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] flex items-center justify-center">
-                  <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-                    <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
-                    <path d="M13.5 20L27 8"  stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-                    <path d="M13.5 20L27 33" stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-                  </svg>
+      {/* ══ FOOTER — home page only ══════════════════════════════════════════ */}
+      {isHome && (
+        <footer className="bg-[#0f2d1c] text-white">
+          <div className="max-w-[1400px] mx-auto px-6 py-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
+              <div className="lg:col-span-2">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] flex items-center justify-center">
+                    <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
+                      <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
+                      <path d="M13.5 20L27 8"  stroke="white" strokeWidth="4.5" strokeLinecap="round" />
+                      <path d="M13.5 20L27 33" stroke="white" strokeWidth="4.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-lg font-black tracking-tight">Kora</div>
+                    <div className="text-[10px] text-green-400 uppercase tracking-wide font-medium">B2B Marketplace</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-lg font-black tracking-tight">Kora</div>
-                  <div className="text-[10px] text-green-400 uppercase tracking-wide font-medium">B2B Marketplace</div>
+                <p className="text-sm text-white/60 leading-relaxed max-w-xs mb-5">
+                  Nigeria's trusted B2B trading platform connecting buyers and verified suppliers across all 36 states and beyond.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Verified Suppliers
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Escrow Protected
+                  </span>
                 </div>
               </div>
-              <p className="text-sm text-white/60 leading-relaxed max-w-xs mb-5">
-                Nigeria's trusted B2B trading platform connecting buyers and verified suppliers across all 36 states and beyond.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Verified Suppliers
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Escrow Protected
-                </span>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Marketplace</h4>
+                <ul className="space-y-2.5">
+                  {["Browse Products","Find Suppliers","Post RFQ","Trade Assurance","Categories"].map((item) => (
+                    <li key={item}><Link href="/marketplace" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">For Suppliers</h4>
+                <ul className="space-y-2.5">
+                  {["Become a Supplier","Seller Dashboard","Add Products","Pricing Plans","Verification"].map((item) => (
+                    <li key={item}><Link href="/auth/register?type=supplier" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Company</h4>
+                <ul className="space-y-2.5">
+                  {["About Us","Contact","Help Center","Privacy Policy","Terms of Service"].map((item) => (
+                    <li key={item}><Link href="/about" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
+                  ))}
+                </ul>
               </div>
             </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Marketplace</h4>
-              <ul className="space-y-2.5">
-                {["Browse Products","Find Suppliers","Post RFQ","Trade Assurance","Categories"].map((item) => (
-                  <li key={item}><Link href="/marketplace" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">For Suppliers</h4>
-              <ul className="space-y-2.5">
-                {["Become a Supplier","Seller Dashboard","Add Products","Pricing Plans","Verification"].map((item) => (
-                  <li key={item}><Link href="/auth/register?type=supplier" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Company</h4>
-              <ul className="space-y-2.5">
-                {["About Us","Contact","Help Center","Privacy Policy","Terms of Service"].map((item) => (
-                  <li key={item}><Link href="/about" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                ))}
-              </ul>
+            <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p className="text-xs text-white/40">© 2025 Kora Marketplace Ltd. All rights reserved.</p>
+              <p className="text-xs text-white/30">Built for African Trade</p>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p className="text-xs text-white/40">© 2025 Kora Marketplace Ltd. All rights reserved.</p>
-            <p className="text-xs text-white/30">Built for African Trade</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
 
       {/* Mega menu backdrop */}
       {megaOpen && (

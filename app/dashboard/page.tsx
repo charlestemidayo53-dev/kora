@@ -87,14 +87,6 @@ export default function DashboardPage() {
           </a>
         ))}
       </div>
-
-      {/* Divider */}
-      <div className="h-2 bg-gray-100" />
-
-      {/* Quick Actions */}
-      <div className="px-4 pt-4 pb-1">
-        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Quick Actions</h2>
-      </div>
       <div>
         {quickActions.map((item) => (
           <a
