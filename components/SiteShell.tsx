@@ -361,21 +361,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* ── Top row: Logo + Search + Icons ─────────────────────────────── */}
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
-
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] shadow-md flex-shrink-0">
-              <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-                <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
-                <path d="M13.5 20L27 8"  stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-                <path d="M13.5 20L27 33" stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-              </svg>
-            </div>
-            <div className="hidden sm:block">
-              <div className="text-[18px] font-black text-[#1a4731] tracking-tight leading-none">Kora</div>
-              <div className="text-[9px] text-gray-400 leading-none tracking-wide uppercase font-medium mt-0.5">B2B Marketplace</div>
-            </div>
-          </Link>
           
           {/* Search bar */}
           {isHome && (
