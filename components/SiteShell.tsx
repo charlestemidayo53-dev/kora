@@ -242,7 +242,7 @@ function getInitials(profile: any, user: any): string {
     return name
       .split(" ")
       .slice(0, 2)
-      .map((w: string) => w[0]?.toUpperCase())
+      .map(function (w: string) { return w[0]?.toUpperCase(); })
       .filter(Boolean)
       .join("");
   }
@@ -273,15 +273,15 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const currRef    = useRef<HTMLDivElement>(null);
   const userRef    = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    supabase.auth.getUser().then((res) => setUser(res.data?.user || null));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+  useEffect(function () {
+    supabase.auth.getUser().then(function (res) { setUser(res.data?.user || null); });
+    const { data: listener } = supabase.auth.onAuthStateChange(function (_event, session) {
       setUser(session?.user || null);
     });
-    return () => listener.subscription.unsubscribe();
+    return function () { listener.subscription.unsubscribe(); };
   }, []);
 
-  useEffect(() => {
+  useEffect(function () {
     if (!user?.id) { setProfile(null); return; }
     async function loadProfile() {
       const { data } = await supabase
@@ -294,12 +294,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     loadProfile();
   }, [user]);
 
-  useEffect(() => {
+  useEffect(function () {
     setLanguage(localStorage.getItem("kora_lang") || "en");
     setCurrency(localStorage.getItem("kora_currency") || "NGN");
   }, []);
 
-  useEffect(() => {
+  useEffect(function () {
     if (!user) { setMsgCount(0); return; }
     async function load() {
       const { count } = await supabase
@@ -314,14 +314,14 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       .channel("msg-badge")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: `receiver_email=eq.${user.email}` },
+        { event: "INSERT", schema: "public", table: "messages", filter: "receiver_email=eq." + user.email },
         load
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return function () { supabase.removeChannel(channel); };
   }, [user]);
 
-  useEffect(() => {
+  useEffect(function () {
     function handler(e: MouseEvent) {
       const t = e.target as Node;
       if (langRef.current && !langRef.current.contains(t))  setShowLangMenu(false);
@@ -329,7 +329,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       if (userRef.current && !userRef.current.contains(t))  setShowUserMenu(false);
     }
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    return function () { document.removeEventListener("mousedown", handler); };
   }, []);
 
   function changeLang(code: string)  { setLanguage(code);  localStorage.setItem("kora_lang", code);     setShowLangMenu(false); }
@@ -344,15 +344,20 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/marketplace?q=${encodeURIComponent(searchQuery)}&category=${encodeURIComponent(searchCategory)}`;
+      window.location.href = "/marketplace?q=" + encodeURIComponent(searchQuery) + "&category=" + encodeURIComponent(searchCategory);
     }
   }
 
-  const currentLang = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
-  const currentCurr = CURRENCIES.find((c) => c.code === currency) || CURRENCIES[0];
+  const currentLang = LANGUAGES.find(function (l) { return l.code === language; }) || LANGUAGES[0];
+  const currentCurr = CURRENCIES.find(function (c) { return c.code === currency; }) || CURRENCIES[0];
   const initials     = getInitials(profile, user);
   const firstName    = getFirstName(profile, user);
   const avatarUrl    = profile?.avatar_url || null;
+
+  // On mobile, the top row only has content when isHome (the search bar).
+  // On every other page there's nothing to show there on mobile, so it's hidden
+  // to remove the blank gap above the page content. Desktop keeps it always.
+  const topRowClass = (isHome ? "flex" : "hidden md:flex") + " max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center gap-3";
 
   return (
     <>
@@ -360,24 +365,24 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
 
         {/* ── Top row: Logo + Search + Icons ─────────────────────────────── */}
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
-          
+        <div className={topRowClass}>
+
           {/* Search bar */}
           {isHome && (
             <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
               <div className="flex rounded-xl border-2 border-[#2e8b5a] overflow-hidden h-11 shadow-sm focus-within:shadow-md focus-within:border-[#1a4731] transition-all">
                 <select
                   value={searchCategory}
-                  onChange={(e) => setSearchCategory(e.target.value)}
+                  onChange={function (e) { setSearchCategory(e.target.value); }}
                   className="bg-[#f0faf4] border-r-2 border-[#2e8b5a] text-[11px] font-semibold text-[#1a4731] pl-3 pr-2 outline-none cursor-pointer flex-shrink-0 hidden sm:block"
                 >
                   <option>All Categories</option>
-                  {categories.map((c) => <option key={c.slug}>{c.name}</option>)}
+                  {categories.map(function (c) { return <option key={c.slug}>{c.name}</option>; })}
                 </select>
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={function (e) { setSearchQuery(e.target.value); }}
                   placeholder="Search products, suppliers, categories..."
                   className="flex-1 px-4 text-sm outline-none bg-white placeholder-gray-400 min-w-0"
                 />
@@ -395,7 +400,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* Language picker */}
             <div className="relative" ref={langRef}>
               <button
-                onClick={() => { setShowLangMenu((v) => !v); setShowCurrMenu(false); setShowUserMenu(false); }}
+                onClick={function () { setShowLangMenu(function (v) { return !v; }); setShowCurrMenu(false); setShowUserMenu(false); }}
                 className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition"
               >
                 <IconGlobe />
@@ -405,13 +410,15 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               {showLangMenu && (
                 <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-52 py-1 max-h-80 overflow-y-auto">
                   <p className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Select Language</p>
-                  {LANGUAGES.map((lang) => (
-                    <button key={lang.code} onClick={() => changeLang(lang.code)}
-                      className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition ${language === lang.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700"}`}>
-                      <span>{lang.native}</span>
-                      <span className="text-[10px] text-gray-400">{lang.label}</span>
-                    </button>
-                  ))}
+                  {LANGUAGES.map(function (lang) {
+                    return (
+                      <button key={lang.code} onClick={function () { changeLang(lang.code); }}
+                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition " + (language === lang.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700")}>
+                        <span>{lang.native}</span>
+                        <span className="text-[10px] text-gray-400">{lang.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -419,7 +426,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* Currency picker */}
             <div className="relative" ref={currRef}>
               <button
-                onClick={() => { setShowCurrMenu((v) => !v); setShowLangMenu(false); setShowUserMenu(false); }}
+                onClick={function () { setShowCurrMenu(function (v) { return !v; }); setShowLangMenu(false); setShowUserMenu(false); }}
                 className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition"
               >
                 <span>{currentCurr.symbol}</span>
@@ -429,16 +436,18 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               {showCurrMenu && (
                 <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 w-52 py-1 max-h-72 overflow-y-auto">
                   <p className="px-3 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Select Currency</p>
-                  {CURRENCIES.map((cur) => (
-                    <button key={cur.code} onClick={() => changeCurr(cur.code)}
-                      className={`w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition ${currency === cur.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700"}`}>
-                      <span className="flex items-center gap-2">
-                        <span className="font-bold w-7 text-center text-xs">{cur.symbol}</span>
-                        <span>{cur.label}</span>
-                      </span>
-                      <span className="text-[10px] text-gray-400">{cur.code}</span>
-                    </button>
-                  ))}
+                  {CURRENCIES.map(function (cur) {
+                    return (
+                      <button key={cur.code} onClick={function () { changeCurr(cur.code); }}
+                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition " + (currency === cur.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700")}>
+                        <span className="flex items-center gap-2">
+                          <span className="font-bold w-7 text-center text-xs">{cur.symbol}</span>
+                          <span>{cur.label}</span>
+                        </span>
+                        <span className="text-[10px] text-gray-400">{cur.code}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -483,7 +492,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {user ? (
               <div className="relative" ref={userRef}>
                 <button
-                  onClick={() => { setShowUserMenu((v) => !v); setShowLangMenu(false); setShowCurrMenu(false); }}
+                  onClick={function () { setShowUserMenu(function (v) { return !v; }); setShowLangMenu(false); setShowCurrMenu(false); }}
                   className="flex flex-col items-center px-2 py-1.5 hover:bg-[#f0faf4] rounded-lg transition"
                 >
                   {avatarUrl ? (
@@ -520,13 +529,15 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                       { label: "Profile Settings", href: "/settings",  Icon: <IconSettings /> },
                       { label: "Orders",           href: "/orders",    Icon: <IconOrders />   },
                       { label: "Messages",         href: "/message",   Icon: <IconMessage />  },
-                    ].map((item) => (
-                      <Link key={item.label} href={item.href} onClick={() => setShowUserMenu(false)}
-                        className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
-                        <span className="text-gray-400">{item.Icon}</span>
-                        {item.label}
-                      </Link>
-                    ))}
+                    ].map(function (item) {
+                      return (
+                        <Link key={item.label} href={item.href} onClick={function () { setShowUserMenu(false); }}
+                          className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
+                          <span className="text-gray-400">{item.Icon}</span>
+                          {item.label}
+                        </Link>
+                      );
+                    })}
 
                     <div className="border-t border-gray-100 mt-1">
                       <button onClick={handleSignOut}
@@ -568,12 +579,14 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
             {/* Nav links */}
             <nav className="hidden md:flex items-center flex-1">
-              {navLinks.map((link) => (
-                <Link key={link.label} href={link.href}
-                  className="px-4 py-3 text-sm font-medium text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] transition whitespace-nowrap">
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map(function (link) {
+                return (
+                  <Link key={link.label} href={link.href}
+                    className="px-4 py-3 text-sm font-medium text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] transition whitespace-nowrap">
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right quick actions */}
@@ -593,17 +606,19 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         {/* ── Mobile menu ────────────────────────────────────────────────── */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link key={link.label} href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map(function (link) {
+              return (
+                <Link key={link.label} href={link.href}
+                  onClick={function () { setMobileMenuOpen(false); }}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
+                  {link.label}
+                </Link>
+              );
+            })}
             <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
               {user ? (
                 <>
-                  <Link href="/settings" onClick={() => setMobileMenuOpen(false)}
+                  <Link href="/settings" onClick={function () { setMobileMenuOpen(false); }}
                     className="w-full text-center py-2.5 rounded-lg text-sm font-semibold text-[#2e8b5a] border-2 border-[#2e8b5a] hover:bg-[#f0faf4] transition">
                     Profile Settings
                   </Link>
@@ -661,25 +676,25 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Marketplace</h4>
                 <ul className="space-y-2.5">
-                  {["Browse Products","Find Suppliers","Post RFQ","Trade Assurance","Categories"].map((item) => (
-                    <li key={item}><Link href="/marketplace" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                  ))}
+                  {["Browse Products","Find Suppliers","Post RFQ","Trade Assurance","Categories"].map(function (item) {
+                    return (<li key={item}><Link href="/marketplace" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>);
+                  })}
                 </ul>
               </div>
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">For Suppliers</h4>
                 <ul className="space-y-2.5">
-                  {["Become a Supplier","Seller Dashboard","Add Products","Pricing Plans","Verification"].map((item) => (
-                    <li key={item}><Link href="/auth/register?type=supplier" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                  ))}
+                  {["Become a Supplier","Seller Dashboard","Add Products","Pricing Plans","Verification"].map(function (item) {
+                    return (<li key={item}><Link href="/auth/register?type=supplier" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>);
+                  })}
                 </ul>
               </div>
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Company</h4>
                 <ul className="space-y-2.5">
-                  {["About Us","Contact","Help Center","Privacy Policy","Terms of Service"].map((item) => (
-                    <li key={item}><Link href="/about" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>
-                  ))}
+                  {["About Us","Contact","Help Center","Privacy Policy","Terms of Service"].map(function (item) {
+                    return (<li key={item}><Link href="/about" className="text-sm text-white/60 hover:text-white transition">{item}</Link></li>);
+                  })}
                 </ul>
               </div>
             </div>
