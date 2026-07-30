@@ -9,7 +9,7 @@ export async function getProducts() {
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
-  
+
   if (error) {
     console.error("Error fetching products:", error);
     return [];
@@ -23,7 +23,7 @@ export async function getProductById(id: string) {
     .select("*")
     .eq("id", id)
     .single();
-  
+
   if (error) {
     console.error("Error fetching product by ID:", error);
     return null;
@@ -37,7 +37,7 @@ export async function addProduct(product: any) {
     .insert([product])
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -59,7 +59,7 @@ export async function getProductsByOwner(email: string) {
     .from("products")
     .select("*")
     .eq("owner", email);
-  
+
   if (error) {
     console.error("Error fetching owner products:", error);
     return [];
@@ -72,25 +72,23 @@ export async function deleteProduct(id: string) {
     .from("products")
     .delete()
     .eq("id", id);
-  
+
   if (error) throw error;
 }
 
 /**
- * STORAGE OPERATIONS (IMAGE UPLOAD)
+ * STORAGE OPERATIONS
  */
 
 export async function uploadProductImage(file: File): Promise<string | null> {
   try {
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`; 
+    const fileName = `${crypto.randomUUID()}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-    // NOTE: bucket name corrected to remove trailing period.
-    // Rename the bucket in Supabase to "product-images" (no dot) to match.
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("product-images")
-      .upload(filePath, file);
+      .upload(filePath, file, { upsert: true });
 
     if (error) throw error;
 
@@ -105,6 +103,42 @@ export async function uploadProductImage(file: File): Promise<string | null> {
   }
 }
 
+export async function uploadProfileImage(file: File, userId: string): Promise<string | null> {
+  try {
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${userId}/avatar-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from("profile-images")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("profile-images")
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (err) {
+    console.error("Profile Image Upload Error:", err);
+    return null;
+  }
+}
+
+export async function updateProfileAvatar(userId: string, avatarUrl: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert({ id: userId, avatar_url: avatarUrl }, { onConflict: "id" })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 /**
  * DATABASE OPERATIONS - ORDERS
  */
@@ -114,7 +148,7 @@ export async function getOrders() {
     .from("orders")
     .select("*")
     .order("created_at", { ascending: false });
-  
+
   if (error) return [];
   return data;
 }
@@ -125,7 +159,7 @@ export async function getOrdersByBuyer(email: string) {
     .select("*")
     .eq("buyer", email)
     .order("created_at", { ascending: false });
-  
+
   if (error) {
     console.error("Error fetching buyer orders:", error);
     return [];
@@ -139,7 +173,7 @@ export async function getOrdersBySeller(email: string) {
     .select("*")
     .eq("seller", email)
     .order("created_at", { ascending: false });
-  
+
   if (error) {
     console.error("Error fetching seller orders:", error);
     return [];
@@ -154,11 +188,11 @@ export async function addOrder(order: any) {
       product_name: order.productName,
       buyer: order.buyer,
       seller: order.seller,
-      status: "pending"
+      status: "pending",
     }])
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -168,7 +202,7 @@ export async function updateOrder(id: string, updates: any) {
     .from("orders")
     .update(updates)
     .eq("id", id);
-  
+
   if (error) throw error;
 }
 
@@ -182,7 +216,7 @@ export async function submitInquiry(inquiry: any) {
     .insert([inquiry])
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -197,7 +231,7 @@ export async function getMyConversations(email: string) {
     .select("*")
     .or(`sender_email.eq.${email},receiver_email.eq.${email}`)
     .order("created_at", { ascending: false });
-  
+
   if (error) {
     console.error("Error fetching conversations:", error);
     return [];
@@ -211,7 +245,7 @@ export async function getMessagesBetween(emailA: string, emailB: string) {
     .select("*")
     .or(`and(sender_email.eq.${emailA},receiver_email.eq.${emailB}),and(sender_email.eq.${emailB},receiver_email.eq.${emailA})`)
     .order("created_at", { ascending: true });
-  
+
   if (error) {
     console.error("Error fetching messages:", error);
     return [];
@@ -226,13 +260,24 @@ export async function sendMessage(message: any) {
       sender_email: message.sender_email,
       receiver_email: message.receiver_email,
       content: message.content,
-      is_read: false
+      is_read: false,
     }])
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
+}
+
+export async function markMessagesAsRead(receiverEmail: string, senderEmail: string) {
+  const { error } = await supabase
+    .from("messages")
+    .update({ is_read: true })
+    .eq("receiver_email", receiverEmail)
+    .eq("sender_email", senderEmail)
+    .eq("is_read", false);
+
+  if (error) console.error("Error marking messages read:", error);
 }
 
 /**
@@ -248,7 +293,7 @@ export async function getParentCategories() {
     { id: "agriculture", name: "Agriculture" },
     { id: "machinery", name: "Machinery" },
     { id: "industrial", name: "Industrial" },
-    { id: "raw-materials", name: "Raw Materials" }
+    { id: "raw-materials", name: "Raw Materials" },
   ];
 }
 

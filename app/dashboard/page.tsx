@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { updateProfileAvatar, uploadProfileImage } from "@/lib/storage";
+
+const DEFAULT_AVATAR =
+  "https://ui-avatars.com/api/?name=Kora+User&background=2e8b5a&color=ffffff&size=160&bold=true";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(function () {
     async function checkUser() {
@@ -17,17 +23,45 @@ export default function DashboardPage() {
         router.push("/auth/login");
         return;
       }
+
       setUser(data.user);
       const { data: p } = await supabase
         .from("profiles")
         .select("full_name, company_name, avatar_url")
         .eq("id", data.user.id)
         .single();
+
       setProfile(p || null);
       setLoading(false);
     }
+
     checkUser();
   }, [router]);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    setUploadingAvatar(true);
+    try {
+      const avatarUrl = await uploadProfileImage(file, user.id);
+      if (!avatarUrl) {
+        alert("Could not upload profile picture. Please try again.");
+        return;
+      }
+
+      await updateProfileAvatar(user.id, avatarUrl);
+      setProfile(function (current: any) {
+        return { ...(current || {}), avatar_url: avatarUrl };
+      });
+    } catch (err) {
+      console.error("Profile image upload failed:", err);
+      alert("Could not update profile picture. Please try again.");
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   if (loading) {
     return (
@@ -37,11 +71,13 @@ export default function DashboardPage() {
     );
   }
 
-  // Only ever show the registered name — never fall back to the email address
   const displayName = profile?.full_name || profile?.company_name || "User";
+  const avatarSrc =
+    profile?.avatar_url ||
+    "https://ui-avatars.com/api/?name=" +
+      encodeURIComponent(displayName || "Kora User") +
+      "&background=2e8b5a&color=ffffff&size=160&bold=true";
 
-  // All rows now use the SAME shape: icon + single-line label + chevron.
-  // Descriptions removed so every row matches Manage Orders / Messenger height exactly.
   const menuItems = [
     { label: "Manage Orders", href: "/orders", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
     { label: "Messenger", href: "/message", icon: "M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" },
@@ -56,19 +92,51 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Profile row — matches the "My Alibaba" reference: avatar + registered name */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-100">
-        {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt={displayName} className="w-14 h-14 rounded-full object-cover" />
-        ) : (
-          <div className="w-14 h-14 rounded-full bg-[#2e8b5a] flex items-center justify-center text-white text-lg font-bold">
-            {displayName.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className="text-lg font-bold text-gray-900">{displayName}</span>
+      <div className="flex items-center gap-4 px-4 py-5 border-b border-gray-100">
+        <div className="relative shrink-0">
+          <img
+            src={avatarSrc || DEFAULT_AVATAR}
+            alt={displayName}
+            className="w-16 h-16 rounded-full object-cover bg-[#f0faf4] ring-2 ring-white shadow-sm"
+          />
+          <button
+            type="button"
+            onClick={function () { fileInputRef.current?.click(); }}
+            disabled={uploadingAvatar}
+            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2e8b5a] text-white border-2 border-white flex items-center justify-center shadow-sm hover:bg-[#1a4731] disabled:bg-gray-300 transition"
+            aria-label="Change profile picture"
+          >
+            {uploadingAvatar ? (
+              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h2l2-3h6l2 3h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            className="hidden"
+          />
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#2e8b5a]">Welcome back</p>
+          <h1 className="text-xl font-black text-gray-900 truncate">{displayName}</h1>
+          <button
+            type="button"
+            onClick={function () { fileInputRef.current?.click(); }}
+            className="mt-1 text-xs font-bold text-[#2e8b5a] hover:underline"
+          >
+            {profile?.avatar_url ? "Change profile picture" : "Upload profile picture"}
+          </button>
+        </div>
       </div>
 
-      {/* Single unified list — every row is icon + one line of text + chevron, same padding throughout */}
       <div>
         {menuItems.map(function (item) {
           return (

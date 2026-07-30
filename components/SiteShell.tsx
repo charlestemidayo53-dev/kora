@@ -314,7 +314,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       .channel("msg-badge")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages", filter: "receiver_email=eq." + user.email },
+        { event: "INSERT", schema: "public", table: "messages", filter: `receiver_email=eq.${user.email}` },
+        load
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `receiver_email=eq.${user.email}` },
         load
       )
       .subscribe();
