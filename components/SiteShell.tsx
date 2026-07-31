@@ -346,11 +346,14 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     window.location.href = "/";
   }
 
+  // Fixed: the homepage (HomePage.tsx) is where the real product search and
+  // filtering logic lives — /marketplace is just a redirect to "/". So this
+  // now sends the query to "/" via ?q=, which HomePage reads on load and uses
+  // in its existing filteredProducts logic (same as the working search bar).
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = "/marketplace?q=" + encodeURIComponent(searchQuery) + "&category=" + encodeURIComponent(searchCategory);
-    }
+    const query = searchQuery.trim();
+    window.location.href = query ? "/?q=" + encodeURIComponent(query) : "/";
   }
 
   const currentLang = LANGUAGES.find(function (l) { return l.code === language; }) || LANGUAGES[0];

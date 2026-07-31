@@ -106,17 +106,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[420px]">
 
-          {/* Mobile logo */}
-          <div className="flex lg:hidden items-center gap-3 mb-8">
-            <div className="w-9 h-9 bg-[#2e8b5a] rounded-xl flex items-center justify-center">
-              <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
-                <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
-                <path d="M13.5 20L27 8" stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-                <path d="M13.5 20L27 33" stroke="white" strokeWidth="4.5" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="font-black text-xl text-[#1a4731]">Kora</span>
-          </div>
+          {/* Mobile logo removed — clean, minimal top of form on mobile */}
 
           <h1 className="text-3xl font-black text-[#1a4731] mb-1">Welcome back</h1>
           <p className="text-gray-500 text-sm mb-8">

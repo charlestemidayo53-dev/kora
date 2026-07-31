@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { updateProfileAvatar, uploadProfileImage } from "@/lib/storage";
 
-const DEFAULT_AVATAR =
-  "https://ui-avatars.com/api/?name=Kora+User&background=2e8b5a&color=ffffff&size=160&bold=true";
-
 export default function DashboardPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -71,12 +68,7 @@ export default function DashboardPage() {
     );
   }
 
-  const displayName = profile?.full_name || profile?.company_name || "User";
-  const avatarSrc =
-    profile?.avatar_url ||
-    "https://ui-avatars.com/api/?name=" +
-      encodeURIComponent(displayName || "Kora User") +
-      "&background=2e8b5a&color=ffffff&size=160&bold=true";
+  const avatarUrl = profile?.avatar_url || null;
 
   const menuItems = [
     { label: "Manage Orders", href: "/orders", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" },
@@ -92,49 +84,33 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="flex items-center gap-4 px-4 py-5 border-b border-gray-100">
-        <div className="relative shrink-0">
-          <img
-            src={avatarSrc || DEFAULT_AVATAR}
-            alt={displayName}
-            className="w-16 h-16 rounded-full object-cover bg-[#f0faf4] ring-2 ring-white shadow-sm"
-          />
-          <button
-            type="button"
-            onClick={function () { fileInputRef.current?.click(); }}
-            disabled={uploadingAvatar}
-            className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2e8b5a] text-white border-2 border-white flex items-center justify-center shadow-sm hover:bg-[#1a4731] disabled:bg-gray-300 transition"
-            aria-label="Change profile picture"
-          >
-            {uploadingAvatar ? (
-              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h2l2-3h6l2 3h2a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            )}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarChange}
-            className="hidden"
-          />
-        </div>
+      {/* Simplified header: single avatar/icon button, no name or welcome text */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
+        <button
+          type="button"
+          onClick={function () { fileInputRef.current?.click(); }}
+          disabled={uploadingAvatar}
+          aria-label={avatarUrl ? "Change profile picture" : "Upload profile picture"}
+          className="relative w-12 h-12 rounded-full overflow-hidden bg-[#f0faf4] ring-1 ring-gray-200 flex items-center justify-center transition hover:ring-[#2e8b5a] disabled:opacity-60"
+        >
+          {uploadingAvatar ? (
+            <span className="w-4 h-4 border-2 border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+          ) : avatarUrl ? (
+            <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            <svg className="w-6 h-6 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          )}
+        </button>
 
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#2e8b5a]">Welcome back</p>
-          <h1 className="text-xl font-black text-gray-900 truncate">{displayName}</h1>
-          <button
-            type="button"
-            onClick={function () { fileInputRef.current?.click(); }}
-            className="mt-1 text-xs font-bold text-[#2e8b5a] hover:underline"
-          >
-            {profile?.avatar_url ? "Change profile picture" : "Upload profile picture"}
-          </button>
-        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleAvatarChange}
+          className="hidden"
+        />
       </div>
 
       <div>

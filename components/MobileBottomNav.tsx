@@ -33,6 +33,13 @@ const IconUser = () => (
 export default function MobileBottomNav({ user, msgCount }: { user: any; msgCount: number }) {
   const pathname = usePathname();
 
+  // Hide the entire bottom nav on any auth page (login, register, forgot
+  // password, etc.) so those pages stay focused on signing in/up with no
+  // Home/Categories/Messenger/Cart/My Kora navigation visible.
+  if (pathname?.startsWith("/auth")) {
+    return null;
+  }
+
   const tabs = [
     { label: "Home", href: "/", Icon: IconHome },
     { label: "Categories", href: "/categories", Icon: IconGrid },

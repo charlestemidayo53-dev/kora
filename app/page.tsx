@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getProducts, addOrder } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
@@ -54,6 +54,7 @@ const banners = [
 
 export default function HomePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,15 @@ export default function HomePage() {
 
     init();
   }, []);
+
+  // Picks up ?q= set by the top search bar in SiteShell (which now redirects
+  // to "/" with the query instead of "/marketplace"), and seeds the same
+  // `search` state the lower search bar already uses — so both bars run
+  // through the exact same filteredProducts logic below.
+  useEffect(function () {
+    const q = searchParams.get("q");
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   useEffect(function () {
     const timer = window.setInterval(function () {
