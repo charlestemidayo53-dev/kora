@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getProducts, addOrder } from "@/lib/storage";
+import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
+import { getProducts } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
+import { buildFlutterwaveConfig } from "@/lib/payments/flutterwave-client";
 
 type Product = {
   id?: string;
@@ -25,6 +27,9 @@ type Product = {
   description?: string;
 };
 
+// Expanded promotional hero slides — covers more of Kora's feature set than
+// the previous 3 (sourcing, escrow, adding products), now also spotlighting
+// verified suppliers, mobile trading, and nationwide agricultural reach.
 const banners = [
   {
     eyebrow: "Kora Sourcing",
@@ -43,12 +48,36 @@ const banners = [
     image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
   },
   {
+    eyebrow: "Trade On the Go",
+    title: "Run your business from your phone",
+    body: "Manage orders, chat with buyers, and track sales anywhere — Kora is built mobile-first.",
+    cta: "Open dashboard",
+    href: "/dashboard",
+    image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    eyebrow: "Verified Suppliers",
+    title: "Every supplier screened before listing",
+    body: "Trade with confidence — Kora verifies business details before sellers go live.",
+    cta: "Meet our suppliers",
+    href: "/suppliers",
+    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    eyebrow: "Nationwide Reach",
+    title: "From the farm to every Nigerian state",
+    body: "Source agricultural products and raw materials from sellers across all 36 states.",
+    cta: "Explore categories",
+    href: "/categories",
+    image: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
     eyebrow: "Seller Tools",
     title: "Show buyers what you have in stock",
     body: "List products with MOQ, units, location, and company details buyers need before ordering.",
     cta: "Add product",
     href: "/add-product",
-    image: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -74,6 +103,24 @@ function HomePageInner() {
   const [user, setUser] = useState<any>(null);
   const [activeBanner, setActiveBanner] = useState(0);
 
+  // Flutterwave checkout state — set once /api/payments/initiate returns,
+  // then the effect below opens the actual checkout modal. Kept separate
+  // from `buyingId` (which just drives the button's disabled/loading look).
+  const [payConfig, setPayConfig] = useState<any>(null);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+
+  const handleFlutterPayment = useFlutterwave(
+    payConfig || {
+      public_key: "",
+      tx_ref: "",
+      amount: 0,
+      currency: "NGN",
+      payment_options: "card",
+      customer: { email: "", name: "" },
+      customizations: {},
+    }
+  );
+
   useEffect(function () {
     async function init() {
       const { data } = await supabase.auth.getUser();
@@ -84,10 +131,9 @@ function HomePageInner() {
     init();
   }, []);
 
-  // Picks up ?q= set by the top search bar in SiteShell (which now redirects
-  // to "/" with the query instead of "/marketplace"), and seeds the same
-  // `search` state the lower search bar already uses — so both bars run
-  // through the exact same filteredProducts logic below.
+  // Picks up ?q= if ever linked to from elsewhere with a query param — this
+  // is now the site's one and only search bar (the duplicate top bar in
+  // SiteShell has been removed), so it's also the sole source of `search`.
   useEffect(function () {
     const q = searchParams.get("q");
     if (q) setSearch(q);
@@ -104,6 +150,41 @@ function HomePageInner() {
       window.clearInterval(timer);
     };
   }, []);
+
+  // Opens Flutterwave Checkout as soon as payConfig is set (right after
+  // /api/payments/initiate returns). Kept in an effect rather than called
+  // directly inside handleBuy because useFlutterwave's returned function
+  // is re-created on every render based on the *current* payConfig — so we
+  // wait for the state update (and resulting re-render) to land first,
+  // otherwise this would fire with the previous (stale) config.
+  useEffect(function () {
+    if (!payConfig || !pendingProductId) return;
+
+    handleFlutterPayment({
+      callback: async function (response: any) {
+        closePaymentModal();
+
+        if (response.status === "successful") {
+          await verifyPayment(response.transaction_id);
+        } else {
+          alert("Payment was not completed. Please try again.");
+        }
+
+        setPayConfig(null);
+        setPendingProductId(null);
+        setBuyingId(null);
+      },
+      onClose: function () {
+        // Buyer closed the checkout without completing payment — no order
+        // is created, matching "if payment fails or is cancelled, do not
+        // create an order."
+        setPayConfig(null);
+        setPendingProductId(null);
+        setBuyingId(null);
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payConfig, pendingProductId]);
 
   async function loadProducts() {
     try {
@@ -135,6 +216,12 @@ function HomePageInner() {
     });
   }, [products, search]);
 
+  // Replaces the old "create a pending order immediately" flow. Now:
+  // 1. Ask the server to initiate a payment (it re-fetches the real price
+  //    and generates a unique tx_ref — the client never supplies the amount).
+  // 2. Open Flutterwave Checkout with that server-issued tx_ref/amount.
+  // 3. Only after the server verifies the payment (see verifyPayment below)
+  //    does an order ever get created.
   async function handleBuy(product: Product) {
     if (!user) {
       router.push("/auth/login");
@@ -148,18 +235,59 @@ function HomePageInner() {
 
     setBuyingId(product.id || null);
     try {
-      await addOrder({
-        productName: product.name,
-        buyer: user.email || "Guest",
-        seller: product.owner,
-        status: "pending",
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        router.push("/auth/login");
+        setBuyingId(null);
+        return;
+      }
+
+      const res = await fetch("/api/payments/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, accessToken }),
       });
-      alert("Order placed successfully! The seller will contact you.");
-    } catch (err) {
+      const initData = await res.json();
+      if (!res.ok) throw new Error(initData.error || "Could not start payment.");
+
+      setPendingProductId(product.id || null);
+      setPayConfig(
+        buildFlutterwaveConfig({
+          txRef: initData.tx_ref,
+          amount: initData.amount,
+          currency: initData.currency,
+          customerEmail: initData.customer.email,
+          customerName: initData.customer.name,
+          description: "Payment for " + product.name,
+        })
+      );
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to place order. Please try again.");
-    } finally {
+      alert(err.message || "Failed to start payment. Please try again.");
       setBuyingId(null);
+    }
+  }
+
+  // Called from the checkout success callback. The server re-verifies with
+  // Flutterwave using the secret key and only then creates the order.
+  async function verifyPayment(transactionId: number) {
+    try {
+      const res = await fetch("/api/payments/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transaction_id: transactionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Payment verification failed.");
+
+      alert("Payment successful! Your order has been placed.");
+    } catch (err: any) {
+      console.error(err);
+      alert(
+        err.message ||
+          "We couldn't confirm your payment. If you were charged, please contact support."
+      );
     }
   }
 
@@ -197,9 +325,11 @@ function HomePageInner() {
         </div>
       </section>
 
+      {/* Promotional hero — expanded slide set, slightly shorter than before
+          so more of the page is visible without scrolling. */}
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
-          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[210px] sm:min-h-[340px] bg-[#173f2a]">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#173f2a]">
             {banners.map(function (banner, index) {
               const isActive = index === activeBanner;
               return (
@@ -210,10 +340,10 @@ function HomePageInner() {
                   <img src={banner.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
                   <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 max-w-2xl text-white">
-                    <p className="text-xs sm:text-sm font-bold uppercase tracking-wide text-[#c7f5d8] mb-2">{banner.eyebrow}</p>
-                    <h1 className="text-2xl sm:text-5xl font-black leading-tight">{banner.title}</h1>
-                    <p className="mt-3 text-sm sm:text-lg text-white/85 max-w-xl">{banner.body}</p>
-                    <a href={banner.href} className="mt-5 inline-flex w-fit items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-bold text-[#1a4731] hover:bg-[#f0faf4] transition">
+                    <p className="text-xs sm:text-sm font-bold uppercase tracking-wide text-[#c7f5d8] mb-1.5">{banner.eyebrow}</p>
+                    <h1 className="text-xl sm:text-4xl font-black leading-tight">{banner.title}</h1>
+                    <p className="mt-2 text-xs sm:text-base text-white/85 max-w-xl">{banner.body}</p>
+                    <a href={banner.href} className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#1a4731] hover:bg-[#f0faf4] transition">
                       {banner.cta}
                     </a>
                   </div>
@@ -221,7 +351,7 @@ function HomePageInner() {
               );
             })}
 
-            <div className="absolute bottom-4 left-5 sm:left-10 flex gap-2">
+            <div className="absolute bottom-3 left-5 sm:left-10 flex gap-2">
               {banners.map(function (_, index) {
                 return (
                   <button
@@ -229,7 +359,7 @@ function HomePageInner() {
                     type="button"
                     aria-label={"Show banner " + (index + 1)}
                     onClick={function () { setActiveBanner(index); }}
-                    className={"h-2 rounded-full transition-all " + (index === activeBanner ? "w-8 bg-white" : "w-2 bg-white/50")}
+                    className={"h-1.5 rounded-full transition-all " + (index === activeBanner ? "w-7 bg-white" : "w-1.5 bg-white/50")}
                   />
                 );
               })}
@@ -239,14 +369,6 @@ function HomePageInner() {
       </section>
 
       <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
-        <div className="flex items-end justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900">Marketplace Products</h2>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">Compare suppliers, stock, MOQ, and location before you order.</p>
-          </div>
-          <span className="hidden sm:inline text-sm font-semibold text-gray-500">{filteredProducts.length} products</span>
-        </div>
-
         {loading && (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="w-16 h-16 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin mb-4" />

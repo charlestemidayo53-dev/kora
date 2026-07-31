@@ -257,8 +257,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
   const [user, setUser]                       = useState<any>(null);
   const [profile, setProfile]                 = useState<any>(null);
-  const [searchQuery, setSearchQuery]         = useState("");
-  const [searchCategory, setSearchCategory]   = useState("All Categories");
   const [mobileMenuOpen, setMobileMenuOpen]   = useState(false);
 
   const [language, setLanguage]               = useState("en");
@@ -346,26 +344,17 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     window.location.href = "/";
   }
 
-  // Fixed: the homepage (HomePage.tsx) is where the real product search and
-  // filtering logic lives — /marketplace is just a redirect to "/". So this
-  // now sends the query to "/" via ?q=, which HomePage reads on load and uses
-  // in its existing filteredProducts logic (same as the working search bar).
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const query = searchQuery.trim();
-    window.location.href = query ? "/?q=" + encodeURIComponent(query) : "/";
-  }
-
   const currentLang = LANGUAGES.find(function (l) { return l.code === language; }) || LANGUAGES[0];
   const currentCurr = CURRENCIES.find(function (c) { return c.code === currency; }) || CURRENCIES[0];
   const initials     = getInitials(profile, user);
   const firstName    = getFirstName(profile, user);
   const avatarUrl    = profile?.avatar_url || null;
 
-  // On mobile, the top row only has content when isHome (the search bar).
-  // On every other page there's nothing to show there on mobile, so it's hidden
-  // to remove the blank gap above the page content. Desktop keeps it always.
-  const topRowClass = (isHome ? "flex" : "hidden md:flex") + " max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center gap-3";
+  // The top row now only ever holds the desktop icon cluster (language,
+  // currency, messages, orders, cart, account) since the duplicate search
+  // bar that used to live here on the home page has been removed — the one
+  // search bar on HomePage.tsx is now the site's only search bar.
+  const topRowClass = "hidden md:flex max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center justify-end gap-3";
 
   return (
     <>
@@ -374,33 +363,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
         {/* ── Top row: Logo + Search + Icons ─────────────────────────────── */}
         <div className={topRowClass}>
-
-          {/* Search bar */}
-          {isHome && (
-            <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
-              <div className="flex rounded-xl border-2 border-[#2e8b5a] overflow-hidden h-11 shadow-sm focus-within:shadow-md focus-within:border-[#1a4731] transition-all">
-                <select
-                  value={searchCategory}
-                  onChange={function (e) { setSearchCategory(e.target.value); }}
-                  className="bg-[#f0faf4] border-r-2 border-[#2e8b5a] text-[11px] font-semibold text-[#1a4731] pl-3 pr-2 outline-none cursor-pointer flex-shrink-0 hidden sm:block"
-                >
-                  <option>All Categories</option>
-                  {categories.map(function (c) { return <option key={c.slug}>{c.name}</option>; })}
-                </select>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={function (e) { setSearchQuery(e.target.value); }}
-                  placeholder="Search products, suppliers, categories..."
-                  className="flex-1 px-4 text-sm outline-none bg-white placeholder-gray-400 min-w-0"
-                />
-                <button type="submit" className="bg-[#2e8b5a] hover:bg-[#1a4731] transition px-5 flex items-center justify-center gap-2 flex-shrink-0">
-                  <IconSearch />
-                  <span className="text-white text-sm font-bold hidden md:inline">Search</span>
-                </button>
-              </div>
-            </form>
-          )}
 
           {/* ── Right side icons (desktop only — mobile uses bottom nav) ──── */}
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">

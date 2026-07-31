@@ -207,6 +207,47 @@ export async function updateOrder(id: string, updates: any) {
 }
 
 /**
+ * PAYMENTS — Flutterwave integration
+ *
+ * Added alongside addOrder() rather than replacing it, so anything else
+ * still calling addOrder() for a non-payment flow is untouched.
+ * createPaidOrder() must only ever be called from the server (via
+ * lib/payments/fulfill.ts), after Flutterwave verification has already
+ * succeeded — never directly from client code.
+ */
+
+type CreatePaidOrderInput = {
+  productId: string;
+  productName: string;
+  buyer: string;
+  seller: string;
+  amount: number;
+  txRef: string;
+  flwTransactionId: string;
+};
+
+export async function createPaidOrder(input: CreatePaidOrderInput) {
+  const { data, error } = await supabase
+    .from("orders")
+    .insert([{
+      product_id: input.productId,
+      product_name: input.productName,
+      buyer: input.buyer,
+      seller: input.seller,
+      amount: input.amount,
+      status: "paid",
+      payment_status: "paid",
+      tx_ref: input.txRef,
+      flw_transaction_id: input.flwTransactionId,
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * DATABASE OPERATIONS - INQUIRIES
  */
 
