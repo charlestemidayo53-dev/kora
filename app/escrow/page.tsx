@@ -15,8 +15,6 @@ type Order = {
   escrow_status?: "holding" | "released" | "refunded" | null;
 };
 
-const stepClass = "flex items-center gap-3 p-4 rounded-xl border transition-all";
-
 export default function EscrowPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -81,20 +79,20 @@ export default function EscrowPage() {
   }
 
   const buyerTabClass = activeTab === "buyer"
-    ? "flex-1 py-3 text-sm font-semibold text-[#2e8b5a] border-b-2 border-[#2e8b5a] bg-[#f0faf4] transition-all"
-    : "flex-1 py-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all";
+    ? "flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-[#2e8b5a] border-b-2 border-[#2e8b5a] bg-[#f0faf4] transition-all"
+    : "flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all";
 
   const sellerTabClass = activeTab === "seller"
-    ? "flex-1 py-3 text-sm font-semibold text-[#2e8b5a] border-b-2 border-[#2e8b5a] bg-[#f0faf4] transition-all"
-    : "flex-1 py-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all";
+    ? "flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-[#2e8b5a] border-b-2 border-[#2e8b5a] bg-[#f0faf4] transition-all"
+    : "flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all";
 
   const paystackClass = paymentMethod === "paystack"
-    ? "flex items-center gap-3 p-4 rounded-xl border-2 border-[#2e8b5a] bg-[#f0faf4] cursor-pointer transition-all"
-    : "flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 bg-white cursor-pointer hover:border-gray-300 transition-all";
+    ? "flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-[#2e8b5a] bg-[#f0faf4] cursor-pointer transition-all"
+    : "flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-gray-200 bg-white cursor-pointer hover:border-gray-300 transition-all";
 
   const flutterwaveClass = paymentMethod === "flutterwave"
-    ? "flex items-center gap-3 p-4 rounded-xl border-2 border-[#2e8b5a] bg-[#f0faf4] cursor-pointer transition-all"
-    : "flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200 bg-white cursor-pointer hover:border-gray-300 transition-all";
+    ? "flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-[#2e8b5a] bg-[#f0faf4] cursor-pointer transition-all"
+    : "flex items-center gap-3 p-3 sm:p-4 rounded-xl border-2 border-gray-200 bg-white cursor-pointer hover:border-gray-300 transition-all";
 
   const statusBadge = (status: string) => {
     if (status === "pending") return "bg-amber-100 text-amber-700";
@@ -122,58 +120,58 @@ export default function EscrowPage() {
 
       {/* Nav */}
       <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#2e8b5a] rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#2e8b5a] rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-[#1a4731]">Kora</span>
+            <span className="text-base sm:text-lg font-bold text-[#1a4731]">Kora</span>
           </div>
-          <div className="flex items-center gap-3">
-            <a href="/dashboard" className="text-sm text-gray-600 hover:text-[#2e8b5a] font-medium transition">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <a href="/dashboard" className="text-xs sm:text-sm text-gray-600 hover:text-[#2e8b5a] font-medium transition">
               Dashboard
             </a>
-            <a href="/marketplace" className="text-sm text-gray-600 hover:text-[#2e8b5a] font-medium transition">
+            <a href="/" className="text-xs sm:text-sm text-gray-600 hover:text-[#2e8b5a] font-medium transition">
               Marketplace
             </a>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
         {/* Header Banner */}
-        <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] rounded-3xl p-8 mb-10 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full translate-x-16 -translate-y-16 pointer-events-none" />
+        <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] rounded-2xl sm:rounded-3xl p-5 sm:p-8 mb-6 sm:mb-10 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 sm:w-48 h-32 sm:h-48 bg-white opacity-5 rounded-full translate-x-10 sm:translate-x-16 -translate-y-10 sm:-translate-y-16 pointer-events-none" />
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <span className="text-green-200 text-sm font-semibold uppercase tracking-wide">Secure Escrow</span>
+              <span className="text-green-200 text-xs sm:text-sm font-semibold uppercase tracking-wide">Secure Escrow</span>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Escrow Payments</h1>
-            <p className="text-green-100 text-sm max-w-lg">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Escrow Payments</h1>
+            <p className="text-green-100 text-xs sm:text-sm max-w-lg">
               Your money is held securely until you confirm delivery. Protected by Kora's escrow system — pay via Paystack or Flutterwave.
             </p>
 
             {/* How it works steps */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mt-5 sm:mt-6">
               {[
                 { step: "1", label: "Seller Accepts Order" },
                 { step: "2", label: "Buyer Pays to Escrow" },
                 { step: "3", label: "Seller Delivers Goods" },
                 { step: "4", label: "Funds Released to Seller" },
               ].map((s) => (
-                <div key={s.step} className="bg-white/10 rounded-xl p-3 text-center">
-                  <div className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 text-xs font-bold">
+                <div key={s.step} className="bg-white/10 rounded-xl p-2.5 sm:p-3 text-center">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-1.5 sm:mb-2 text-[11px] sm:text-xs font-bold">
                     {s.step}
                   </div>
-                  <p className="text-xs text-green-100">{s.label}</p>
+                  <p className="text-[10px] sm:text-xs text-green-100 leading-tight">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -181,56 +179,56 @@ export default function EscrowPage() {
         </div>
 
         {/* Escrow Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="w-10 h-10 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-gray-100">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-2 sm:mb-3">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <div className="text-2xl font-bold text-[#1a4731]">{orders.length}</div>
-            <div className="text-xs text-gray-500 mt-1">Total Orders</div>
+            <div className="text-xl sm:text-2xl font-bold text-[#1a4731]">{orders.length}</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">Total Orders</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-gray-100">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-50 rounded-xl flex items-center justify-center mb-2 sm:mb-3">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-xl sm:text-2xl font-bold text-amber-600">
               {orders.filter((o) => o.status === "accepted").length}
             </div>
-            <div className="text-xs text-gray-500 mt-1">Awaiting Payment</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">Awaiting Payment</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-gray-100">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-50 rounded-xl flex items-center justify-center mb-2 sm:mb-3">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">
               {orders.filter((o) => o.status === "paid").length}
             </div>
-            <div className="text-xs text-gray-500 mt-1">In Escrow</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">In Escrow</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <div className="w-10 h-10 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-gray-100">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-[#f0faf4] rounded-xl flex items-center justify-center mb-2 sm:mb-3">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div className="text-2xl font-bold text-[#2e8b5a]">
+            <div className="text-xl sm:text-2xl font-bold text-[#2e8b5a]">
               {orders.filter((o) => o.status === "completed").length}
             </div>
-            <div className="text-xs text-gray-500 mt-1">Completed</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">Completed</div>
           </div>
         </div>
 
         {/* Orders Card */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
 
           {/* Tabs */}
           <div className="flex border-b border-gray-100">
@@ -242,48 +240,48 @@ export default function EscrowPage() {
             </button>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {orders.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 bg-[#f0faf4] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center py-12 sm:py-16">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0faf4] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-gray-700 mb-1">No orders yet</h3>
-                <p className="text-gray-400 text-sm mb-6">
+                <h3 className="text-base sm:text-lg font-bold text-gray-700 mb-1">No orders yet</h3>
+                <p className="text-gray-400 text-xs sm:text-sm mb-6 px-4">
                   {activeTab === "buyer" ? "Browse the marketplace and place your first order." : "Your accepted orders will appear here."}
                 </p>
-                <a href="/marketplace" className="bg-[#2e8b5a] text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-[#1a4731] transition inline-block">
+                <a href="/" className="bg-[#2e8b5a] text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold hover:bg-[#1a4731] transition inline-block">
                   Go to Marketplace
                 </a>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="border border-gray-100 rounded-2xl p-5 hover:shadow-sm transition"
+                    className="border border-gray-100 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-sm transition"
                   >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-gray-800">{order.productName}</h3>
-                          <span className={"px-3 py-1 rounded-full text-xs font-semibold " + statusBadge(order.status)}>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+                          <h3 className="font-bold text-gray-800 text-sm sm:text-base">{order.productName}</h3>
+                          <span className={"px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold " + statusBadge(order.status)}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-500 space-y-1">
+                        <div className="text-xs sm:text-sm text-gray-500 space-y-1">
                           {activeTab === "buyer" ? (
-                            <p>Seller: <span className="font-medium text-gray-700">{order.seller}</span></p>
+                            <p className="truncate">Seller: <span className="font-medium text-gray-700">{order.seller}</span></p>
                           ) : (
-                            <p>Buyer: <span className="font-medium text-gray-700">{order.buyer}</span></p>
+                            <p className="truncate">Buyer: <span className="font-medium text-gray-700">{order.buyer}</span></p>
                           )}
                         </div>
 
                         {/* Escrow progress bar */}
                         <div className="mt-3">
-                          <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                          <div className="flex items-center gap-2 text-[10px] sm:text-xs text-gray-400 mb-1">
                             <span className={order.status !== "pending" ? "text-[#2e8b5a] font-semibold" : ""}>Accepted</span>
                             <div className="flex-1 h-1 bg-gray-100 rounded-full">
                               <div
@@ -303,24 +301,24 @@ export default function EscrowPage() {
                         </div>
                       </div>
 
-                      {/* Action buttons — buyer only sees Pay button on accepted orders */}
+                      {/* Action buttons — full width on mobile, auto width on desktop */}
                       {activeTab === "buyer" && order.status === "accepted" && (
                         <button
                           onClick={() => openPayModal(order)}
-                          className="bg-[#2e8b5a] hover:bg-[#1a4731] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap"
+                          className="w-full md:w-auto bg-[#2e8b5a] hover:bg-[#1a4731] text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap"
                         >
                           Pay to Escrow
                         </button>
                       )}
 
                       {activeTab === "buyer" && order.status === "paid" && (
-                        <div className="bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2.5 rounded-xl text-sm font-semibold">
+                        <div className="w-full md:w-auto text-center bg-purple-50 border border-purple-200 text-purple-700 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
                           Funds in Escrow
                         </div>
                       )}
 
                       {activeTab === "seller" && order.status === "paid" && (
-                        <div className="bg-[#f0faf4] border border-[#c8e6d4] text-[#2e8b5a] px-4 py-2.5 rounded-xl text-sm font-semibold">
+                        <div className="w-full md:w-auto text-center bg-[#f0faf4] border border-[#c8e6d4] text-[#2e8b5a] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
                           Awaiting Delivery Confirm
                         </div>
                       )}
@@ -335,37 +333,37 @@ export default function EscrowPage() {
 
       {/* Payment Modal */}
       {showPayModal && selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 py-6 overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden my-auto">
 
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] p-6 text-white">
+            <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] p-5 sm:p-6 text-white">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Pay to Escrow</h2>
+                <h2 className="text-lg sm:text-xl font-bold">Pay to Escrow</h2>
                 <button
                   onClick={() => setShowPayModal(false)}
-                  className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition"
+                  className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <p className="text-green-100 text-sm mt-1">
+              <p className="text-green-100 text-xs sm:text-sm mt-1 truncate">
                 {selectedOrder.productName}
               </p>
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
               {paymentSuccess ? (
-                <div className="text-center py-6">
-                  <div className="w-16 h-16 bg-[#f0faf4] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center py-4 sm:py-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f0faf4] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">Payment Successful</h3>
-                  <p className="text-gray-500 text-sm mb-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Payment Successful</h3>
+                  <p className="text-gray-500 text-xs sm:text-sm mb-6">
                     Your funds are now held securely in escrow. They will be released to the seller once you confirm delivery.
                   </p>
                   <button
@@ -376,11 +374,11 @@ export default function EscrowPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
 
                   {/* Amount */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Payment Amount (N)
                     </label>
                     <input
@@ -394,20 +392,20 @@ export default function EscrowPage() {
 
                   {/* Payment Method */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-3">
                       Payment Method
                     </label>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                       <div onClick={() => setPaymentMethod("paystack")} className={paystackClass}>
-                        <div className="w-10 h-10 bg-[#00c3f7] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#00c3f7] rounded-lg flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-black text-xs">PS</span>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-800 text-sm">Paystack</p>
-                          <p className="text-xs text-gray-500">Cards, bank transfer, USSD</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-800 text-xs sm:text-sm">Paystack</p>
+                          <p className="text-[10px] sm:text-xs text-gray-500">Cards, bank transfer, USSD</p>
                         </div>
                         {paymentMethod === "paystack" && (
-                          <div className="ml-auto w-5 h-5 bg-[#2e8b5a] rounded-full flex items-center justify-center">
+                          <div className="ml-auto w-5 h-5 bg-[#2e8b5a] rounded-full flex items-center justify-center flex-shrink-0">
                             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
@@ -416,15 +414,15 @@ export default function EscrowPage() {
                       </div>
 
                       <div onClick={() => setPaymentMethod("flutterwave")} className={flutterwaveClass}>
-                        <div className="w-10 h-10 bg-[#f5a623] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#f5a623] rounded-lg flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-black text-xs">FW</span>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-800 text-sm">Flutterwave</p>
-                          <p className="text-xs text-gray-500">Cards, mobile money, crypto</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-800 text-xs sm:text-sm">Flutterwave</p>
+                          <p className="text-[10px] sm:text-xs text-gray-500">Cards, mobile money, crypto</p>
                         </div>
                         {paymentMethod === "flutterwave" && (
-                          <div className="ml-auto w-5 h-5 bg-[#2e8b5a] rounded-full flex items-center justify-center">
+                          <div className="ml-auto w-5 h-5 bg-[#2e8b5a] rounded-full flex items-center justify-center flex-shrink-0">
                             <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
@@ -435,8 +433,8 @@ export default function EscrowPage() {
                   </div>
 
                   {/* Escrow notice */}
-                  <div className="bg-[#f0faf4] border border-[#c8e6d4] rounded-xl p-4">
-                    <div className="flex items-start gap-3">
+                  <div className="bg-[#f0faf4] border border-[#c8e6d4] rounded-xl p-3.5 sm:p-4">
+                    <div className="flex items-start gap-2.5 sm:gap-3">
                       <svg className="w-5 h-5 text-[#2e8b5a] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
@@ -453,14 +451,14 @@ export default function EscrowPage() {
                   <button
                     onClick={handleMockPayment}
                     disabled={!amount || payingId === selectedOrder.id}
-                    className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-4 rounded-xl font-semibold transition"
+                    className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 sm:py-4 rounded-xl text-sm sm:text-base font-semibold transition"
                   >
                     {payingId === selectedOrder.id
                       ? "Processing Payment..."
                       : "Pay N" + (amount || "0") + " via " + (paymentMethod === "paystack" ? "Paystack" : "Flutterwave")}
                   </button>
 
-                  <p className="text-xs text-gray-400 text-center">
+                  <p className="text-[10px] sm:text-xs text-gray-400 text-center">
                     This is a demo payment. Real integration with {paymentMethod === "paystack" ? "Paystack" : "Flutterwave"} coming soon.
                   </p>
                 </div>
@@ -470,7 +468,7 @@ export default function EscrowPage() {
         </div>
       )}
 
-      <div className="text-center py-8 text-xs text-gray-400 mt-10">
+      <div className="text-center py-6 sm:py-8 text-xs text-gray-400 mt-6 sm:mt-10">
         2025 Kora Marketplace · Secure Escrow Payments
       </div>
     </div>
