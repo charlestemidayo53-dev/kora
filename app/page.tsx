@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProducts, addOrder } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +53,18 @@ const banners = [
 ];
 
 export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f7f6]">
+        <div className="w-12 h-12 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <HomePageInner />
+    </Suspense>
+  );
+}
+
+function HomePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
