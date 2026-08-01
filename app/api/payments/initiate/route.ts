@@ -1,11 +1,10 @@
-// app/api/payments/initiate/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getProductById } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   try {
-    const { productId, accessToken } = await req.json();
+    const { productId, accessToken, quantity } = await req.json();
 
     if (!productId || !accessToken) {
       return NextResponse.json(
@@ -14,16 +13,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate the buyer's session server-side — never trust a client-sent
-    // email/name for who's paying.
+    const qty = Number(quantity) > 0 ? Number(quantity) : 1;
+
     const { data: userData, error: userError } = await supabase.auth.getUser(accessToken);
     if (userError || !userData?.user) {
       return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
     }
     const user = userData.user;
 
-    // Re-fetch the product server-side — the amount charged is always the
-    // current DB price, never a value the client could have sent us.
     const product = await getProductById(productId);
     if (!product) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
@@ -36,14 +33,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const amount = Number(product.price);
-    if (!amount || amount <= 0) {
+    const unitPrice = Number(product.price);
+    if (!unitPrice || unitPrice <= 0) {
       return NextResponse.json(
         { error: "This product has no valid price set." },
         { status: 400 }
       );
     }
 
+    const amount = unitPrice * qty;
     const txRef = `kora_${crypto.randomUUID()}`;
 
     const { data: payment, error: insertError } = await supabase
@@ -56,6 +54,7 @@ export async function POST(req: NextRequest) {
           buyer_email: user.email,
           seller: product.owner,
           amount,
+          quantity: qty,
           currency: "NGN",
           status: "initiated",
         },

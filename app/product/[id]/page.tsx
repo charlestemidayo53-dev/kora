@@ -112,28 +112,14 @@ export default function ProductDetailPage({
       setSubmitting(false);
     }
   }
-
-  async function handleBuy() {
+  
+  function handleBuy() {
     if (!user) {
       router.push("/auth/login");
       return;
     }
-    if (!product) return;
-    setBuying(true);
-    try {
-      await addOrder({
-        productName: product.name,
-        buyer: user.email,
-        seller: product.seller || product.owner,
-        status: "pending",
-      });
-      alert("Order placed successfully! The seller will contact you.");
-      router.push("/orders");
-    } catch (err) {
-      alert("Failed to place order. Please try again.");
-    } finally {
-      setBuying(false);
-    }
+    if (!product?.id) return;
+    router.push(`/order-review/${product.id}`);
   }
 
   if (loading) {

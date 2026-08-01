@@ -2,10 +2,8 @@
 
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { getProducts } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
-import { buildFlutterwaveConfig } from "@/lib/payments/flutterwave-client";
 
 type Product = {
   id?: string;
@@ -27,9 +25,6 @@ type Product = {
   description?: string;
 };
 
-// Expanded promotional hero slides — covers more of Kora's feature set than
-// the previous 3 (sourcing, escrow, adding products), now also spotlighting
-// verified suppliers, mobile trading, and nationwide agricultural reach.
 const banners = [
   {
     eyebrow: "Kora Sourcing",
@@ -99,27 +94,8 @@ function HomePageInner() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [buyingId, setBuyingId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [activeBanner, setActiveBanner] = useState(0);
-
-  // Flutterwave checkout state — set once /api/payments/initiate returns,
-  // then the effect below opens the actual checkout modal. Kept separate
-  // from `buyingId` (which just drives the button's disabled/loading look).
-  const [payConfig, setPayConfig] = useState<any>(null);
-  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
-
-  const handleFlutterPayment = useFlutterwave(
-    payConfig || {
-      public_key: "",
-      tx_ref: "",
-      amount: 0,
-      currency: "NGN",
-      payment_options: "card",
-      customer: { email: "", name: "" },
-      customizations: {},
-    }
-  );
 
   useEffect(function () {
     async function init() {
@@ -131,9 +107,6 @@ function HomePageInner() {
     init();
   }, []);
 
-  // Picks up ?q= if ever linked to from elsewhere with a query param — this
-  // is now the site's one and only search bar (the duplicate top bar in
-  // SiteShell has been removed), so it's also the sole source of `search`.
   useEffect(function () {
     const q = searchParams.get("q");
     if (q) setSearch(q);
@@ -150,41 +123,6 @@ function HomePageInner() {
       window.clearInterval(timer);
     };
   }, []);
-
-  // Opens Flutterwave Checkout as soon as payConfig is set (right after
-  // /api/payments/initiate returns). Kept in an effect rather than called
-  // directly inside handleBuy because useFlutterwave's returned function
-  // is re-created on every render based on the *current* payConfig — so we
-  // wait for the state update (and resulting re-render) to land first,
-  // otherwise this would fire with the previous (stale) config.
-  useEffect(function () {
-    if (!payConfig || !pendingProductId) return;
-
-    handleFlutterPayment({
-      callback: async function (response: any) {
-        closePaymentModal();
-
-        if (response.status === "successful") {
-          await verifyPayment(response.transaction_id);
-        } else {
-          alert("Payment was not completed. Please try again.");
-        }
-
-        setPayConfig(null);
-        setPendingProductId(null);
-        setBuyingId(null);
-      },
-      onClose: function () {
-        // Buyer closed the checkout without completing payment — no order
-        // is created, matching "if payment fails or is cancelled, do not
-        // create an order."
-        setPayConfig(null);
-        setPendingProductId(null);
-        setBuyingId(null);
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payConfig, pendingProductId]);
 
   async function loadProducts() {
     try {
@@ -216,79 +154,19 @@ function HomePageInner() {
     });
   }, [products, search]);
 
-  // Replaces the old "create a pending order immediately" flow. Now:
-  // 1. Ask the server to initiate a payment (it re-fetches the real price
-  //    and generates a unique tx_ref — the client never supplies the amount).
-  // 2. Open Flutterwave Checkout with that server-issued tx_ref/amount.
-  // 3. Only after the server verifies the payment (see verifyPayment below)
-  //    does an order ever get created.
-  async function handleBuy(product: Product) {
+  // "Order Now" no longer creates anything or opens Flutterwave directly.
+  // It only sends the buyer to the Order Review page, where quantity is
+  // chosen and "Pay Now" is what actually starts the Flutterwave flow.
+  function handleBuy(product: Product) {
     if (!user) {
       router.push("/auth/login");
       return;
     }
-
     if (user.email === product.owner) {
       alert("You cannot buy your own product!");
       return;
     }
-
-    setBuyingId(product.id || null);
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) {
-        router.push("/auth/login");
-        setBuyingId(null);
-        return;
-      }
-
-      const res = await fetch("/api/payments/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: product.id, accessToken }),
-      });
-      const initData = await res.json();
-      if (!res.ok) throw new Error(initData.error || "Could not start payment.");
-
-      setPendingProductId(product.id || null);
-      setPayConfig(
-        buildFlutterwaveConfig({
-          txRef: initData.tx_ref,
-          amount: initData.amount,
-          currency: initData.currency,
-          customerEmail: initData.customer.email,
-          customerName: initData.customer.name,
-          description: "Payment for " + product.name,
-        })
-      );
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message || "Failed to start payment. Please try again.");
-      setBuyingId(null);
-    }
-  }
-
-  // Called from the checkout success callback. The server re-verifies with
-  // Flutterwave using the secret key and only then creates the order.
-  async function verifyPayment(transactionId: number) {
-    try {
-      const res = await fetch("/api/payments/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transaction_id: transactionId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Payment verification failed.");
-
-      alert("Payment successful! Your order has been placed.");
-    } catch (err: any) {
-      console.error(err);
-      alert(
-        err.message ||
-          "We couldn't confirm your payment. If you were charged, please contact support."
-      );
-    }
+    router.push(`/order-review/${product.id}`);
   }
 
   function stopCardNav(e: React.MouseEvent) {
@@ -305,7 +183,7 @@ function HomePageInner() {
     "flex-1 text-center bg-white text-[#2e8b5a] border border-[#2e8b5a] py-2.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#f0faf4] transition";
 
   const buyBtnClass =
-    "flex-1 bg-[#2e8b5a] text-white py-2.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#1a4731] transition disabled:bg-gray-300 disabled:cursor-not-allowed";
+    "flex-1 bg-[#2e8b5a] text-white py-2.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#1a4731] transition";
 
   return (
     <div className="min-h-screen bg-[#f5f7f6]">
@@ -325,8 +203,6 @@ function HomePageInner() {
         </div>
       </section>
 
-      {/* Promotional hero — expanded slide set, slightly shorter than before
-          so more of the page is visible without scrolling. */}
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
           <div className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#173f2a]">
@@ -453,8 +329,8 @@ function HomePageInner() {
                       <a href={"/message?to=" + encodeURIComponent(product.owner)} onClick={stopCardNav} className={messageBtnClass}>
                         Message
                       </a>
-                      <button onClick={function (e) { stopCardNav(e); handleBuy(product); }} disabled={buyingId === product.id} className={buyBtnClass}>
-                        {buyingId === product.id ? "..." : "Order"}
+                      <button onClick={function (e) { stopCardNav(e); handleBuy(product); }} className={buyBtnClass}>
+                        Order
                       </button>
                     </div>
                   </div>
