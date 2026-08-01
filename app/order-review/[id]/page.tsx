@@ -71,25 +71,36 @@ export default function OrderReviewPage({
   const total = unitPrice * qty;
 
   async function handlePayNow() {
+    console.log("1. Pay button clicked");
+
     if (!product || !flwReady) return;
     setError("");
     setPaying(true);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
+      console.log("2. Session:", sessionData);
+
       const accessToken = sessionData?.session?.access_token;
+      console.log("3. Access Token:", accessToken);
+
       if (!accessToken) {
         router.push("/auth/login");
         return;
       }
 
+      console.log("4. Sending payment initiation request...");
       const initRes = await fetch("/api/payments/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: product.id, accessToken, quantity: qty }),
       });
-      const initData = await initRes.json();
+      console.log("5. Payment initiation response received");
 
+      const initData = await initRes.json();
+      console.log("6. initData:", initData);
+
+      console.log("7. Response status:", initRes.status);
       if (!initRes.ok) {
         setError(initData.error || "Could not start payment.");
         setPaying(false);
@@ -97,6 +108,10 @@ export default function OrderReviewPage({
       }
 
       setPaymentStatus("awaiting_payment");
+
+      console.log("8. Flutterwave Ready:", flwReady);
+      console.log("9. Public Key:", process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY);
+      console.log("10. About to call FlutterwaveCheckout");
 
       window.FlutterwaveCheckout?.({
         public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
@@ -113,14 +128,17 @@ export default function OrderReviewPage({
           description: `Payment for ${product.name}`,
         },
         callback: async function (response: any) {
+          console.log("11. Flutterwave callback:", response);
           setPaymentStatus("verifying");
           try {
+            console.log("12. Sending verification request...");
             const verifyRes = await fetch("/api/payments/verify", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ transaction_id: response.transaction_id }),
             });
             const verifyData = await verifyRes.json();
+            console.log("13. Verification response:", verifyData);
 
             if (!verifyRes.ok) {
               setPaymentStatus("failed");
@@ -140,6 +158,7 @@ export default function OrderReviewPage({
           }
         },
         onclose: function () {
+          console.log("14. Flutterwave popup closed");
           if (paymentStatus !== "paid") {
             setPaymentStatus("failed");
             setPaying(false);
@@ -147,6 +166,7 @@ export default function OrderReviewPage({
         },
       });
     } catch (err) {
+      console.error("15. handlePayNow error:", err);
       console.error(err);
       setError("Something went wrong starting payment. Please try again.");
       setPaying(false);
@@ -200,6 +220,7 @@ export default function OrderReviewPage({
 
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
 
+            {/* Header */}
             <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-black text-[#1a4731]">Review Your Order</h1>
@@ -210,6 +231,7 @@ export default function OrderReviewPage({
               </span>
             </div>
 
+            {/* Product summary */}
             <div className="p-5 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-5 border-b border-gray-100">
               <div className="w-full sm:w-32 h-40 sm:h-32 bg-[#f0faf4] rounded-xl overflow-hidden flex-shrink-0">
                 {product.image ? (
@@ -231,6 +253,7 @@ export default function OrderReviewPage({
               </div>
             </div>
 
+            {/* Quantity + pricing */}
             <div className="p-5 sm:p-6 border-b border-gray-100 space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-700">Quantity {product.unit ? `(${product.unit})` : ""}</label>
@@ -262,12 +285,14 @@ export default function OrderReviewPage({
               </div>
             </div>
 
+            {/* Error */}
             {error && (
               <div className="mx-5 sm:mx-6 mt-5 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
                 {error}
               </div>
             )}
 
+            {/* Pay Now */}
             <div className="p-5 sm:p-6">
               <button
                 onClick={handlePayNow}
