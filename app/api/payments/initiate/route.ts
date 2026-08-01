@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { getProductById } from "@/lib/storage";
+import { getProductById, createPendingOrder } from "@/lib/storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,6 +44,17 @@ export async function POST(req: NextRequest) {
     const amount = unitPrice * qty;
     const txRef = `kora_${crypto.randomUUID()}`;
 
+    // Order is created now, while quantity is known — status starts "pending".
+    const order = await createPendingOrder({
+      productId: product.id,
+      productName: product.name,
+      buyer: user.email,
+      seller: product.owner,
+      amount,
+      quantity: qty,
+      txRef,
+    });
+
     const { data: payment, error: insertError } = await supabase
       .from("payments")
       .insert([
@@ -54,9 +65,9 @@ export async function POST(req: NextRequest) {
           buyer_email: user.email,
           seller: product.owner,
           amount,
-          quantity: qty,
           currency: "NGN",
           status: "initiated",
+          order_id: order.id,
         },
       ])
       .select()

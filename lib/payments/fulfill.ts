@@ -1,12 +1,3 @@
-// lib/payments/fulfill.ts
-//
-// Server-only. Verifies a Flutterwave transaction against our own
-// `payments` record and, only on a genuine match, creates the paid order.
-// Safe to call more than once for the same transaction_id — the checkout
-// callback (app/api/payments/verify/route.ts) and, later, the webhook
-// (app/api/payments/webhook/route.ts) both funnel through here, and the
-// second call is a no-op rather than a duplicate order.
-
 import { supabase } from "@/lib/supabase";
 import { verifyFlutterwaveTransaction } from "@/lib/payments/flutterwave-server";
 import * as storage from "@/lib/storage";
@@ -39,18 +30,16 @@ export async function fulfillFlutterwavePayment(
     return { ok: false, reason: "No matching payment record found for this tx_ref." };
   }
 
-  // Guard against tampering — the only amount/currency we trust are the
-  // ones we generated ourselves at initiate time, not anything the client
-  // or the redirect URL could have influenced.
   if (Number(verified.amount) < Number(payment.amount) || verified.currency !== payment.currency) {
     return { ok: false, reason: "Verified amount/currency does not match the initiated payment." };
   }
 
-  // Idempotency: if this payment was already fulfilled (e.g. the client
-  // callback already ran, and now the webhook fired for the same
-  // transaction), return the existing order instead of creating a
-  // duplicate.
-  if (payment.status === "success" && payment.order_id) {
+  if (!payment.order_id) {
+    return { ok: false, reason: "No order associated with this payment." };
+  }
+
+  // Idempotency: already marked success on a prior call (callback + webhook race).
+  if (payment.status === "success") {
     const { data: existingOrder } = await supabase
       .from("orders")
       .select("*")
@@ -59,22 +48,13 @@ export async function fulfillFlutterwavePayment(
     return { ok: true, alreadyProcessed: true, order: existingOrder };
   }
 
-  const order = await storage.createPaidOrder({
-    productId: payment.product_id,
-    productName: payment.product_name,
-    buyer: payment.buyer_email,
-    seller: payment.seller,
-    amount: payment.amount,
-    txRef: payment.tx_ref,
-    flwTransactionId: String(verified.id),
-  });
+  const order = await storage.markOrderPaid(payment.order_id, String(verified.id));
 
   await supabase
     .from("payments")
     .update({
       status: "success",
       flw_transaction_id: String(verified.id),
-      order_id: order.id,
       verified_at: new Date().toISOString(),
     })
     .eq("tx_ref", verified.tx_ref);
