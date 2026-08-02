@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { getProductById, submitInquiry, getSellerProfile, addOrder } from "@/lib/storage";
+import { getProductById, getProducts, submitInquiry, getSellerProfile, addOrder } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -22,6 +22,7 @@ type Product = {
   is_verified?: boolean;
   unit?: string;
   created_at?: string;
+  estimated_delivery?: string;
 };
 
 type SellerProfile = {
@@ -54,6 +55,7 @@ export default function ProductDetailPage({
   const [submitted, setSubmitted] = useState(false);
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState("");
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(
     function () {
@@ -71,6 +73,20 @@ export default function ProductDetailPage({
 
           const sellerData = await getSellerProfile(prod.owner);
           if (sellerData) setSeller(sellerData);
+
+          try {
+            const all = await getProducts();
+            const related = Array.isArray(all)
+              ? all
+                  .filter(function (p: Product) {
+                    return p.id !== prod.id && p.category === prod.category;
+                  })
+                  .slice(0, 6)
+              : [];
+            setRelatedProducts(related);
+          } catch (err) {
+            console.error("Error loading related products:", err);
+          }
         } catch (err) {
           console.error("Error loading product detail:", err);
         } finally {
@@ -112,7 +128,7 @@ export default function ProductDetailPage({
       setSubmitting(false);
     }
   }
-  
+
   function handleBuy() {
     if (!user) {
       router.push("/auth/login");
@@ -120,6 +136,15 @@ export default function ProductDetailPage({
     }
     if (!product?.id) return;
     router.push(`/order-review/${product.id}`);
+  }
+
+  function handleMessage() {
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+    if (!product?.owner) return;
+    router.push(`/message?to=${encodeURIComponent(product.owner)}`);
   }
 
   if (loading) {
@@ -152,6 +177,8 @@ export default function ProductDetailPage({
     "w-full bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2";
   const signInClass =
     "block w-full text-center border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3.5 rounded-xl font-semibold text-sm transition";
+  const messageBtnClass =
+    "w-full bg-white border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2";
 
   return (
     <div className="min-h-screen bg-[#f0faf4]">
@@ -261,6 +288,17 @@ export default function ProductDetailPage({
                   </div>
                 </div>
 
+                {product.estimated_delivery && (
+                  <div className="mt-4 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                    <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-8a2 2 0 00-2-2M5 8V6a2 2 0 012-2h10a2 2 0 012 2v2" />
+                    </svg>
+                    <p className="text-sm text-amber-800">
+                      Estimated Delivery: <span className="font-bold">{product.estimated_delivery}</span>
+                    </p>
+                  </div>
+                )}
+
                 {formattedDate && (
                   <p className="text-xs text-gray-400 mt-4">Listed on {formattedDate}</p>
                 )}
@@ -344,6 +382,45 @@ export default function ProductDetailPage({
                 </div>
               )}
             </div>
+
+            {relatedProducts.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-1">Related Products</h2>
+                <p className="text-gray-500 text-sm mb-5">
+                  Other listings in {product.category}
+                </p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {relatedProducts.map(function (rp) {
+                    return (
+                      <div
+                        key={rp.id}
+                        onClick={function () {
+                          router.push("/product/" + rp.id);
+                        }}
+                        className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition cursor-pointer"
+                      >
+                        <div className="aspect-square bg-white relative overflow-hidden">
+                          {rp.image ? (
+                            <img src={rp.image} alt={rp.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="h-full flex items-center justify-center text-[10px] font-semibold text-gray-400">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-xs font-semibold text-gray-800 leading-snug line-clamp-2">
+                            {rp.name}
+                          </p>
+                          <p className="mt-1 text-sm font-bold text-[#b45309]">N{rp.price}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-5">
@@ -428,6 +505,13 @@ export default function ProductDetailPage({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   {buying ? "Placing Order..." : "Buy Now"}
+                </button>
+
+                <button onClick={handleMessage} className={messageBtnClass}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Message Seller
                 </button>
 
                 <a href="/marketplace" className={browseClass}>

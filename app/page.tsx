@@ -154,36 +154,10 @@ function HomePageInner() {
     });
   }, [products, search]);
 
-  // "Order Now" no longer creates anything or opens Flutterwave directly.
-  // It only sends the buyer to the Order Review page, where quantity is
-  // chosen and "Pay Now" is what actually starts the Flutterwave flow.
-  function handleBuy(product: Product) {
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
-    if (user.email === product.owner) {
-      alert("You cannot buy your own product!");
-      return;
-    }
-    router.push(`/order-review/${product.id}`);
-  }
-
   function stopCardNav(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
-
-  function formatValue(value: string | number | undefined, fallback: string) {
-    if (value === undefined || value === null || value === "") return fallback;
-    return String(value);
-  }
-
-  const messageBtnClass =
-    "flex-1 text-center bg-white text-[#2e8b5a] border border-[#2e8b5a] py-2.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#f0faf4] transition";
-
-  const buyBtnClass =
-    "flex-1 bg-[#2e8b5a] text-white py-2.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-[#1a4731] transition";
 
   return (
     <div className="min-h-screen bg-[#f5f7f6]">
@@ -245,6 +219,8 @@ function HomePageInner() {
       </section>
 
       <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+        <h2 className="text-lg sm:text-2xl font-black text-[#1a4731] mb-4 sm:mb-6">For You</h2>
+
         {loading && (
           <div className="flex flex-col items-center justify-center py-32">
             <div className="w-16 h-16 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin mb-4" />
@@ -259,80 +235,30 @@ function HomePageInner() {
         )}
 
         {!loading && filteredProducts.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
             {filteredProducts.map(function (product, i) {
-              const supplierName = product.company_name || product.seller || "Kora supplier";
-              const unit = formatValue(product.unit, "unit");
-              const moq = formatValue(product.moq || product.minimum_order_quantity, "Ask supplier");
-              const available = formatValue(product.available_quantity || product.quantity, "Contact seller");
-              const verified = Boolean(product.verified || product.is_verified);
-
               return (
                 <div
                   key={product.id || i}
                   onClick={() => router.push("/product/" + product.id)}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition border border-gray-200 overflow-hidden group flex flex-col h-full cursor-pointer"
+                  className="bg-white rounded-md shadow-sm hover:shadow-md transition border border-gray-200 overflow-hidden group flex flex-col cursor-pointer"
                 >
-                  <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                  <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     {product.image ? (
                       <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="h-full flex items-center justify-center text-xs font-semibold text-gray-400">No Image</div>
-                    )}
-
-                    {product.category && (
-                      <span className="absolute left-2 top-2 bg-white/95 text-gray-700 text-[10px] sm:text-xs font-bold px-2 py-1 rounded">
-                        {product.category}
-                      </span>
+                      <div className="h-full flex items-center justify-center text-[10px] font-semibold text-gray-400">No Image</div>
                     )}
                   </div>
 
-                  <div className="p-3 sm:p-4 flex flex-col flex-1">
-                    <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-[#2e8b5a]">
+                  <div className="p-2 sm:p-2.5 flex flex-col flex-1">
+                    <h3 className="text-[11px] sm:text-xs font-semibold text-gray-800 leading-snug line-clamp-2 group-hover:text-[#2e8b5a]">
                       {product.name}
                     </h3>
-                    <p className="mt-2 text-base sm:text-xl font-black text-[#b45309]">NGN {product.price}</p>
-
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] sm:text-xs">
-                      <div className="bg-gray-50 rounded-md px-2 py-1.5">
-                        <p className="text-gray-400 font-bold uppercase">MOQ</p>
-                        <p className="text-gray-800 font-semibold truncate">{moq} {unit}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-md px-2 py-1.5">
-                        <p className="text-gray-400 font-bold uppercase">Available</p>
-                        <p className="text-gray-800 font-semibold truncate">{available} {unit}</p>
-                      </div>
-                    </div>
-
                     {product.description && (
-                      <p className="mt-3 text-xs sm:text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                      <p className="mt-1 text-[10px] sm:text-[11px] text-gray-500 line-clamp-1">{product.description}</p>
                     )}
-
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-xs sm:text-sm font-bold text-gray-800 truncate">{supplierName}</p>
-                          <p className="text-[11px] sm:text-xs text-gray-500 truncate">{product.location || "Location available on request"}</p>
-                        </div>
-                        {verified && (
-                          <span className="shrink-0 inline-flex items-center gap-1 rounded bg-[#e8f5f0] px-2 py-1 text-[10px] font-bold text-[#2e8b5a]">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.7-9.7a1 1 0 00-1.4-1.4L9 10.2 7.7 8.9a1 1 0 00-1.4 1.4l2 2a1 1 0 001.4 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Verified
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-4">
-                      <a href={"/message?to=" + encodeURIComponent(product.owner)} onClick={stopCardNav} className={messageBtnClass}>
-                        Message
-                      </a>
-                      <button onClick={function (e) { stopCardNav(e); handleBuy(product); }} className={buyBtnClass}>
-                        Order
-                      </button>
-                    </div>
+                    <p className="mt-1.5 text-xs sm:text-sm font-bold text-[#b45309]">NGN {product.price}</p>
                   </div>
                 </div>
               );
