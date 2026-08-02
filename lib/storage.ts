@@ -386,9 +386,6 @@ export async function markOrderPaid(orderId: string, flwTransactionId: string) {
     .select()
     .single();
 
-  if (error) {
-  console.error(error);
-  throw error;
-}
+  
   return data;
 }

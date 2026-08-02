@@ -1,4 +1,3 @@
-// app/settings/bank-details/page.tsx
 import BankDetailsForm from "@/components/BankDetailsForm";
 
 export default function BankDetailsPage() {
