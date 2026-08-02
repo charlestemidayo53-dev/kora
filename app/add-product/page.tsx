@@ -107,7 +107,8 @@ export default function AddProduct() {
 
     try {
       const imageUrl = await uploadProductImage(imageFile);
-
+      
+      console.log("Image URL:", imageUrl);
       if (!imageUrl) {
         throw new Error("Image upload failed. Please check your storage settings.");
       }
