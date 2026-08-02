@@ -1,0 +1,20 @@
+// app/api/flutterwave/banks/route.ts
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  try {
+    const res = await fetch("https://api.flutterwave.com/v3/banks/NG", {
+      headers: { Authorization: `Bearer ${process.env.FLW_SECRET_KEY}` },
+    });
+    const data = await res.json();
+
+    if (data.status !== "success") {
+      return NextResponse.json({ error: "Could not load banks" }, { status: 500 });
+    }
+
+    return NextResponse.json({ banks: data.data });
+  } catch (err: any) {
+    console.error("Banks fetch error:", err);
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+  }
+}

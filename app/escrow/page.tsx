@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import { supabase } from "@/lib/supabase";
 import { getOrdersByBuyer, getOrdersBySeller, updateOrder } from "@/lib/storage";
 
@@ -16,6 +17,12 @@ type Order = {
   escrow_status?: "holding" | "released" | "refunded" | null;
 };
 
+declare global {
+  interface Window {
+    FlutterwaveCheckout?: (options: any) => void;
+  }
+}
+
 export default function EscrowPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -23,6 +30,7 @@ export default function EscrowPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -55,17 +63,83 @@ export default function EscrowPage() {
     if (user?.email) await loadOrders(user.email, tab);
   }
 
+  // ---- PAY NOW: opens Flutterwave checkout, buyer pays the platform (not the seller directly) ----
+  function handlePayNow(order: Order) {
+    if (!order.id || !user?.email) return;
+
+    if (!window.FlutterwaveCheckout) {
+      alert("Payment is still loading. Wait a second and try again.");
+      return;
+    }
+
+    const amountNumber = Number(order.amount);
+    if (!amountNumber || amountNumber <= 0) {
+      alert("This order has no valid amount set.");
+      return;
+    }
+
+    setPayingId(order.id);
+
+    const txRef = `kora_${order.id}_${Date.now()}`;
+
+    window.FlutterwaveCheckout({
+      public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
+      tx_ref: txRef,
+      amount: amountNumber,
+      currency: "NGN",
+      payment_options: "card,banktransfer,ussd",
+      customer: {
+        email: user.email,
+      },
+      customizations: {
+        title: "Kora Marketplace",
+        description: `Payment for ${order.product_name || order.productName || "order"}`,
+      },
+      callback: async (response: any) => {
+        try {
+          if (response.status === "successful" || response.status === "completed") {
+            const res = await fetch("/api/flutterwave/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                transaction_id: response.transaction_id,
+                order_id: order.id,
+              }),
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) {
+              alert("Payment could not be verified. Contact support with reference: " + txRef);
+            }
+          }
+        } finally {
+          setPayingId(null);
+          if (user?.email) await loadOrders(user.email, activeTab);
+        }
+      },
+      onclose: () => {
+        setPayingId(null);
+      },
+    });
+  }
+
+  // ---- CONFIRM DELIVERY: releases escrow to seller ----
   async function handleConfirmDelivery(order: Order) {
     if (!order.id) return;
     setConfirmingId(order.id);
     try {
-      await updateOrder(order.id, {
-        status: "completed",
-        escrow_status: "released",
+      const res = await fetch("/api/flutterwave/release", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: order.id }),
       });
+      if (!res.ok) {
+        const result = await res.json().catch(() => ({}));
+        throw new Error(result.error || "Release failed");
+      }
       if (user?.email) await loadOrders(user.email, activeTab);
     } catch (err) {
       console.error("Failed to confirm delivery:", err);
+      alert("Could not release funds. Please try again or contact support.");
     } finally {
       setConfirmingId(null);
     }
@@ -113,6 +187,8 @@ export default function EscrowPage() {
 
   return (
     <div className="min-h-screen bg-[#f0faf4]">
+      {/* Flutterwave inline checkout script */}
+      <Script src="https://checkout.flutterwave.com/v3.js" strategy="afterInteractive" />
 
       {/* Nav */}
       <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
@@ -155,7 +231,6 @@ export default function EscrowPage() {
               Every order paid through Kora is held securely until you confirm delivery — then funds are released to the seller.
             </p>
 
-            {/* How it works steps */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6">
               {[
                 { step: "1", label: "Buyer Pays Securely" },
@@ -262,6 +337,9 @@ export default function EscrowPage() {
                           ) : (
                             <p className="truncate">Buyer: <span className="font-medium text-gray-700">{order.buyer}</span></p>
                           )}
+                          {order.amount && (
+                            <p className="truncate">Amount: <span className="font-medium text-gray-700">₦{Number(order.amount).toLocaleString()}</span></p>
+                          )}
                         </div>
 
                         {/* Escrow progress bar */}
@@ -278,6 +356,17 @@ export default function EscrowPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Action: buyer pays for pending order */}
+                      {activeTab === "buyer" && order.status === "pending" && (
+                        <button
+                          onClick={() => handlePayNow(order)}
+                          disabled={payingId === order.id}
+                          className="w-full md:w-auto bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap"
+                        >
+                          {payingId === order.id ? "Opening payment..." : "Pay Now"}
+                        </button>
+                      )}
 
                       {/* Action: buyer confirms delivery to release funds */}
                       {activeTab === "buyer" && order.escrow_status === "holding" && (

@@ -1,0 +1,38 @@
+// app/api/flutterwave/resolve-account/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { account_number, account_bank } = await req.json();
+
+    if (!account_number || !account_bank) {
+      return NextResponse.json(
+        { error: "Missing account_number or account_bank" },
+        { status: 400 }
+      );
+    }
+
+    const res = await fetch("https://api.flutterwave.com/v3/accounts/resolve", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ account_number, account_bank }),
+    });
+
+    const data = await res.json();
+
+    if (data.status !== "success") {
+      return NextResponse.json(
+        { error: data.message || "Could not resolve account" },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ account_name: data.data.account_name });
+  } catch (err: any) {
+    console.error("Resolve account error:", err);
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+  }
+}

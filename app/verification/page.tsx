@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+type SellerType = "individual" | "business";
 type VerificationLevel = "unverified" | "identity" | "business" | "enterprise";
 
 const LEVEL_LABELS: Record<VerificationLevel, string> = {
   unverified: "Unverified",
   identity: "Identity Verified",
-  business: "Business Verified (CAC)",
+  business: "Business Verified",
   enterprise: "Enterprise Verified",
 };
 
@@ -27,11 +28,22 @@ export default function VerificationPage() {
   const [currentLevel, setCurrentLevel] = useState<VerificationLevel>("unverified");
   const [pendingRequest, setPendingRequest] = useState<any>(null);
 
-  const [requestedLevel, setRequestedLevel] = useState<VerificationLevel>("identity");
+  const [sellerType, setSellerType] = useState<SellerType>("individual");
   const [fullName, setFullName] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [cacNumber, setCacNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [ninNumber, setNinNumber] = useState("");
+  const [bvnNumber, setBvnNumber] = useState("");
+  const [hasBusinessCert, setHasBusinessCert] = useState(false);
+  const [businessCertNumber, setBusinessCertNumber] = useState("");
+
   const [businessName, setBusinessName] = useState("");
+  const [cacNumber, setCacNumber] = useState("");
+  const [hasNafdac, setHasNafdac] = useState(false);
+  const [nafdacNumber, setNafdacNumber] = useState("");
+  const [hasSon, setHasSon] = useState(false);
+  const [sonNumber, setSonNumber] = useState("");
+  const [otherCertificates, setOtherCertificates] = useState("");
+
   const [notes, setNotes] = useState("");
 
   useEffect(function () {
@@ -74,9 +86,31 @@ export default function VerificationPage() {
       setError("Please enter the full name on your ID or business documents.");
       return;
     }
-    if (requestedLevel === "business" && !cacNumber.trim()) {
-      setError("Please provide your CAC registration number.");
+    if (!phoneNumber.trim()) {
+      setError("Please enter a phone number for verification.");
       return;
+    }
+
+    if (sellerType === "individual") {
+      if (!ninNumber.trim()) {
+        setError("Please provide your NIN.");
+        return;
+      }
+      if (!bvnNumber.trim()) {
+        setError("Please provide your BVN.");
+        return;
+      }
+    }
+
+    if (sellerType === "business") {
+      if (!businessName.trim()) {
+        setError("Please provide your business name.");
+        return;
+      }
+      if (!cacNumber.trim()) {
+        setError("Please provide your CAC registration number.");
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -85,11 +119,17 @@ export default function VerificationPage() {
         {
           user_id: user.id,
           user_email: user.email,
-          requested_level: requestedLevel,
+          seller_type: sellerType,
+          requested_level: sellerType === "individual" ? "identity" : "business",
           full_name: fullName,
-          id_number: idNumber || null,
-          cac_number: cacNumber || null,
-          business_name: businessName || null,
+          phone_number: phoneNumber,
+          id_number: sellerType === "individual" ? ninNumber || null : null,
+          bvn_number: sellerType === "individual" ? bvnNumber || null : null,
+          business_name: sellerType === "individual" ? (hasBusinessCert ? businessCertNumber || null : null) : businessName || null,
+          cac_number: sellerType === "business" ? cacNumber || null : null,
+          nafdac_number: sellerType === "business" && hasNafdac ? nafdacNumber || null : null,
+          son_number: sellerType === "business" && hasSon ? sonNumber || null : null,
+          other_certificates: sellerType === "business" ? otherCertificates || null : null,
           notes: notes || null,
           status: "pending",
         },
@@ -153,8 +193,8 @@ export default function VerificationPage() {
 
             {pendingRequest && (
               <div className="mt-4 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl">
-                You have a <strong>{LEVEL_LABELS[pendingRequest.requested_level as VerificationLevel]}</strong> request
-                pending review, submitted {new Date(pendingRequest.created_at).toLocaleDateString()}.
+                You have a verification request pending review, submitted{" "}
+                {new Date(pendingRequest.created_at).toLocaleDateString()}.
               </div>
             )}
           </div>
@@ -178,17 +218,38 @@ export default function VerificationPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Seller type selector */}
                 <div>
-                  <label className={labelClass}>Verification Level</label>
-                  <select
-                    className={inputClass}
-                    value={requestedLevel}
-                    onChange={(e) => setRequestedLevel(e.target.value as VerificationLevel)}
-                  >
-                    <option value="identity">Identity Verified (Individuals, Farmers, Small Businesses)</option>
-                    <option value="business">Business Verified (CAC)</option>
-                    <option value="enterprise">Enterprise Verified (Additional Documents)</option>
-                  </select>
+                  <label className={labelClass}>I am a...</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSellerType("individual")}
+                      className={
+                        "p-3.5 rounded-xl border-2 text-left transition " +
+                        (sellerType === "individual"
+                          ? "border-[#2e8b5a] bg-[#f0faf4]"
+                          : "border-gray-200 bg-white hover:border-gray-300")
+                      }
+                    >
+                      <p className="font-semibold text-sm text-gray-800">Farmer / Individual</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Small business or individual seller</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSellerType("business")}
+                      className={
+                        "p-3.5 rounded-xl border-2 text-left transition " +
+                        (sellerType === "business"
+                          ? "border-[#2e8b5a] bg-[#f0faf4]"
+                          : "border-gray-200 bg-white hover:border-gray-300")
+                      }
+                    >
+                      <p className="font-semibold text-sm text-gray-800">Manufacturer / Supplier</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Registered company or large business</p>
+                    </button>
+                  </div>
                 </div>
 
                 <div>
@@ -196,14 +257,49 @@ export default function VerificationPage() {
                   <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Musa Ibrahim" />
                 </div>
 
-                {requestedLevel === "identity" && (
-                  <div>
-                    <label className={labelClass}>ID Number (NIN, Voter's Card, etc.)</label>
-                    <input className={inputClass} value={idNumber} onChange={(e) => setIdNumber(e.target.value)} placeholder="e.g. NIN 12345678901" />
-                  </div>
+                <div>
+                  <label className={labelClass}>Phone Number</label>
+                  <input className={inputClass} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="e.g. 08012345678" />
+                </div>
+
+                {sellerType === "individual" && (
+                  <>
+                    <div>
+                      <label className={labelClass}>NIN (National Identification Number)</label>
+                      <input className={inputClass} value={ninNumber} onChange={(e) => setNinNumber(e.target.value)} placeholder="e.g. 12345678901" />
+                    </div>
+                    <div>
+                      <label className={labelClass}>BVN (Bank Verification Number)</label>
+                      <input className={inputClass} value={bvnNumber} onChange={(e) => setBvnNumber(e.target.value)} placeholder="e.g. 22345678901" />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="has-business-cert"
+                        checked={hasBusinessCert}
+                        onChange={(e) => setHasBusinessCert(e.target.checked)}
+                        className="w-4 h-4 accent-[#2e8b5a]"
+                      />
+                      <label htmlFor="has-business-cert" className="text-sm text-gray-700">
+                        I have a business certificate (optional)
+                      </label>
+                    </div>
+                    {hasBusinessCert && (
+                      <div>
+                        <label className={labelClass}>Business Certificate Number</label>
+                        <input
+                          className={inputClass}
+                          value={businessCertNumber}
+                          onChange={(e) => setBusinessCertNumber(e.target.value)}
+                          placeholder="e.g. registration or license number"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
-                {(requestedLevel === "business" || requestedLevel === "enterprise") && (
+                {sellerType === "business" && (
                   <>
                     <div>
                       <label className={labelClass}>Business Name</label>
@@ -212,6 +308,55 @@ export default function VerificationPage() {
                     <div>
                       <label className={labelClass}>CAC Registration Number</label>
                       <input className={inputClass} value={cacNumber} onChange={(e) => setCacNumber(e.target.value)} placeholder="e.g. RC1234567" />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="has-nafdac"
+                        checked={hasNafdac}
+                        onChange={(e) => setHasNafdac(e.target.checked)}
+                        className="w-4 h-4 accent-[#2e8b5a]"
+                      />
+                      <label htmlFor="has-nafdac" className="text-sm text-gray-700">
+                        I have a NAFDAC certificate (where applicable)
+                      </label>
+                    </div>
+                    {hasNafdac && (
+                      <div>
+                        <label className={labelClass}>NAFDAC Number</label>
+                        <input className={inputClass} value={nafdacNumber} onChange={(e) => setNafdacNumber(e.target.value)} placeholder="e.g. A4-1234" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="has-son"
+                        checked={hasSon}
+                        onChange={(e) => setHasSon(e.target.checked)}
+                        className="w-4 h-4 accent-[#2e8b5a]"
+                      />
+                      <label htmlFor="has-son" className="text-sm text-gray-700">
+                        I have a SON (Standards Organisation of Nigeria) certification (where applicable)
+                      </label>
+                    </div>
+                    {hasSon && (
+                      <div>
+                        <label className={labelClass}>SON Certificate Number</label>
+                        <input className={inputClass} value={sonNumber} onChange={(e) => setSonNumber(e.target.value)} placeholder="e.g. SON-1234" />
+                      </div>
+                    )}
+
+                    <div>
+                      <label className={labelClass}>Other Industry Certificates or Licences (optional)</label>
+                      <textarea
+                        rows={2}
+                        className={inputClass + " resize-none"}
+                        value={otherCertificates}
+                        onChange={(e) => setOtherCertificates(e.target.value)}
+                        placeholder="List any other relevant certificates or licences and their numbers"
+                      />
                     </div>
                   </>
                 )}
