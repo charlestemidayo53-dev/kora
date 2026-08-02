@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, use } from "react";
+import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { getProductById } from "@/lib/storage";
@@ -42,11 +42,6 @@ export default function OrderReviewPage({
   const [flwReady, setFlwReady] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<"awaiting_payment" | "verifying" | "paid" | "failed">("awaiting_payment");
 
-  // Tracks whether payment succeeded WITHOUT going stale inside the
-  // Flutterwave callback/onclose closures (unlike React state, a ref
-  // always reads the current value even inside an old closure).
-  const paidRef = useRef(false);
-
   useEffect(function () {
     async function load() {
       const { data } = await supabase.auth.getUser();
@@ -79,7 +74,6 @@ export default function OrderReviewPage({
     if (!product || !flwReady) return;
     setError("");
     setPaying(true);
-    paidRef.current = false;
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -135,9 +129,6 @@ export default function OrderReviewPage({
               return;
             }
 
-            // Mark success in the ref FIRST so onclose (which may fire
-            // right after this) sees the correct up-to-date value.
-            paidRef.current = true;
             setPaymentStatus("paid");
             setTimeout(function () {
               router.push("/orders");
@@ -149,9 +140,7 @@ export default function OrderReviewPage({
           }
         },
         onclose: function () {
-          // Read the ref, not React state — state here is frozen at the
-          // value it had when this onclose function was first created.
-          if (!paidRef.current) {
+          if (paymentStatus !== "paid") {
             setPaymentStatus("failed");
             setPaying(false);
           }
