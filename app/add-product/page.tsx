@@ -17,16 +17,6 @@ const nigerianStates = [
   "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
 ];
 
-const deliveryEstimateOptions = [
-  "Same day",
-  "1–3 business days",
-  "3–7 business days",
-  "1–2 weeks",
-  "2–4 weeks",
-  "More than 1 month",
-  "Custom estimate",
-];
-
 export default function AddProduct() {
   const [user, setUser] = useState<any>(null);
   const [name, setName] = useState("");
@@ -45,8 +35,6 @@ export default function AddProduct() {
   const [preview, setPreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [estimatedDelivery, setEstimatedDelivery] = useState("");
-  const [customEstimatedDelivery, setCustomEstimatedDelivery] = useState("");
 
   const [parentCategories, setParentCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -124,9 +112,6 @@ export default function AddProduct() {
         throw new Error("Image upload failed. Please check your storage settings.");
       }
 
-      const finalEstimatedDelivery =
-        estimatedDelivery === "Custom estimate" ? customEstimatedDelivery : estimatedDelivery;
-
       await addProduct({
         name,
         price,
@@ -142,7 +127,6 @@ export default function AddProduct() {
         seller: sellerName || user.email || "Unknown Seller",
         owner: user.email || "unknown",
         business_type: businessType || "Trading Company",
-        estimated_delivery: finalEstimatedDelivery || null,
       });
 
       window.location.href = "/seller-dashboard";
@@ -344,34 +328,6 @@ export default function AddProduct() {
               />
             </div>
 
-            {/* Estimated Delivery Time */}
-            <div>
-              <label className={labelClass}>Estimated Delivery Time</label>
-              <select
-                className={inputClass}
-                value={estimatedDelivery}
-                onChange={function(e) { setEstimatedDelivery(e.target.value); }}
-              >
-                <option value="">Select estimated delivery time</option>
-                {deliveryEstimateOptions.map(function(opt) {
-                  return (
-                    <option key={opt} value={opt}>{opt}</option>
-                  );
-                })}
-              </select>
-              {estimatedDelivery === "Custom estimate" && (
-                <input
-                  className={inputClass + " mt-2"}
-                  placeholder="e.g. 10-14 days, depending on region"
-                  value={customEstimatedDelivery}
-                  onChange={function(e) { setCustomEstimatedDelivery(e.target.value); }}
-                />
-              )}
-              <p className="text-xs text-gray-400 mt-1">
-                This is shown to buyers on the product page — it does not affect payment or logistics.
-              </p>
-            </div>
-
             {/* Business Name */}
             <div>
               <label className={labelClass}>Business / Seller Name</label>
@@ -403,7 +359,6 @@ export default function AddProduct() {
                 <input
                   type="file"
                   accept="image/*"
-                  required
                   className="hidden"
                   id="image-upload"
                   onChange={function(e) {
