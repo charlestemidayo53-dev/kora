@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-import { getProductById, getProducts, submitInquiry, getSellerProfile, addOrder } from "@/lib/storage";
+import { getProductById, getProducts, getSellerProfile } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -49,12 +49,7 @@ export default function ProductDetailPage({
   const [seller, setSeller] = useState<SellerProfile | null>(null);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [inquiryQty, setInquiryQty] = useState("");
-  const [inquiryMsg, setInquiryMsg] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [buying, setBuying] = useState(false);
-  const [error, setError] = useState("");
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(
@@ -101,34 +96,6 @@ export default function ProductDetailPage({
     [id, router],
   );
 
-  async function handleInquiry() {
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
-    if (!inquiryQty) {
-      setError("Please enter the quantity you need.");
-      return;
-    }
-    setError("");
-    setSubmitting(true);
-    try {
-      await submitInquiry({
-        product_id: product?.id || "",
-        buyer_email: user.email,
-        seller_email: product?.owner || "",
-        quantity: inquiryQty,
-        message: inquiryMsg,
-        status: "pending",
-      });
-      setSubmitted(true);
-    } catch (err) {
-      setError("Failed to send inquiry. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   function handleBuy() {
     if (!user) {
       router.push("/auth/login");
@@ -145,6 +112,11 @@ export default function ProductDetailPage({
     }
     if (!product?.owner) return;
     router.push(`/message?to=${encodeURIComponent(product.owner)}`);
+  }
+
+  function goToSellerProfile() {
+    if (!product?.owner) return;
+    router.push(`/seller/${encodeURIComponent(product.owner)}`);
   }
 
   if (loading) {
@@ -169,14 +141,10 @@ export default function ProductDetailPage({
       })
     : "";
 
-  const inputClass =
-    "w-full border border-gray-200 bg-gray-50 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2e8b5a] transition";
   const browseClass =
     "w-full bg-[#f0faf4] border border-[#c8e6d4] text-[#2e8b5a] hover:bg-[#2e8b5a] hover:text-white py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2";
   const escrowClass =
     "w-full bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2";
-  const signInClass =
-    "block w-full text-center border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3.5 rounded-xl font-semibold text-sm transition";
   const messageBtnClass =
     "w-full bg-white border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2";
 
@@ -201,14 +169,6 @@ export default function ProductDetailPage({
               Marketplace
             </a>
           </div>
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#2e8b5a] rounded-xl flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-              </svg>
-            </div>
-            <span className="text-base font-bold text-[#1a4731]">Kora</span>
-          </a>
         </div>
       </nav>
 
@@ -305,84 +265,6 @@ export default function ProductDetailPage({
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-1">Send an Inquiry</h2>
-              <p className="text-gray-500 text-sm mb-5">
-                Contact the seller directly about this product
-              </p>
-
-              {submitted ? (
-                <div className="text-center py-8">
-                  <div className="w-14 h-14 bg-[#f0faf4] rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-7 h-7 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h3 className="font-bold text-gray-800 mb-1">Inquiry Sent!</h3>
-                  <p className="text-gray-500 text-sm">
-                    The seller will contact you soon via email.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quantity Needed
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 500 kg"
-                      value={inquiryQty}
-                      onChange={function (e) {
-                        setInquiryQty(e.target.value);
-                      }}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Message to Seller (optional)
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="e.g. I need delivery to Lagos, is that possible?"
-                      value={inquiryMsg}
-                      onChange={function (e) {
-                        setInquiryMsg(e.target.value);
-                      }}
-                      className={inputClass + " resize-none"}
-                    />
-                  </div>
-
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
-                      {error}
-                    </div>
-                  )}
-
-                  {!user && (
-                    <div className="bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl">
-                      You need to sign in to send an inquiry.
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleInquiry}
-                    disabled={submitting}
-                    className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold text-sm transition shadow-md"
-                  >
-                    {submitting ? "Sending Inquiry..." : "Send Inquiry to Seller"}
-                  </button>
-
-                  {!user && (
-                    <a href="/auth/login" className={signInClass}>
-                      Sign In to Contact Seller
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
             {relatedProducts.length > 0 && (
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-1">Related Products</h2>
@@ -424,10 +306,18 @@ export default function ProductDetailPage({
           </div>
 
           <div className="space-y-5">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
-                Seller Information
-              </h3>
+            <div
+              onClick={goToSellerProfile}
+              className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 cursor-pointer hover:border-[#c8e6d4] transition"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                  Seller Information
+                </h3>
+                <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-[#2e8b5a] rounded-2xl flex items-center justify-center flex-shrink-0">

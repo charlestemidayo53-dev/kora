@@ -380,6 +380,7 @@ export async function markOrderPaid(orderId: string, flwTransactionId: string) {
       status: "paid",
       payment_status: "paid",
       flw_transaction_id: flwTransactionId,
+      escrow_status: "holding",
     })
     .eq("id", orderId)
     .select()
