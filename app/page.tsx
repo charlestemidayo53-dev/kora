@@ -76,6 +76,64 @@ const banners = [
   },
 ];
 
+// ─── Product card helpers / icons (added — everything else in this file is unchanged) ──
+function formatNaira(price: string | number | undefined): string {
+  if (price === undefined || price === null || price === "") return "₦0";
+  const numeric =
+    typeof price === "number" ? price : parseFloat(String(price).replace(/[^0-9.]/g, ""));
+  if (isNaN(numeric)) return "₦" + price;
+  return "₦" + numeric.toLocaleString("en-NG", { maximumFractionDigits: 0 });
+}
+
+function CardHeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="w-[17px] h-[17px]"
+      fill={filled ? "#ef4444" : "none"}
+      stroke={filled ? "#ef4444" : "#374151"}
+      strokeWidth={1.8}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 21s-7.5-4.6-10-9.1C.5 8.6 2 5 5.6 5c2 0 3.4 1.1 4.4 2.5C11 6.1 12.4 5 14.4 5 18 5 19.5 8.6 22 11.9 19.5 16.4 12 21 12 21z"
+      />
+    </svg>
+  );
+}
+
+function CardVerifiedBadge() {
+  return (
+    <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-white/95 text-[#1a7a4a] text-[9px] font-bold px-2 py-1 rounded-full shadow-sm">
+      <svg viewBox="0 0 24 24" className="w-3 h-3">
+        <path
+          fill="#1a7a4a"
+          d="M12 2l2.4 1.7 2.9-.4 1.1 2.7 2.7 1.1-.4 2.9L22 12l-1.7 2.4.4 2.9-2.7 1.1-1.1 2.7-2.9-.4L12 22l-2.4-1.7-2.9.4-1.1-2.7-2.7-1.1.4-2.9L2 12l1.7-2.4-.4-2.9 2.7-1.1 1.1-2.7 2.9.4L12 2z"
+        />
+        <path
+          d="M8.6 12.3l2 2 4.4-4.6"
+          stroke="white"
+          strokeWidth={1.8}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      Verified Supplier
+    </div>
+  );
+}
+
+function CardPinIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-6.5 7-11.5A7 7 0 105 9.5C5 14.5 12 21 12 21z" />
+      <circle cx="12" cy="9.5" r="2.2" />
+    </svg>
+  );
+}
+
 export default function HomePage() {
   return (
     <Suspense fallback={
@@ -96,6 +154,10 @@ function HomePageInner() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [activeBanner, setActiveBanner] = useState(0);
+
+  // Added — tracks which product ids the current user has wishlisted,
+  // so the heart icon renders filled/unfilled correctly.
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
 
   useEffect(function () {
     async function init() {
@@ -123,6 +185,27 @@ function HomePageInner() {
       window.clearInterval(timer);
     };
   }, []);
+
+  // Added — loads the signed-in user's wishlist once we know who they are.
+  useEffect(function () {
+    if (!user?.id) {
+      setWishlistIds(new Set());
+      return;
+    }
+    async function loadWishlist() {
+      try {
+        const { data, error } = await supabase
+          .from("wishlists")
+          .select("product_id")
+          .eq("user_id", user.id);
+        if (error) throw error;
+        setWishlistIds(new Set((data || []).map(function (w: any) { return w.product_id; })));
+      } catch (err) {
+        console.error("Failed to load wishlist:", err);
+      }
+    }
+    loadWishlist();
+  }, [user]);
 
   async function loadProducts() {
     try {
@@ -157,6 +240,35 @@ function HomePageInner() {
   function stopCardNav(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+  }
+
+  // Added — toggles wishlist state for a product, persisting to Supabase
+  // when the user is logged in. Card click navigation is stopped so the
+  // heart doesn't also trigger a route change.
+  async function toggleWishlist(e: React.MouseEvent, productId: string | undefined) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!productId) return;
+
+    const isWishlisted = wishlistIds.has(productId);
+    const next = new Set(wishlistIds);
+    if (isWishlisted) next.delete(productId);
+    else next.add(productId);
+    setWishlistIds(next);
+
+    if (!user?.id) return;
+
+    try {
+      if (isWishlisted) {
+        await supabase.from("wishlists").delete().eq("user_id", user.id).eq("product_id", productId);
+      } else {
+        await supabase.from("wishlists").insert({ user_id: user.id, product_id: productId });
+      }
+    } catch (err) {
+      console.error("Failed to update wishlist:", err);
+      // Revert on failure.
+      setWishlistIds(wishlistIds);
+    }
   }
 
   return (
@@ -237,11 +349,15 @@ function HomePageInner() {
         {!loading && filteredProducts.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
             {filteredProducts.map(function (product, i) {
+              const productId = product.id || String(i);
+              const verified = Boolean(product.verified || product.is_verified);
+              const wishlisted = wishlistIds.has(productId);
+
               return (
                 <div
-                  key={product.id || i}
+                  key={productId}
                   onClick={() => router.push("/product/" + product.id)}
-                  className="bg-white rounded-md shadow-sm hover:shadow-md transition border border-gray-200 overflow-hidden group flex flex-col cursor-pointer"
+                  className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden group flex flex-col cursor-pointer"
                 >
                   <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     {product.image ? (
@@ -249,16 +365,38 @@ function HomePageInner() {
                     ) : (
                       <div className="h-full flex items-center justify-center text-[10px] font-semibold text-gray-400">No Image</div>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={function (e) { toggleWishlist(e, product.id); }}
+                      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                      className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 shadow-sm flex items-center justify-center hover:bg-white active:scale-90 transition"
+                    >
+                      <CardHeartIcon filled={wishlisted} />
+                    </button>
+
+                    {verified && <CardVerifiedBadge />}
                   </div>
 
-                  <div className="p-2 sm:p-2.5 flex flex-col flex-1">
+                  <div className="p-2 sm:p-2.5 flex flex-col flex-1 gap-1">
                     <h3 className="text-[11px] sm:text-xs font-semibold text-gray-800 leading-snug line-clamp-2 group-hover:text-[#2e8b5a]">
                       {product.name}
                     </h3>
+
                     {product.description && (
-                      <p className="mt-1 text-[10px] sm:text-[11px] text-gray-500 line-clamp-1">{product.description}</p>
+                      <p className="text-[10px] sm:text-[11px] text-gray-500 line-clamp-2">{product.description}</p>
                     )}
-                    <p className="mt-1.5 text-xs sm:text-sm font-bold text-[#b45309]">NGN {product.price}</p>
+
+                    {product.location && (
+                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                        <CardPinIcon />
+                        <span className="truncate">{product.location}</span>
+                      </div>
+                    )}
+
+                    <p className="mt-auto pt-1 text-xs sm:text-sm font-bold text-[#F97316]">
+                      {formatNaira(product.price)}
+                    </p>
                   </div>
                 </div>
               );
