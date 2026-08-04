@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProducts } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +24,30 @@ type Product = {
   is_verified?: boolean;
   description?: string;
 };
+
+// ─── Parent categories (mobile quick-filter strip) ─────────────────────────
+// NOTE: static list matching the parent categories used elsewhere on the
+// site. Swap this for a Supabase query if/when you want it DB-driven.
+const CATEGORY_PILLS = [
+  { name: "Agriculture & Food", slug: "agriculture-food" },
+  { name: "Apparel & Accessories", slug: "apparel" },
+  { name: "Auto, Motorcycle & Parts", slug: "auto-motorcycle" },
+  { name: "Chemicals", slug: "chemicals" },
+  { name: "Construction & Decoration", slug: "construction" },
+  { name: "Consumer Electronics", slug: "electronics" },
+  { name: "Electrical & Electronics", slug: "electrical" },
+  { name: "Furniture", slug: "furniture" },
+  { name: "Health & Medicine", slug: "health" },
+  { name: "Industrial Equipment", slug: "industrial" },
+  { name: "Lights & Lighting", slug: "lighting" },
+  { name: "Manufacturing Machinery", slug: "machinery" },
+  { name: "Metallurgy & Energy", slug: "metallurgy" },
+  { name: "Packaging & Printing", slug: "packaging" },
+  { name: "Security & Protection", slug: "security" },
+  { name: "Textile", slug: "textile" },
+  { name: "Tools & Hardware", slug: "tools" },
+  { name: "Transportation", slug: "transportation" },
+];
 
 const banners = [
   {
@@ -51,32 +75,35 @@ const banners = [
     image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
+    // Replaced — now a factory/production-line image (was "Verified Suppliers" bridge shot)
     eyebrow: "Verified Suppliers",
     title: "Every supplier screened before listing",
     body: "Trade with confidence — Kora verifies business details before sellers go live.",
     cta: "Meet our suppliers",
     href: "/suppliers",
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1565043666747-69f6646db940?auto=format&fit=crop&w=1200&q=80",
   },
   {
+    // Replaced — now a shipping containers / export-import image
     eyebrow: "Nationwide Reach",
     title: "From the farm to every Nigerian state",
     body: "Source agricultural products and raw materials from sellers across all 36 states.",
     cta: "Explore categories",
     href: "/categories",
-    image: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=1200&q=80",
   },
   {
+    // Replaced — now a warehouse shelving/packaging image
     eyebrow: "Seller Tools",
     title: "Show buyers what you have in stock",
     body: "List products with MOQ, units, location, and company details buyers need before ordering.",
     cta: "Add product",
     href: "/add-product",
-    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1553413077-190983eb075e?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
-// ─── Product card helpers / icons (added — everything else in this file is unchanged) ──
+// ─── Product card helpers / icons ──────────────────────────────────────────
 function formatNaira(price: string | number | undefined): string {
   if (price === undefined || price === null || price === "") return "₦0";
   const numeric =
@@ -85,13 +112,18 @@ function formatNaira(price: string | number | undefined): string {
   return "₦" + numeric.toLocaleString("en-NG", { maximumFractionDigits: 0 });
 }
 
-function CardHeartIcon({ filled }: { filled: boolean }) {
+// Redesigned — no white circular background, plain outline/filled heart that
+// sits directly on the image, with a short pop animation on toggle.
+function CardHeartIcon({ filled, popping }: { filled: boolean; popping: boolean }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="w-[17px] h-[17px]"
+      className={
+        "w-5 h-5 transition-transform duration-200 ease-out drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)] " +
+        (popping ? "scale-125" : "scale-100")
+      }
       fill={filled ? "#ef4444" : "none"}
-      stroke={filled ? "#ef4444" : "#374151"}
+      stroke={filled ? "#ef4444" : "#ffffff"}
       strokeWidth={1.8}
     >
       <path
@@ -151,13 +183,18 @@ function HomePageInner() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [activeBanner, setActiveBanner] = useState(0);
 
-  // Added — tracks which product ids the current user has wishlisted,
-  // so the heart icon renders filled/unfilled correctly.
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  // Tracks which product ids are mid-"pop" animation after a wishlist toggle.
+  const [poppingIds, setPoppingIds] = useState<Set<string>>(new Set());
+
+  // Swipe tracking for the banner carousel (touch only).
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
 
   useEffect(function () {
     async function init() {
@@ -186,7 +223,6 @@ function HomePageInner() {
     };
   }, []);
 
-  // Added — loads the signed-in user's wishlist once we know who they are.
   useEffect(function () {
     if (!user?.id) {
       setWishlistIds(new Set());
@@ -227,24 +263,60 @@ function HomePageInner() {
       const category = product?.category || "";
       const description = product?.description || "";
 
-      return (
+      const matchesSearch =
         name.toLowerCase().includes(search.toLowerCase()) ||
         location.toLowerCase().includes(search.toLowerCase()) ||
         seller.toLowerCase().includes(search.toLowerCase()) ||
         category.toLowerCase().includes(search.toLowerCase()) ||
-        description.toLowerCase().includes(search.toLowerCase())
-      );
+        description.toLowerCase().includes(search.toLowerCase());
+
+      const matchesCategory =
+        !categoryFilter || category.toLowerCase() === categoryFilter.toLowerCase();
+
+      return matchesSearch && matchesCategory;
     });
-  }, [products, search]);
+  }, [products, search, categoryFilter]);
 
   function stopCardNav(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
 
-  // Added — toggles wishlist state for a product, persisting to Supabase
-  // when the user is logged in. Card click navigation is stopped so the
-  // heart doesn't also trigger a route change.
+  function selectCategory(name: string) {
+    setCategoryFilter(function (current) {
+      return current === name ? null : name;
+    });
+  }
+
+  // ── Banner swipe handlers ────────────────────────────────────────────────
+  function handleBannerTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+    touchDeltaX.current = 0;
+  }
+
+  function handleBannerTouchMove(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+  }
+
+  function handleBannerTouchEnd() {
+    const delta = touchDeltaX.current;
+    const SWIPE_THRESHOLD = 40;
+
+    if (delta > SWIPE_THRESHOLD) {
+      setActiveBanner(function (current) {
+        return (current - 1 + banners.length) % banners.length;
+      });
+    } else if (delta < -SWIPE_THRESHOLD) {
+      setActiveBanner(function (current) {
+        return (current + 1) % banners.length;
+      });
+    }
+
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+  }
+
   async function toggleWishlist(e: React.MouseEvent, productId: string | undefined) {
     e.preventDefault();
     e.stopPropagation();
@@ -255,6 +327,20 @@ function HomePageInner() {
     if (isWishlisted) next.delete(productId);
     else next.add(productId);
     setWishlistIds(next);
+
+    // Trigger the pop animation, then clear it after it plays out.
+    setPoppingIds(function (current) {
+      const updated = new Set(current);
+      updated.add(productId);
+      return updated;
+    });
+    window.setTimeout(function () {
+      setPoppingIds(function (current) {
+        const updated = new Set(current);
+        updated.delete(productId);
+        return updated;
+      });
+    }, 220);
 
     if (!user?.id) return;
 
@@ -286,12 +372,57 @@ function HomePageInner() {
               className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#2e8b5a]"
             />
           </div>
+
+          {/* ── Mobile category quick-filter strip ─────────────────────────
+              Sits directly under the search bar, mobile only. Desktop
+              already has "All Categories" + the nav bar in SiteShell. */}
+          <div
+            className="md:hidden mt-2 -mx-4 sm:-mx-6 px-4 sm:px-6 flex gap-2 overflow-x-auto kora-cat-scroll"
+            style={{ scrollbarWidth: "none" }}
+          >
+            <button
+              type="button"
+              onClick={function () { setCategoryFilter(null); }}
+              className={
+                "flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold border transition " +
+                (categoryFilter === null
+                  ? "bg-[#2e8b5a] text-white border-[#2e8b5a]"
+                  : "bg-white text-gray-600 border-gray-200")
+              }
+            >
+              All
+            </button>
+            {CATEGORY_PILLS.map(function (cat) {
+              const isActive = categoryFilter === cat.name;
+              return (
+                <button
+                  key={cat.slug}
+                  type="button"
+                  onClick={function () { selectCategory(cat.name); }}
+                  className={
+                    "flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold border transition " +
+                    (isActive
+                      ? "bg-[#2e8b5a] text-white border-[#2e8b5a]"
+                      : "bg-white text-gray-600 border-gray-200")
+                  }
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
+          <style>{".kora-cat-scroll::-webkit-scrollbar{display:none}"}</style>
         </div>
       </section>
 
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
-          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#173f2a]">
+          <div
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#173f2a]"
+            onTouchStart={handleBannerTouchStart}
+            onTouchMove={handleBannerTouchMove}
+            onTouchEnd={handleBannerTouchEnd}
+          >
             {banners.map(function (banner, index) {
               const isActive = index === activeBanner;
               return (
@@ -352,6 +483,7 @@ function HomePageInner() {
               const productId = product.id || String(i);
               const verified = Boolean(product.verified || product.is_verified);
               const wishlisted = wishlistIds.has(productId);
+              const popping = poppingIds.has(productId);
 
               return (
                 <div
@@ -370,9 +502,9 @@ function HomePageInner() {
                       type="button"
                       onClick={function (e) { toggleWishlist(e, product.id); }}
                       aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                      className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 shadow-sm flex items-center justify-center hover:bg-white active:scale-90 transition"
+                      className="absolute top-1.5 right-1.5 flex items-center justify-center active:scale-90 transition"
                     >
-                      <CardHeartIcon filled={wishlisted} />
+                      <CardHeartIcon filled={wishlisted} popping={popping} />
                     </button>
 
                     {verified && <CardVerifiedBadge />}

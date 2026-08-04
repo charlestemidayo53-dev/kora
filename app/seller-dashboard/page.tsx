@@ -197,7 +197,7 @@ export default function SellerDashboardPage() {
       </div>
 
       <div className="text-center py-6 sm:py-8 text-xs text-gray-400">
-        2025 Kora Marketplace · Empowering Nigerian Agriculture
+        2026 Kora Marketplace · Empowering Nigerian suppliers  and buyers. All rights reserved.
       </div>
     </div>
   );
