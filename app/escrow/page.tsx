@@ -83,7 +83,7 @@ export default function EscrowPage() {
     const txRef = `kora_${order.id}_${Date.now()}`;
 
     window.FlutterwaveCheckout({
-      public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY,
+      public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
       tx_ref: txRef,
       amount: amountNumber,
       currency: "NGN",
