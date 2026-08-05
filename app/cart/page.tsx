@@ -86,128 +86,140 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f0faf4] flex items-center justify-center">
-        <div className="w-10 h-10 border-[3px] border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-10 h-10 border-[3px] border-[#F97316] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0faf4] py-8 px-4">
+    <div className="min-h-screen bg-white py-12 px-6">
       <div className="max-w-5xl mx-auto">
 
-        <div className="flex items-center justify-between mb-6">
+        {/* Header */}
+        <div className="flex items-end justify-between mb-10">
           <div>
-            <h1 className="text-2xl font-black text-[#1a4731]">Shopping Cart</h1>
-            <p className="text-sm text-gray-500">
-              {items.length} item{items.length !== 1 ? "s" : ""} in your cart
+            <h1 className="text-4xl font-bold text-[#111827] mb-2">Shopping Cart</h1>
+            <p className="text-[#6B7280]">
+              You have {items.length} item{items.length !== 1 ? "s" : ""} in your cart
             </p>
           </div>
           {items.length > 0 && (
             <button
               onClick={clearCart}
-              className="text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 px-3 py-2 rounded-lg hover:bg-red-50 transition"
+              className="text-sm font-medium text-[#DC2626] hover:text-[#B91C1C] transition"
             >
-              Clear Cart
+              Clear all items
             </button>
           )}
         </div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-20 text-center">
-            <p className="font-black text-gray-700 mb-1">Your cart is empty</p>
-            <p className="text-sm text-gray-400 mb-6">Browse the marketplace to add products</p>
+          <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] py-20 text-center">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-[#E5E7EB]">
+              <svg className="w-8 h-8 text-[#6B7280]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-[#111827] mb-1">Your cart is empty</h3>
+            <p className="text-[#6B7280] mb-8">Browse the marketplace to find products for your business.</p>
             <Link
               href="/marketplace"
-              className="inline-block bg-[#2e8b5a] hover:bg-[#1a4731] text-white px-6 py-3 rounded-xl font-black text-sm transition"
+              className="inline-block bg-[#F97316] hover:bg-[#EA580C] text-white px-8 py-3 rounded-lg font-medium transition"
             >
-              Browse Marketplace
+              Start Shopping
             </Link>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+          <div className="grid lg:grid-cols-[1fr_340px] gap-10 items-start">
 
             {/* Cart items grouped by seller */}
-            <div className="space-y-6">
+            <div className="space-y-10">
               {Object.entries(groupedBySeller).map(function ([sellerName, sellerItems]) {
                 const sellerSubtotal = sellerItems.reduce(function (s, it) {
                   return s + it.price * it.quantity;
                 }, 0);
 
                 return (
-                  <div key={sellerName} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-5 py-3 bg-[#f8faf8] border-b border-gray-100 flex items-center justify-between">
-                      <p className="text-sm font-black text-gray-700">{sellerName}</p>
-                      <p className="text-xs text-gray-400">
+                  <div key={sellerName} className="border-t border-[#E5E7EB] pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-sm font-bold uppercase tracking-wider text-[#6B7280]">Supplier: {sellerName}</h2>
+                      <span className="text-xs font-medium text-[#F97316] bg-[#FFF7ED] px-2 py-1 rounded">
                         {sellerItems.length} item{sellerItems.length !== 1 ? "s" : ""}
-                      </p>
+                      </span>
                     </div>
 
-                    <div className="divide-y divide-gray-50">
+                    <div className="space-y-8">
                       {sellerItems.map(function (item) {
                         return (
-                          <div key={item.id} className="flex items-center gap-4 p-5">
-                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#f0faf4] flex-shrink-0">
+                          <div key={item.id} className="flex gap-6">
+                            {/* Product Image */}
+                            <div className="w-24 h-24 rounded-lg overflow-hidden bg-[#F9FAFB] border border-[#E5E7EB] flex-shrink-0">
                               {item.product_image ? (
                                 <img src={item.product_image} alt={item.product_name} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <svg className="w-6 h-6 text-[#2e8b5a] opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                                    <path d="M3 9h18M9 21V9" />
+                                  <svg className="w-8 h-8 text-[#E5E7EB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                   </svg>
                                 </div>
                               )}
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-sm text-gray-800 truncate">{item.product_name}</p>
-                              <p className="text-xs text-gray-400">
-                                N{Number(item.price).toLocaleString("en-NG")}{item.unit ? " / " + item.unit : ""}
-                              </p>
+                            {/* Product Details */}
+                            <div className="flex-1 flex flex-col justify-between py-1">
+                              <div>
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-semibold text-[#111827]">{item.product_name}</h4>
+                                  <p className="font-bold text-[#111827]">
+                                    ₦{(item.price * item.quantity).toLocaleString("en-NG")}
+                                  </p>
+                                </div>
+                                <p className="text-sm text-[#6B7280] mt-1">
+                                  ₦{Number(item.price).toLocaleString("en-NG")}{item.unit ? " per " + item.unit : ""}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-4">
+                                {/* Quantity stepper */}
+                                <div className="flex items-center border border-[#E5E7EB] rounded-lg bg-white overflow-hidden">
+                                  <button
+                                    onClick={function () { updateQuantity(item.id, item.quantity - 1); }}
+                                    disabled={updating === item.id || item.quantity <= 1}
+                                    className="w-9 h-9 flex items-center justify-center text-[#6B7280] hover:text-[#F97316] hover:bg-[#F9FAFB] disabled:opacity-30 transition"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
+                                    </svg>
+                                  </button>
+                                  <span className="w-10 text-center text-sm font-semibold text-[#111827]">{item.quantity}</span>
+                                  <button
+                                    onClick={function () { updateQuantity(item.id, item.quantity + 1); }}
+                                    disabled={updating === item.id}
+                                    className="w-9 h-9 flex items-center justify-center text-[#6B7280] hover:text-[#F97316] hover:bg-[#F9FAFB] transition"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                  </button>
+                                </div>
+
+                                <button
+                                  onClick={function () { removeItem(item.id); }}
+                                  className="text-sm font-medium text-[#6B7280] hover:text-[#DC2626] transition"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                             </div>
-
-                            {/* Quantity stepper */}
-                            <div className="flex items-center gap-2 border border-gray-200 rounded-lg">
-                              <button
-                                onClick={function () { updateQuantity(item.id, item.quantity - 1); }}
-                                disabled={updating === item.id || item.quantity <= 1}
-                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-[#2e8b5a] disabled:opacity-30 transition"
-                              >
-                                −
-                              </button>
-                              <span className="w-8 text-center text-sm font-bold text-gray-700">{item.quantity}</span>
-                              <button
-                                onClick={function () { updateQuantity(item.id, item.quantity + 1); }}
-                                disabled={updating === item.id}
-                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-[#2e8b5a] transition"
-                              >
-                                +
-                              </button>
-                            </div>
-
-                            <p className="text-sm font-black text-[#2e8b5a] w-24 text-right flex-shrink-0">
-                              N{(item.price * item.quantity).toLocaleString("en-NG")}
-                            </p>
-
-                            <button
-                              onClick={function () { removeItem(item.id); }}
-                              className="text-gray-400 hover:text-red-500 transition flex-shrink-0"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
                           </div>
                         );
                       })}
                     </div>
 
-                    <div className="px-5 py-3 bg-[#f8faf8] border-t border-gray-100 flex items-center justify-between">
-                      <p className="text-xs text-gray-400">Subtotal from {sellerName}</p>
-                      <p className="text-sm font-black text-[#1a4731]">
-                        N{sellerSubtotal.toLocaleString("en-NG")}
-                      </p>
+                    <div className="mt-6 pt-6 border-t border-[#E5E7EB] flex justify-between items-center">
+                      <span className="text-sm text-[#6B7280]">Supplier Subtotal</span>
+                      <span className="font-bold text-[#111827]">₦{sellerSubtotal.toLocaleString("en-NG")}</span>
                     </div>
                   </div>
                 );
@@ -215,41 +227,57 @@ export default function CartPage() {
             </div>
 
             {/* Order summary */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 h-fit sticky top-24">
-              <h2 className="font-black text-gray-800 mb-4">Order Summary</h2>
+            <div className="bg-[#F9FAFB] rounded-xl border border-[#E5E7EB] p-8 sticky top-28">
+              <h2 className="text-xl font-bold text-[#111827] mb-6">Order Summary</h2>
 
-              <div className="space-y-2 mb-4 pb-4 border-b border-gray-100">
+              <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
-                  <span className="font-bold text-gray-700">N{subtotal.toLocaleString("en-NG")}</span>
+                  <span className="text-[#6B7280]">Items Subtotal</span>
+                  <span className="font-semibold text-[#111827]">₦{subtotal.toLocaleString("en-NG")}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Suppliers</span>
-                  <span className="font-bold text-gray-700">{Object.keys(groupedBySeller).length}</span>
+                  <span className="text-[#6B7280]">Total Suppliers</span>
+                  <span className="font-semibold text-[#111827]">{Object.keys(groupedBySeller).length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#6B7280]">Estimated Shipping</span>
+                  <span className="font-semibold text-[#16A34A]">Calculated at checkout</span>
                 </div>
               </div>
 
-              <div className="flex justify-between mb-6">
-                <span className="font-black text-gray-800">Total</span>
-                <span className="font-black text-[#2e8b5a] text-xl">N{subtotal.toLocaleString("en-NG")}</span>
+              <div className="pt-6 border-t border-[#E5E7EB] mb-8">
+                <div className="flex justify-between items-end">
+                  <span className="text-[#111827] font-bold">Total Amount</span>
+                  <span className="text-2xl font-bold text-[#F97316]">₦{subtotal.toLocaleString("en-NG")}</span>
+                </div>
               </div>
 
               <Link
                 href="/checkout"
-                className="block w-full text-center bg-[#2e8b5a] hover:bg-[#1a4731] text-white py-3.5 rounded-xl font-black text-sm transition mb-3"
+                className="block w-full text-center bg-[#F97316] hover:bg-[#EA580C] text-white py-4 rounded-lg font-bold transition shadow-sm hover:shadow-md mb-4"
               >
-                Proceed to Checkout
+                Checkout Now
               </Link>
+              
               <Link
                 href="/marketplace"
-                className="block w-full text-center border border-gray-200 text-gray-600 hover:border-[#2e8b5a] hover:text-[#2e8b5a] py-3 rounded-xl font-bold text-sm transition"
+                className="block w-full text-center text-[#6B7280] hover:text-[#111827] py-2 text-sm font-medium transition"
               >
                 Continue Shopping
               </Link>
 
-              <p className="text-[10px] text-gray-400 text-center mt-4 leading-relaxed">
-                Orders are placed separately per supplier. Payments are protected by Kora Escrow.
-              </p>
+              <div className="mt-8 p-4 bg-white rounded-lg border border-[#E5E7EB]">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-[#FFF7ED] rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg className="w-4 h-4 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+                  <p className="text-[11px] text-[#6B7280] leading-relaxed">
+                    <span className="font-bold text-[#111827]">Kora Escrow Protected.</span> Your payment is held securely until you confirm receipt of goods.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}

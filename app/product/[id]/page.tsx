@@ -134,7 +134,7 @@ function buildSpecs(product: Product): { label: string; value: string }[] {
 // ─── Small icon components ──────────────────────────────────────────────────
 function IconTruck() {
   return (
-    <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7h11v8H3zM14 10h4l3 4v1h-7zM6 19a2 2 0 100-4 2 2 0 000 4zM17.5 19a2 2 0 100-4 2 2 0 000 4z" />
     </svg>
   );
@@ -142,7 +142,7 @@ function IconTruck() {
 
 function IconShield() {
   return (
-    <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   );
@@ -150,7 +150,7 @@ function IconShield() {
 
 function IconRefund() {
   return (
-    <svg className="w-5 h-5 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h11a5 5 0 010 10H9m-6-10l4-4m-4 4l4 4" />
     </svg>
   );
@@ -296,7 +296,7 @@ export default function ProductDetailPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f7f6]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Loading product...</p>
         </div>
       </div>
@@ -330,7 +330,7 @@ export default function ProductDetailPage({
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <button
             onClick={function () { router.back(); }}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-[#2e8b5a] transition text-sm font-medium"
+            className="flex items-center gap-1.5 text-gray-500 hover:text-[#F97316] transition text-sm font-medium"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -338,7 +338,7 @@ export default function ProductDetailPage({
             Back
           </button>
           <span className="text-gray-200">|</span>
-          <a href="/marketplace" className="text-sm text-gray-500 hover:text-[#2e8b5a] transition">
+          <a href="/marketplace" className="text-sm text-gray-500 hover:text-[#F97316] transition">
             Marketplace
           </a>
         </div>
@@ -348,7 +348,7 @@ export default function ProductDetailPage({
         {/* ── Product gallery ───────────────────────────────────────────── */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div
-            className="relative aspect-square sm:aspect-[4/3] bg-[#f0faf4] overflow-hidden"
+            className="relative aspect-square sm:aspect-[4/3] bg-[#FFF3E8] overflow-hidden"
             onTouchStart={handleGalleryTouchStart}
             onTouchMove={handleGalleryTouchMove}
             onTouchEnd={handleGalleryTouchEnd}
@@ -379,7 +379,7 @@ export default function ProductDetailPage({
             )}
 
             {product.is_verified && (
-              <div className="absolute top-4 right-4 bg-[#2e8b5a] text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow">
+              <div className="absolute top-4 right-4 bg-[#F97316] text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -387,7 +387,7 @@ export default function ProductDetailPage({
               </div>
             )}
 
-            <div className="absolute top-4 left-4 bg-[#1a4731] text-white text-xs font-bold px-3 py-1.5 rounded-full">
+            <div className="absolute top-4 left-4 bg-black/70 text-white text-xs font-bold px-3 py-1.5 rounded-full">
               {product.category}
             </div>
 
@@ -417,7 +417,7 @@ export default function ProductDetailPage({
           <h1 className="text-xl font-black text-gray-900 mt-4">{product.name}</h1>
 
           {product.subcategory && (
-            <span className="inline-block bg-[#f0faf4] text-[#2e8b5a] text-xs font-semibold px-3 py-1 rounded-full mt-3">
+            <span className="inline-block bg-[#FFF3E8] text-[#F97316] text-xs font-semibold px-3 py-1 rounded-full mt-3">
               {product.subcategory}
             </span>
           )}
@@ -430,9 +430,9 @@ export default function ProductDetailPage({
             <div className="grid grid-cols-2 gap-3 mt-5">
               {infoItems.map(function (item) {
                 return (
-                  <div key={item.label} className="bg-[#f0faf4] rounded-2xl p-4">
+                  <div key={item.label} className="bg-[#FFF3E8] rounded-2xl p-4">
                     <p className="text-xs text-gray-500 mb-1 font-medium">{item.label}</p>
-                    <p className="font-bold text-[#1a4731] text-sm">{item.value}</p>
+                    <p className="font-bold text-gray-900 text-sm">{item.value}</p>
                   </div>
                 );
               })}
@@ -465,7 +465,7 @@ export default function ProductDetailPage({
           <h2 className="text-sm font-bold text-gray-800 mb-4">Buyer Protection</h2>
           <div className="space-y-4">
             <div className="flex gap-3">
-              <div className="w-9 h-9 bg-[#f0faf4] rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 bg-[#FFF3E8] rounded-xl flex items-center justify-center flex-shrink-0">
                 <IconShield />
               </div>
               <div>
@@ -476,7 +476,7 @@ export default function ProductDetailPage({
               </div>
             </div>
             <div className="flex gap-3">
-              <div className="w-9 h-9 bg-[#f0faf4] rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 bg-[#FFF3E8] rounded-xl flex items-center justify-center flex-shrink-0">
                 <IconRefund />
               </div>
               <div>
@@ -509,7 +509,7 @@ export default function ProductDetailPage({
         {/* ── Seller info ────────────────────────────────────────────────── */}
         <div
           onClick={goToSellerProfile}
-          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 cursor-pointer hover:border-[#c8e6d4] transition"
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 cursor-pointer hover:border-[#FDBA8C] transition"
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Seller Information</h2>
@@ -520,7 +520,7 @@ export default function ProductDetailPage({
             {seller?.logo_url ? (
               <img src={seller.logo_url} alt={seller.business_name || "Supplier"} className="w-12 h-12 rounded-2xl object-cover flex-shrink-0" />
             ) : (
-              <div className="w-12 h-12 bg-[#2e8b5a] rounded-2xl flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 bg-[#F97316] rounded-2xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-lg font-bold">{sellerInitial}</span>
               </div>
             )}
@@ -538,9 +538,9 @@ export default function ProductDetailPage({
           </div>
 
           {seller?.is_verified ? (
-            <div className="flex items-center gap-2 bg-[#f0faf4] border border-[#c8e6d4] px-4 py-2.5 rounded-xl mb-3">
+            <div className="flex items-center gap-2 bg-[#FFF3E8] border border-[#FDBA8C] px-4 py-2.5 rounded-xl mb-3">
               <IconShield />
-              <span className="text-xs font-bold text-[#2e8b5a]">Verified Supplier</span>
+              <span className="text-xs font-bold text-[#F97316]">Verified Supplier</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2.5 rounded-xl mb-3">
@@ -563,7 +563,7 @@ export default function ProductDetailPage({
 
           <button
             onClick={function (e) { e.stopPropagation(); goToSellerProfile(); }}
-            className="w-full border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-2.5 rounded-xl font-semibold text-sm transition"
+            className="w-full border border-[#F97316] text-[#F97316] hover:bg-[#FFF3E8] py-2.5 rounded-xl font-semibold text-sm transition"
           >
             View Supplier Profile
           </button>
@@ -574,7 +574,7 @@ export default function ProductDetailPage({
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-lg font-bold text-gray-800">Related Products</h2>
-              <a href="/marketplace" className="text-xs font-semibold text-[#2e8b5a] hover:text-[#1a4731] transition">
+              <a href="/marketplace" className="text-xs font-semibold text-[#F97316] hover:text-[#c2410c] transition">
                 See All
               </a>
             </div>
@@ -618,7 +618,7 @@ export default function ProductDetailPage({
       <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height,4rem)] md:bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 z-50">
         <button
           onClick={handleMessage}
-          className="flex-1 bg-white border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3 rounded-xl font-semibold text-sm transition"
+          className="flex-1 bg-white border border-[#F97316] text-[#F97316] hover:bg-[#FFF3E8] py-3 rounded-xl font-semibold text-sm transition"
         >
           Message Supplier
         </button>
@@ -632,8 +632,8 @@ export default function ProductDetailPage({
 
       {/* ── Order Now / payment method modal ─────────────────────────────── */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/50 px-4">
-          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-8">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white w-full sm:max-w-md rounded-3xl p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-base font-black text-gray-900">Choose Payment Method</h3>
               <button onClick={function () { setShowPaymentModal(false); }} className="text-gray-400 hover:text-gray-600">
@@ -648,12 +648,12 @@ export default function ProductDetailPage({
                 onClick={function () { setPaymentMethod("escrow"); }}
                 className={
                   "w-full text-left p-4 rounded-2xl border-2 transition " +
-                  (paymentMethod === "escrow" ? "border-[#2e8b5a] bg-[#f0faf4]" : "border-gray-200")
+                  (paymentMethod === "escrow" ? "border-[#F97316] bg-[#FFF3E8]" : "border-gray-200")
                 }
               >
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm text-gray-800">Secure Escrow Payment</span>
-                  <span className="text-[10px] font-bold text-white bg-[#2e8b5a] px-2 py-0.5 rounded-full">RECOMMENDED</span>
+                  <span className="text-[10px] font-bold text-white bg-[#F97316] px-2 py-0.5 rounded-full">RECOMMENDED</span>
                 </div>
                 {paymentMethod === "escrow" && (
                   <p className="text-xs text-gray-600 mt-2 leading-relaxed">
@@ -666,7 +666,7 @@ export default function ProductDetailPage({
                 onClick={function () { setPaymentMethod("direct"); }}
                 className={
                   "w-full text-left p-4 rounded-2xl border-2 transition " +
-                  (paymentMethod === "direct" ? "border-[#2e8b5a] bg-[#f0faf4]" : "border-gray-200")
+                  (paymentMethod === "direct" ? "border-[#F97316] bg-[#FFF3E8]" : "border-gray-200")
                 }
               >
                 <span className="font-bold text-sm text-gray-800">Direct Payment</span>

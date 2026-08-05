@@ -250,6 +250,18 @@ function getInitials(profile: any, user: any): string {
   return email.charAt(0).toUpperCase() || "U";
 }
 
+// ─── Brand palette ─────────────────────────────────────────────────────────────
+// Single orange brand identity, matching the rest of the site. Green is
+// intentionally NOT used here except for the two footer trust badges,
+// which mark a genuinely verified/protected status — a real semantic use,
+// not decoration. Every other accent (links, hovers, active states,
+// avatars, the Post RFQ highlight) uses this same orange scale so the
+// header, dropdowns and footer all read as one system.
+const BRAND        = "#F97316"; // primary orange
+const BRAND_DARK    = "#c2410c"; // hover / pressed
+const BRAND_TINT    = "#FFF3E8"; // light orange background
+const BRAND_BORDER  = "#FDBA8C"; // light orange border
+
 // ─── Site Shell (client) ───────────────────────────────────────────────────────
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -371,7 +383,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <div className="relative" ref={langRef}>
               <button
                 onClick={function () { setShowLangMenu(function (v) { return !v; }); setShowCurrMenu(false); setShowUserMenu(false); }}
-                className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition"
+                className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition"
               >
                 <IconGlobe />
                 <span className="hidden md:inline">{currentLang.code.toUpperCase()}</span>
@@ -383,7 +395,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   {LANGUAGES.map(function (lang) {
                     return (
                       <button key={lang.code} onClick={function () { changeLang(lang.code); }}
-                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition " + (language === lang.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700")}>
+                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#FFF3E8] transition " + (language === lang.code ? "text-[#F97316] font-bold bg-[#FFF3E8]" : "text-gray-700")}>
                         <span>{lang.native}</span>
                         <span className="text-[10px] text-gray-400">{lang.label}</span>
                       </button>
@@ -397,7 +409,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <div className="relative" ref={currRef}>
               <button
                 onClick={function () { setShowCurrMenu(function (v) { return !v; }); setShowLangMenu(false); setShowUserMenu(false); }}
-                className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition"
+                className="flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition"
               >
                 <span>{currentCurr.symbol}</span>
                 <span className="hidden md:inline">{currentCurr.code}</span>
@@ -409,7 +421,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   {CURRENCIES.map(function (cur) {
                     return (
                       <button key={cur.code} onClick={function () { changeCurr(cur.code); }}
-                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#f0faf4] transition " + (currency === cur.code ? "text-[#2e8b5a] font-bold bg-[#f0faf4]" : "text-gray-700")}>
+                        className={"w-full text-left px-3 py-2.5 text-sm flex items-center justify-between hover:bg-[#FFF3E8] transition " + (currency === cur.code ? "text-[#F97316] font-bold bg-[#FFF3E8]" : "text-gray-700")}>
                         <span className="flex items-center gap-2">
                           <span className="font-bold w-7 text-center text-xs">{cur.symbol}</span>
                           <span>{cur.label}</span>
@@ -427,7 +439,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* Messages — only if logged in */}
             {user && (
               <Link href="/message"
-                className="relative flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition">
+                className="relative flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
                 <IconMessage />
                 {msgCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
@@ -441,7 +453,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* Orders — only if logged in */}
             {user && (
               <Link href="/orders"
-                className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition">
+                className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
                 <IconOrders />
                 <span className="text-[9px] mt-0.5 hidden md:block leading-none">Orders</span>
               </Link>
@@ -450,7 +462,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* Cart — only if logged in */}
             {user && (
               <Link href="/cart"
-                className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] rounded-lg transition">
+                className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
                 <IconCart />
                 <span className="text-[9px] mt-0.5 hidden md:block leading-none">Cart</span>
               </Link>
@@ -463,12 +475,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <div className="relative" ref={userRef}>
                 <button
                   onClick={function () { setShowUserMenu(function (v) { return !v; }); setShowLangMenu(false); setShowCurrMenu(false); }}
-                  className="flex flex-col items-center px-2 py-1.5 hover:bg-[#f0faf4] rounded-lg transition"
+                  className="flex flex-col items-center px-2 py-1.5 hover:bg-[#FFF3E8] rounded-lg transition"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt={firstName} className="w-7 h-7 rounded-full object-cover" />
                   ) : (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] flex items-center justify-center text-white text-xs font-bold">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#F97316] to-[#c2410c] flex items-center justify-center text-white text-xs font-bold">
                       {initials}
                     </div>
                   )}
@@ -481,7 +493,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                       {avatarUrl ? (
                         <img src={avatarUrl} alt={firstName} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#F97316] to-[#c2410c] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                           {initials}
                         </div>
                       )}
@@ -502,7 +514,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     ].map(function (item) {
                       return (
                         <Link key={item.label} href={item.href} onClick={function () { setShowUserMenu(false); }}
-                          className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
+                          className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-700 hover:bg-[#FFF3E8] hover:text-[#F97316] transition">
                           <span className="text-gray-400">{item.Icon}</span>
                           {item.label}
                         </Link>
@@ -522,11 +534,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             ) : (
               <div className="flex items-center gap-2 pl-1">
                 <Link href="/auth/login"
-                  className="text-xs font-bold text-[#2e8b5a] hover:text-[#1a4731] border border-[#2e8b5a] px-3 py-1.5 rounded-lg transition hover:bg-[#f0faf4]">
+                  className="text-xs font-bold text-[#F97316] hover:text-[#c2410c] border border-[#F97316] px-3 py-1.5 rounded-lg transition hover:bg-[#FFF3E8]">
                   Sign In
                 </Link>
                 <Link href="/auth/register"
-                  className="text-xs font-bold text-white bg-[#2e8b5a] hover:bg-[#1a4731] px-3 py-1.5 rounded-lg transition">
+                  className="text-xs font-bold text-white bg-[#F97316] hover:bg-[#c2410c] px-3 py-1.5 rounded-lg transition">
                   Register
                 </Link>
               </div>
@@ -541,7 +553,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             {/* All Categories link */}
             <Link
               href="/categories"
-              className="hidden md:flex items-center gap-2 px-4 py-3 text-sm font-bold transition flex-shrink-0 border-r border-gray-100 text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a]"
+              className="hidden md:flex items-center gap-2 px-4 py-3 text-sm font-bold transition flex-shrink-0 border-r border-gray-100 text-gray-700 hover:bg-[#FFF3E8] hover:text-[#F97316]"
             >
               <IconMenu />
               All Categories
@@ -552,7 +564,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               {navLinks.map(function (link) {
                 return (
                   <Link key={link.label} href={link.href}
-                    className="px-4 py-3 text-sm font-medium text-gray-600 hover:text-[#2e8b5a] hover:bg-[#f0faf4] transition whitespace-nowrap">
+                    className="px-4 py-3 text-sm font-medium text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] transition whitespace-nowrap">
                     {link.label}
                   </Link>
                 );
@@ -561,11 +573,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
             {/* Right quick actions */}
             <div className="hidden lg:flex items-center gap-1 ml-auto pl-4 border-l border-gray-100">
-              <Link href="/escrow" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#2e8b5a] transition px-3 py-2.5">
+              <Link href="/escrow" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#F97316] transition px-3 py-2.5">
                 <IconLock />
                 Safe Escrow
               </Link>
-              <Link href="/rfq" className="flex items-center gap-1.5 text-xs font-bold text-[#2e8b5a] hover:text-[#1a4731] transition px-3 py-2 bg-[#f0faf4] rounded-lg mx-1 border border-[#c8e6d4]">
+              <Link href="/rfq" className="flex items-center gap-1.5 text-xs font-bold text-[#F97316] hover:text-[#c2410c] transition px-3 py-2 bg-[#FFF3E8] rounded-lg mx-1 border border-[#FDBA8C]">
                 <IconPlus />
                 Post RFQ
               </Link>
@@ -580,7 +592,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               return (
                 <Link key={link.label} href={link.href}
                   onClick={function () { setMobileMenuOpen(false); }}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-[#f0faf4] hover:text-[#2e8b5a] transition">
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-[#FFF3E8] hover:text-[#F97316] transition">
                   {link.label}
                 </Link>
               );
@@ -589,7 +601,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               {user ? (
                 <>
                   <Link href="/settings" onClick={function () { setMobileMenuOpen(false); }}
-                    className="w-full text-center py-2.5 rounded-lg text-sm font-semibold text-[#2e8b5a] border-2 border-[#2e8b5a] hover:bg-[#f0faf4] transition">
+                    className="w-full text-center py-2.5 rounded-lg text-sm font-semibold text-[#F97316] border-2 border-[#F97316] hover:bg-[#FFF3E8] transition">
                     Profile Settings
                   </Link>
                   <button onClick={handleSignOut}
@@ -599,9 +611,9 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                 </>
               ) : (
                 <>
-                  <Link href="/auth/login" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-[#2e8b5a] border-2 border-[#2e8b5a] hover:bg-[#f0faf4] transition">Sign In</Link>
-                  <Link href="/auth/register" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-white bg-[#2e8b5a] hover:bg-[#1a4731] transition">Register Free</Link>
-                  <Link href="/auth/register?type=supplier" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-[#2e8b5a] bg-[#f0faf4] hover:bg-[#e0f5ea] transition">Become a Supplier</Link>
+                  <Link href="/auth/login" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-[#F97316] border-2 border-[#F97316] hover:bg-[#FFF3E8] transition">Sign In</Link>
+                  <Link href="/auth/register" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-white bg-[#F97316] hover:bg-[#c2410c] transition">Register Free</Link>
+                  <Link href="/auth/register?type=supplier" className="block text-center py-2.5 rounded-lg text-sm font-semibold text-[#F97316] bg-[#FFF3E8] hover:bg-[#FDE4CE] transition">Become a Supplier</Link>
                 </>
               )}
             </div>
@@ -614,12 +626,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
       {/* ══ FOOTER — home page only ══════════════════════════════════════════ */}
       {isHome && (
-        <footer className="bg-[#0f2d1c] text-white">
+        <footer className="bg-[#211308] text-white">
           <div className="max-w-[1400px] mx-auto px-6 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
               <div className="lg:col-span-2">
                 <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F97316] to-[#c2410c] flex items-center justify-center">
                     <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
                       <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
                       <path d="M13.5 20L27 8"  stroke="white" strokeWidth="4.5" strokeLinecap="round" />
@@ -628,17 +640,19 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   </div>
                   <div>
                     <div className="text-lg font-black tracking-tight">Kora</div>
-                    <div className="text-[10px] text-green-400 uppercase tracking-wide font-medium">B2B Marketplace</div>
+                    <div className="text-[10px] text-[#FDBA8C] uppercase tracking-wide font-medium">B2B Marketplace</div>
                   </div>
                 </div>
                 <p className="text-sm text-white/60 leading-relaxed max-w-xs mb-5">
                   Nigeria's trusted B2B trading platform connecting buyers and verified suppliers across all 36 states and beyond.
                 </p>
+                {/* These two badges are the only green in the site — they mark a
+                    genuinely verified/protected status, not decoration. */}
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Verified Suppliers
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-[#2e8b5a]/20 text-green-300 px-3 py-1.5 rounded-full font-medium">
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Escrow Protected
                   </span>
                 </div>

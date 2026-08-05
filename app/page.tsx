@@ -75,13 +75,16 @@ const banners = [
     image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    // Replaced — now a factory/production-line image (was "Verified Suppliers" bridge shot)
+    // Swapped — the old photo here was a car/vehicle shot, which had nothing
+    // to do with "supplier screened before listing." Replaced with a real
+    // inspection/audit photo (person reviewing a clipboard) that actually
+    // matches the copy.
     eyebrow: "Verified Suppliers",
     title: "Every supplier screened before listing",
     body: "Trade with confidence — Kora verifies business details before sellers go live.",
     cta: "Meet our suppliers",
     href: "/suppliers",
-    image: "https://images.unsplash.com/photo-1565043666747-69f6646db940?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
   },
   {
     // Replaced — now a shipping containers / export-import image
@@ -135,12 +138,14 @@ function CardHeartIcon({ filled, popping }: { filled: boolean; popping: boolean 
   );
 }
 
+// Verified is a genuine status (a supplier passed screening), so this is
+// one of the few spots that intentionally stays green rather than orange.
 function CardVerifiedBadge() {
   return (
-    <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-white/95 text-[#1a7a4a] text-[9px] font-bold px-2 py-1 rounded-full shadow-sm">
+    <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-white/95 text-green-700 text-[9px] font-bold px-2 py-1 rounded-full shadow-sm">
       <svg viewBox="0 0 24 24" className="w-3 h-3">
         <path
-          fill="#1a7a4a"
+          fill="#15803d"
           d="M12 2l2.4 1.7 2.9-.4 1.1 2.7 2.7 1.1-.4 2.9L22 12l-1.7 2.4.4 2.9-2.7 1.1-1.1 2.7-2.9-.4L12 22l-2.4-1.7-2.9.4-1.1-2.7-2.7-1.1.4-2.9L2 12l1.7-2.4-.4-2.9 2.7-1.1 1.1-2.7 2.9.4L12 2z"
         />
         <path
@@ -418,7 +423,7 @@ function HomePageInner() {
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
           <div
-            className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#173f2a]"
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#2b1a10]"
             onTouchStart={handleBannerTouchStart}
             onTouchMove={handleBannerTouchMove}
             onTouchEnd={handleBannerTouchEnd}

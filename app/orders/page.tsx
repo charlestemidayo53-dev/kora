@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { getOrdersByBuyer, getSellerProfile } from "@/lib/storage";
 import Link from "next/link";
+import {
+  Package,
+  Truck,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  MessageCircle,
+  Eye,
+  Trash2,
+  Calendar,
+  Banknote,
+  X,
+} from "lucide-react";
 
 type SellerProfile = {
   email?: string;
@@ -12,29 +25,24 @@ type SellerProfile = {
   is_verified?: boolean;
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "delivered": return "bg-green-100 text-green-800 border border-green-200";
-    case "in_transit": return "bg-blue-100 text-blue-800 border border-blue-200";
-    case "processing": return "bg-yellow-100 text-yellow-800 border border-yellow-200";
-    case "accepted": return "bg-blue-100 text-blue-800 border border-blue-200";
-    case "pending": return "bg-gray-100 text-gray-700 border border-gray-200";
-    case "rejected": return "bg-red-100 text-red-700 border border-red-200";
-    default: return "bg-gray-100 text-gray-700 border border-gray-200";
-  }
+// ── Status → brand-consistent styling ────────────────────────────────────
+// Orange is the primary brand color and is used for every "in progress"
+// state so the whole flow reads as one design system. Green is reserved
+// for a genuinely completed/successful outcome (delivered). Red is
+// reserved for a negative outcome (rejected). Gray is neutral (pending,
+// nothing happening yet).
+const STATUS_STYLES: Record<string, { classes: string; Icon: typeof Package; label?: string }> = {
+  delivered: { classes: "bg-green-50 text-green-700 border border-green-200", Icon: CheckCircle2 },
+  in_transit: { classes: "bg-[#FFF3E8] text-[#c2410c] border border-[#FDBA8C]", Icon: Truck },
+  accepted: { classes: "bg-[#FFF3E8] text-[#c2410c] border border-[#FDBA8C]", Icon: Truck },
+  processing: { classes: "bg-[#FFF3E8] text-[#c2410c] border border-[#FDBA8C]", Icon: Clock },
+  pending: { classes: "bg-gray-100 text-gray-600 border border-gray-200", Icon: Clock },
+  rejected: { classes: "bg-red-50 text-red-700 border border-red-200", Icon: XCircle },
 };
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "delivered": return "✅";
-    case "in_transit": return "🚚";
-    case "accepted": return "🚚";
-    case "processing": return "⏳";
-    case "pending": return "🕐";
-    case "rejected": return "❌";
-    default: return "📦";
-  }
-};
+function getStatusStyle(status: string) {
+  return STATUS_STYLES[status] || { classes: "bg-gray-100 text-gray-600 border border-gray-200", Icon: Package };
+}
 
 // ── Order deletion eligibility ───────────────────────────────────────────
 // An order can be deleted if it has no transaction attached, or if its
@@ -53,6 +61,21 @@ function canDeleteOrder(order: any): boolean {
 
   // Unrecognized status — be conservative and don't allow deletion.
   return false;
+}
+
+// The real product photo, pulled from the product record on the order
+// (falls back through a couple of possible field names depending on how
+// the order was created/joined), never an emoji or generic icon unless
+// the product genuinely has no uploaded image.
+function getProductImage(order: any): string | null {
+  return (
+    order.product_image ||
+    order.productImage ||
+    order.product?.image_url ||
+    order.product?.image ||
+    order.image ||
+    null
+  );
 }
 
 export default function OrdersPage() {
@@ -136,7 +159,7 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen bg-[#FFF7ED] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin mx-auto mb-3"/>
+          <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-gray-600 font-medium">Loading your orders...</p>
         </div>
       </div>
@@ -157,8 +180,8 @@ export default function OrdersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Total Orders", value: stats.total, color: "text-gray-800", border: "border-gray-100" },
-            { label: "Pending", value: stats.pending, color: "text-amber-600", border: "border-amber-100" },
-            { label: "In Progress", value: stats.accepted, color: "text-blue-600", border: "border-blue-100" },
+            { label: "Pending", value: stats.pending, color: "text-[#F97316]", border: "border-[#FDBA8C]/60" },
+            { label: "In Progress", value: stats.accepted, color: "text-[#F97316]", border: "border-[#FDBA8C]/60" },
             { label: "Delivered", value: stats.delivered, color: "text-green-600", border: "border-green-100" },
           ].map(s => (
             <div key={s.label} className={"bg-white rounded-2xl p-5 shadow-sm border " + s.border}>
@@ -191,7 +214,7 @@ export default function OrdersPage() {
         {/* Orders list */}
         {filteredOrders.length === 0 ? (
           <div className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-sm">
-            <div className="text-5xl mb-4">📦</div>
+            <Package className="w-12 h-12 text-[#F97316] mx-auto mb-4" strokeWidth={1.5} />
             <h3 className="font-black text-gray-700 mb-2">
               {orders.length === 0 ? "No orders yet" : "No orders match your search"}
             </h3>
@@ -210,18 +233,24 @@ export default function OrdersPage() {
               const productName = order.product_name || order.productName || "Unknown Product";
               const orderId = order.id || "—";
               const status = order.status || "pending";
+              const { classes: statusClasses, Icon: StatusIcon } = getStatusStyle(status);
               const sellerProfile = sellerProfiles[order.seller];
               const sellerName = sellerProfile?.business_name || order.seller || "Unknown Supplier";
               const deletable = canDeleteOrder(order);
+              const productImage = getProductImage(order);
 
               return (
                 <div key={order.id}
                   className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition cursor-pointer"
                   onClick={() => setSelectedOrder(order)}>
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    {/* Product image */}
-                    <div className="w-16 h-16 bg-[#FFF3E8] rounded-xl flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
-                      {order.image ? <img src={order.image} alt={productName} className="w-full h-full object-cover"/> : "📦"}
+                    {/* Product image — real product photo, icon only as last resort */}
+                    <div className="w-16 h-16 bg-[#FFF3E8] rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-[#FDBA8C]/40">
+                      {productImage ? (
+                        <img src={productImage} alt={productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <Package className="w-6 h-6 text-[#F97316]" strokeWidth={1.5} />
+                      )}
                     </div>
 
                     {/* Info */}
@@ -248,14 +277,21 @@ export default function OrdersPage() {
                           </div>
 
                           <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
-                            {order.quantity && <span>📦 {order.quantity}</span>}
-                            {order.price && <span>💰 {order.price}</span>}
-                            {order.created_at && <span>📅 {new Date(order.created_at).toLocaleDateString()}</span>}
+                            {order.quantity && (
+                              <span className="flex items-center gap-1"><Package className="w-3.5 h-3.5" /> {order.quantity}</span>
+                            )}
+                            {order.price && (
+                              <span className="flex items-center gap-1"><Banknote className="w-3.5 h-3.5" /> {order.price}</span>
+                            )}
+                            {order.created_at && (
+                              <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {new Date(order.created_at).toLocaleDateString()}</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold " + getStatusColor(status)}>
-                            {getStatusIcon(status)} {status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ")}
+                          <span className={"flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold " + statusClasses}>
+                            <StatusIcon className="w-3.5 h-3.5" />
+                            {status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ")}
                           </span>
                           <span className="text-xs text-gray-400 font-mono hidden md:block">{orderId.slice(0, 12)}...</span>
                         </div>
@@ -267,16 +303,16 @@ export default function OrdersPage() {
                   <div className="flex gap-2 mt-4 pt-4 border-t border-gray-50">
                     <Link href="/message" onClick={e => e.stopPropagation()}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#F97316] bg-[#FFF3E8] hover:bg-[#F97316] hover:text-white rounded-lg transition">
-                      💬 Contact Supplier
+                      <MessageCircle className="w-3.5 h-3.5" /> Contact Supplier
                     </Link>
                     <button onClick={e => { e.stopPropagation(); setSelectedOrder(order); }}
                       className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                      👁 View Details
+                      <Eye className="w-3.5 h-3.5" /> View Details
                     </button>
                     {deletable && (
                       <button onClick={e => { e.stopPropagation(); setOrderToDelete(order); }}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-lg transition ml-auto">
-                        🗑 Delete
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>
                     )}
                   </div>
@@ -288,60 +324,76 @@ export default function OrdersPage() {
       </div>
 
       {/* ── Order detail modal ── */}
-      {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
-          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex items-center justify-between">
-              <div>
-                <h2 className="font-black text-gray-900 text-lg">Order Details</h2>
-                <p className="text-xs text-gray-500 font-mono mt-0.5">{selectedOrder.id}</p>
+      {selectedOrder && (() => {
+        const detailImage = getProductImage(selectedOrder);
+        const { classes: detailStatusClasses, Icon: DetailStatusIcon } = getStatusStyle(selectedOrder.status || "pending");
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedOrder(null)}>
+            <div className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex items-center justify-between">
+                <div>
+                  <h2 className="font-black text-gray-900 text-lg">Order Details</h2>
+                  <p className="text-xs text-gray-500 font-mono mt-0.5">{selectedOrder.id}</p>
+                </div>
+                <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
-            </div>
-            <div className="p-5 space-y-4">
-              {selectedOrder.image && (
-                <img src={selectedOrder.image} alt="" className="w-full h-40 object-cover rounded-xl" />
-              )}
-
-              <div className="bg-[#FFF3E8] rounded-xl p-4 space-y-3">
-                {[
-                  ["Product", selectedOrder.product_name || selectedOrder.productName || "—"],
-                  ["Supplier", sellerProfiles[selectedOrder.seller]?.business_name || selectedOrder.seller || "—"],
-                  ["Quantity", selectedOrder.quantity || "—"],
-                  ["Price", selectedOrder.price || "—"],
-                  ["Date", selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleDateString() : "—"],
-                  ["Status", (selectedOrder.status || "pending").charAt(0).toUpperCase() + (selectedOrder.status || "pending").slice(1)],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex justify-between items-center">
-                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{label}</span>
-                    <span className="text-sm font-bold text-gray-800">{value}</span>
+              <div className="p-5 space-y-4">
+                {detailImage ? (
+                  <img src={detailImage} alt="" className="w-full h-40 object-cover rounded-xl" />
+                ) : (
+                  <div className="w-full h-40 bg-[#FFF3E8] rounded-xl flex items-center justify-center border border-[#FDBA8C]/40">
+                    <Package className="w-8 h-8 text-[#F97316]" strokeWidth={1.5} />
                   </div>
-                ))}
-              </div>
+                )}
 
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/message"
-                  className="flex items-center justify-center gap-2 bg-[#F97316] text-white py-3 rounded-xl font-black text-sm hover:bg-[#c2410c] transition">
-                  💬 Message Supplier
-                </Link>
-                <button onClick={() => setSelectedOrder(null)}
-                  className="border border-gray-200 text-gray-600 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition">
-                  Close
-                </button>
-              </div>
+                <div className="bg-[#FFF3E8] rounded-xl p-4 space-y-3">
+                  {[
+                    ["Product", selectedOrder.product_name || selectedOrder.productName || "—"],
+                    ["Supplier", sellerProfiles[selectedOrder.seller]?.business_name || selectedOrder.seller || "—"],
+                    ["Quantity", selectedOrder.quantity || "—"],
+                    ["Price", selectedOrder.price || "—"],
+                    ["Date", selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleDateString() : "—"],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex justify-between items-center">
+                      <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{label}</span>
+                      <span className="text-sm font-bold text-gray-800">{value}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Status</span>
+                    <span className={"flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold " + detailStatusClasses}>
+                      <DetailStatusIcon className="w-3.5 h-3.5" />
+                      {(selectedOrder.status || "pending").charAt(0).toUpperCase() + (selectedOrder.status || "pending").slice(1)}
+                    </span>
+                  </div>
+                </div>
 
-              {canDeleteOrder(selectedOrder) && (
-                <button
-                  onClick={() => setOrderToDelete(selectedOrder)}
-                  className="w-full text-red-600 bg-red-50 hover:bg-red-100 py-3 rounded-xl font-bold text-sm transition"
-                >
-                  🗑 Delete Order
-                </button>
-              )}
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/message"
+                    className="flex items-center justify-center gap-2 bg-[#F97316] text-white py-3 rounded-xl font-black text-sm hover:bg-[#c2410c] transition">
+                    <MessageCircle className="w-4 h-4" /> Message Supplier
+                  </Link>
+                  <button onClick={() => setSelectedOrder(null)}
+                    className="border border-gray-200 text-gray-600 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition">
+                    Close
+                  </button>
+                </div>
+
+                {canDeleteOrder(selectedOrder) && (
+                  <button
+                    onClick={() => setOrderToDelete(selectedOrder)}
+                    className="w-full flex items-center justify-center gap-2 text-red-600 bg-red-50 hover:bg-red-100 py-3 rounded-xl font-bold text-sm transition"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete Order
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Delete confirmation dialog ── */}
       {orderToDelete && (
