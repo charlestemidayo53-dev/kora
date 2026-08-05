@@ -170,7 +170,7 @@ export default function HomePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-[#f5f7f6]">
-        <div className="w-12 h-12 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <HomePageInner />
@@ -369,7 +369,7 @@ function HomePageInner() {
               value={search}
               onChange={function (e) { setSearch(e.target.value); }}
               placeholder="Search products, suppliers, or locations"
-              className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+              className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#F97316]"
             />
           </div>
 
@@ -377,17 +377,17 @@ function HomePageInner() {
               Sits directly under the search bar, mobile only. Desktop
               already has "All Categories" + the nav bar in SiteShell. */}
           <div
-            className="md:hidden mt-2 -mx-4 sm:-mx-6 px-4 sm:px-6 flex gap-2 overflow-x-auto kora-cat-scroll"
+            className="md:hidden mt-2.5 -mx-4 sm:-mx-6 px-4 sm:px-6 flex gap-2.5 overflow-x-auto kora-cat-scroll"
             style={{ scrollbarWidth: "none" }}
           >
             <button
               type="button"
               onClick={function () { setCategoryFilter(null); }}
               className={
-                "flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold border transition " +
+                "flex-shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-[11px] tracking-wide border transition " +
                 (categoryFilter === null
-                  ? "bg-[#2e8b5a] text-white border-[#2e8b5a]"
-                  : "bg-white text-gray-600 border-gray-200")
+                  ? "font-semibold bg-[#F97316] text-white border-[#F97316]"
+                  : "font-medium bg-white text-gray-500 border-gray-200")
               }
             >
               All
@@ -400,10 +400,10 @@ function HomePageInner() {
                   type="button"
                   onClick={function () { selectCategory(cat.name); }}
                   className={
-                    "flex-shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold border transition " +
+                    "flex-shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-[11px] tracking-wide border transition " +
                     (isActive
-                      ? "bg-[#2e8b5a] text-white border-[#2e8b5a]"
-                      : "bg-white text-gray-600 border-gray-200")
+                      ? "font-semibold bg-[#F97316] text-white border-[#F97316]"
+                      : "font-medium bg-white text-gray-500 border-gray-200")
                   }
                 >
                   {cat.name}
@@ -433,10 +433,10 @@ function HomePageInner() {
                   <img src={banner.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
                   <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 max-w-2xl text-white">
-                    <p className="text-xs sm:text-sm font-bold uppercase tracking-wide text-[#c7f5d8] mb-1.5">{banner.eyebrow}</p>
-                    <h1 className="text-xl sm:text-4xl font-black leading-tight">{banner.title}</h1>
+                    <p className="text-xs sm:text-sm font-bold uppercase tracking-wide text-[#ffcfa0] mb-1.5">{banner.eyebrow}</p>
+                    <h1 className="text-xl sm:text-4xl font-black leading-tight [-webkit-text-stroke:1px_rgba(0,0,0,0.6)] sm:[-webkit-text-stroke:2px_rgba(0,0,0,0.6)] [paint-order:stroke_fill]">{banner.title}</h1>
                     <p className="mt-2 text-xs sm:text-base text-white/85 max-w-xl">{banner.body}</p>
-                    <a href={banner.href} className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#1a4731] hover:bg-[#f0faf4] transition">
+                    <a href={banner.href} className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#F97316] hover:bg-[#FFF3E8] transition">
                       {banner.cta}
                     </a>
                   </div>
@@ -462,11 +462,11 @@ function HomePageInner() {
       </section>
 
       <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
-        <h2 className="text-lg sm:text-2xl font-black text-[#1a4731] mb-4 sm:mb-6">For You</h2>
+        <h2 className="text-lg sm:text-2xl font-black text-gray-900 mb-4 sm:mb-6">For You</h2>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-32">
-            <div className="w-16 h-16 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin mb-4" />
+            <div className="w-16 h-16 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-gray-500 font-medium">Loading marketplace products...</p>
           </div>
         )}
@@ -511,7 +511,7 @@ function HomePageInner() {
                   </div>
 
                   <div className="p-2 sm:p-2.5 flex flex-col flex-1 gap-1">
-                    <h3 className="text-[11px] sm:text-xs font-semibold text-gray-800 leading-snug line-clamp-2 group-hover:text-[#2e8b5a]">
+                    <h3 className="text-[11px] sm:text-xs font-semibold text-gray-800 leading-snug line-clamp-2 group-hover:text-[#F97316]">
                       {product.name}
                     </h3>
 

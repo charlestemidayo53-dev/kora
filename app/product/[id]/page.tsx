@@ -324,7 +324,7 @@ export default function ProductDetailPage({
   ].filter(function (item) { return Boolean(item.value); });
 
   return (
-    <div className="min-h-screen bg-[#f5f7f6] pb-28">
+    <div className="min-h-screen bg-[#f5f7f6] pb-[calc(var(--mobile-nav-height,4rem)+5rem)] md:pb-28">
       {/* ── Top nav ─────────────────────────────────────────────────────── */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
@@ -609,8 +609,13 @@ export default function ProductDetailPage({
         )}
       </div>
 
-      {/* ── Sticky bottom action bar ─────────────────────────────────────── */}
-      <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 z-30">
+      {/* ── Sticky bottom action bar ───────────────────────────────────────
+          Sits just above MobileBottomNav on mobile. That nav is 64px
+          (h-16) plus env(safe-area-inset-bottom) on notched phones, so we
+          offset by the same amount. On desktop MobileBottomNav is hidden,
+          so this pins to the very bottom instead. z-50 so it's always
+          above the nav's z-40 regardless of DOM order. */}
+      <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height,4rem)] md:bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 z-50">
         <button
           onClick={handleMessage}
           className="flex-1 bg-white border border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3 rounded-xl font-semibold text-sm transition"

@@ -98,7 +98,9 @@ const categories = [
 ];
 
 export default function CategoriesPage() {
-  const [openCategory, setOpenCategory] = useState<string>(categories[0].slug);
+  // Starts fully collapsed — no category's subcategories render until the
+  // user actually clicks it, so nothing extra loads on page open.
+  const [openCategory, setOpenCategory] = useState<string>("");
 
   function toggleCategory(slug: string) {
     setOpenCategory(function (current) {
@@ -120,7 +122,7 @@ export default function CategoriesPage() {
                   onClick={function () { toggleCategory(cat.slug); }}
                   className="w-full flex items-center gap-4 px-5 py-4 text-left hover:bg-gray-50 transition"
                 >
-                  <span className="shrink-0 text-[#2e8b5a]">
+                  <span className="shrink-0 text-[#F97316]">
                     {cat.icon}
                   </span>
                   <span className="flex-1 text-[15px] sm:text-base font-normal text-gray-900 leading-tight">
@@ -136,6 +138,8 @@ export default function CategoriesPage() {
                   </svg>
                 </button>
 
+                {/* Only rendered once this category has actually been
+                    clicked open — nothing here loads on initial page view. */}
                 {isOpen && (
                   <div className="pl-[68px] pr-5 bg-white">
                     {cat.subcategories.slice(0, 3).map(function (sub) {
@@ -143,7 +147,7 @@ export default function CategoriesPage() {
                         <Link
                           key={sub}
                           href={"/marketplace?category=" + encodeURIComponent(cat.name) + "&sub=" + encodeURIComponent(sub)}
-                          className="block border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#2e8b5a] transition"
+                          className="block border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#F97316] transition"
                         >
                           {sub}
                         </Link>
@@ -151,7 +155,7 @@ export default function CategoriesPage() {
                     })}
                     <Link
                       href={"/marketplace?category=" + encodeURIComponent(cat.name)}
-                      className="flex items-center gap-2 border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#2e8b5a] transition"
+                      className="flex items-center gap-2 border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#F97316] transition"
                     >
                       More
                       <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

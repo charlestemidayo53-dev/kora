@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 const IconHome = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,11 +33,34 @@ const IconUser = () => (
 
 export default function MobileBottomNav({ user, msgCount }: { user: any; msgCount: number }) {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+  const hidden = pathname?.startsWith("/auth");
+
+  // Publishes this nav's real rendered height (including the safe-area
+  // padding) as a CSS variable, --mobile-nav-height, on <html>. Any other
+  // fixed-position element on the page (e.g. a product page's sticky
+  // action bar) can read that variable to stack itself directly above
+  // this nav — no manual pixel guessing, and it stays correct across
+  // devices and if this nav's height ever changes.
+  useEffect(function () {
+    function updateHeightVar() {
+      const height = !hidden && navRef.current ? navRef.current.offsetHeight : 0;
+      document.documentElement.style.setProperty("--mobile-nav-height", height + "px");
+    }
+
+    updateHeightVar();
+    window.addEventListener("resize", updateHeightVar);
+    window.addEventListener("orientationchange", updateHeightVar);
+    return function () {
+      window.removeEventListener("resize", updateHeightVar);
+      window.removeEventListener("orientationchange", updateHeightVar);
+    };
+  }, [hidden, pathname]);
 
   // Hide the entire bottom nav on any auth page (login, register, forgot
   // password, etc.) so those pages stay focused on signing in/up with no
   // Home/Categories/Messenger/Cart/My Kora navigation visible.
-  if (pathname?.startsWith("/auth")) {
+  if (hidden) {
     return null;
   }
 
@@ -49,7 +73,10 @@ export default function MobileBottomNav({ user, msgCount }: { user: any; msgCoun
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 grid grid-cols-5 h-16 overflow-hidden pb-[env(safe-area-inset-bottom)]">
+    <nav
+      ref={navRef}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 grid grid-cols-5 h-16 overflow-hidden pb-[env(safe-area-inset-bottom)]"
+    >
       {tabs.map(({ label, href, Icon, badge }) => {
         const active = pathname === href;
         return (
