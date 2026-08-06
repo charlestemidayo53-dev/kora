@@ -13,7 +13,7 @@ type Ticket = {
   created_at: string;
 };
 
-const inputClass = "w-full border border-gray-200 bg-gray-50 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2e8b5a] focus:border-transparent transition";
+const inputClass = "w-full border border-gray-200 bg-gray-50 px-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#ea580c] focus:border-transparent transition";
 const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
 function statusBadge(status: string) {
@@ -95,19 +95,19 @@ export default function SupportPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0faf4]">
-        <div className="w-10 h-10 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7ed]">
+        <div className="w-10 h-10 border-4 border-[#ea580c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0faf4]">
+    <div className="min-h-screen bg-[#fff7ed]">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
         <button
           onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-2 text-gray-500 hover:text-[#2e8b5a] transition text-sm font-medium mb-6"
+          className="flex items-center gap-2 text-gray-500 hover:text-[#ea580c] transition text-sm font-medium mb-6"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -116,13 +116,13 @@ export default function SupportPage() {
         </button>
 
         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
-          <h1 className="text-xl sm:text-2xl font-black text-[#1a4731] mb-1">Customer Support</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-[#c2410c] mb-1">Customer Support</h1>
           <p className="text-gray-500 text-xs sm:text-sm mb-5">
             Submit a question, complaint, or report a problem. Our team will respond as soon as possible.
           </p>
 
           {success && (
-            <div className="bg-[#f0faf4] border border-[#c8e6d4] text-[#2e8b5a] text-sm px-4 py-3 rounded-xl mb-4 font-semibold">
+            <div className="bg-[#fff7ed] border border-[#fed7aa] text-[#ea580c] text-sm px-4 py-3 rounded-xl mb-4 font-semibold">
               Your request has been submitted. You'll see our reply below once we respond.
             </div>
           )}
@@ -157,7 +157,7 @@ export default function SupportPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold text-sm transition shadow-md"
+              className="w-full bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 rounded-xl font-semibold text-sm transition shadow-md"
             >
               {submitting ? "Submitting..." : "Submit Request"}
             </button>
@@ -183,8 +183,8 @@ export default function SupportPage() {
                     <p className="text-sm text-gray-700 mb-3">{ticket.message}</p>
 
                     {ticket.admin_reply && (
-                      <div className="bg-[#f0faf4] border border-[#c8e6d4] rounded-lg p-3 mt-2">
-                        <p className="text-[10px] font-bold text-[#2e8b5a] uppercase tracking-wide mb-1">Support Team Reply</p>
+                      <div className="bg-[#fff7ed] border border-[#fed7aa] rounded-lg p-3 mt-2">
+                        <p className="text-[10px] font-bold text-[#ea580c] uppercase tracking-wide mb-1">Support Team Reply</p>
                         <p className="text-sm text-gray-700">{ticket.admin_reply}</p>
                       </div>
                     )}

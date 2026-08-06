@@ -11,22 +11,14 @@ import {
 } from "@/lib/wallet";
 import { ArrowLeft, CheckCircle2, Landmark } from "lucide-react";
 
-const nigerianBanks = [
-  "Access Bank", "Citibank Nigeria", "Ecobank Nigeria", "Fidelity Bank",
-  "First Bank of Nigeria", "First City Monument Bank (FCMB)", "Globus Bank",
-  "Guaranty Trust Bank (GTBank)", "Heritage Bank", "Keystone Bank",
-  "Kuda Bank", "Moniepoint MFB", "Opay", "Palmpay", "Polaris Bank",
-  "Providus Bank", "Stanbic IBTC Bank", "Standard Chartered Bank",
-  "Sterling Bank", "SunTrust Bank", "Union Bank of Nigeria",
-  "United Bank for Africa (UBA)", "Unity Bank", "Wema Bank", "Zenith Bank",
-];
-
 export default function PayoutAccountPage() {
   const [user, setUser] = useState<any>(null);
   const [existing, setExisting] = useState<PayoutAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
 
+  const [banks, setBanks] = useState<{ name: string; code: string }[]>([]);
+  const [bankCode, setBankCode] = useState("");
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [resolved, setResolved] = useState<{ accountName: string; bankCode: string } | null>(null);
@@ -50,18 +42,25 @@ export default function PayoutAccountPage() {
     load();
   }, []);
 
+  useEffect(function () {
+    fetch("/api/wallet/banks")
+      .then((r) => r.json())
+      .then((json) => setBanks(json.banks || []))
+      .catch(() => setBanks([]));
+  }, []);
+
   async function handleVerify() {
     setError("");
     setResolved(null);
-    if (!bankName || !/^\d{10}$/.test(accountNumber)) {
+    if (!bankCode || !/^\d{10}$/.test(accountNumber)) {
       setError("Select a bank and enter a 10-digit account number.");
       return;
     }
     setVerifying(true);
-    const result = await verifyBankAccount(bankName, accountNumber);
+    const result = await verifyBankAccount(bankCode, accountNumber);
     setVerifying(false);
     if (!result.success) {
-      setError(result.error);
+      setError(result.error || "Verification failed.");
       return;
     }
     setResolved({ accountName: result.accountName, bankCode: result.bankCode });
@@ -121,7 +120,12 @@ export default function PayoutAccountPage() {
                 </div>
               </div>
               <button
-                onClick={function () { setEditing(true); setBankName(""); setAccountNumber(""); }}
+                onClick={function () {
+                  setEditing(true);
+                  setBankCode("");
+                  setBankName("");
+                  setAccountNumber("");
+                }}
                 className="w-full border border-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm hover:bg-gray-50 transition"
               >
                 Replace Account
@@ -132,12 +136,18 @@ export default function PayoutAccountPage() {
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1.5 block">Bank</label>
                 <select
-                  value={bankName}
-                  onChange={function (e) { setBankName(e.target.value); setResolved(null); }}
+                  value={bankCode}
+                  onChange={function (e) {
+                    const code = e.target.value;
+                    setBankCode(code);
+                    const found = banks.find((b) => b.code === code);
+                    setBankName(found ? found.name : "");
+                    setResolved(null);
+                  }}
                   className="w-full px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 >
                   <option value="">Select your bank…</option>
-                  {nigerianBanks.map(function (b) { return <option key={b} value={b}>{b}</option>; })}
+                  {banks.map(function (b) { return <option key={b.code} value={b.code}>{b.name}</option>; })}
                 </select>
               </div>
 

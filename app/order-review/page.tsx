@@ -155,9 +155,9 @@ export default function OrderReviewPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0faf4]">
+      <div className="min-h-screen flex items-center justify-center bg-[#fff7ed]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#2e8b5a] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-[#ea580c] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-500 text-sm">Loading order details...</p>
         </div>
       </div>
@@ -185,12 +185,12 @@ export default function OrderReviewPage({
         onLoad={() => setFlwReady(true)}
       />
 
-      <div className="min-h-screen bg-[#f0faf4]">
+      <div className="min-h-screen bg-[#fff7ed]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
 
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-500 hover:text-[#2e8b5a] transition text-sm font-medium mb-6"
+            className="flex items-center gap-2 text-gray-500 hover:text-[#ea580c] transition text-sm font-medium mb-6"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -203,7 +203,7 @@ export default function OrderReviewPage({
             {/* Header */}
             <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
               <div>
-                <h1 className="text-xl sm:text-2xl font-black text-[#1a4731]">Review Your Order</h1>
+                <h1 className="text-xl sm:text-2xl font-black text-[#c2410c]">Review Your Order</h1>
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">Order Status: <span className="font-semibold text-gray-700">Pending Review</span></p>
               </div>
               <span className={"px-3 py-1.5 rounded-full text-xs font-bold " + statusColor}>
@@ -213,7 +213,7 @@ export default function OrderReviewPage({
 
             {/* Product summary */}
             <div className="p-5 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-5 border-b border-gray-100">
-              <div className="w-full sm:w-32 h-40 sm:h-32 bg-[#f0faf4] rounded-xl overflow-hidden flex-shrink-0">
+              <div className="w-full sm:w-32 h-40 sm:h-32 bg-[#fff7ed] rounded-xl overflow-hidden flex-shrink-0">
                 {product.image ? (
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
@@ -261,7 +261,7 @@ export default function OrderReviewPage({
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <span className="text-base font-bold text-gray-800">Total</span>
-                <span className="text-xl sm:text-2xl font-black text-[#2e8b5a]">₦{total.toLocaleString()}</span>
+                <span className="text-xl sm:text-2xl font-black text-[#ea580c]">₦{total.toLocaleString()}</span>
               </div>
             </div>
 
@@ -277,7 +277,7 @@ export default function OrderReviewPage({
               <button
                 onClick={handlePayNow}
                 disabled={paying || !flwReady || paymentStatus === "paid"}
-                className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition shadow-md"
+                className="w-full bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3.5 sm:py-4 rounded-xl font-semibold text-sm sm:text-base transition shadow-md"
               >
                 {paymentStatus === "paid"
                   ? "Payment Confirmed ✓"
