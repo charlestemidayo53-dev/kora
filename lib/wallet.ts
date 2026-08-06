@@ -47,6 +47,37 @@ export type WalletSettings = {
   updated_at: string;
 };
 
+export type PayoutAccount = {
+  id: string;
+  user_id: string;
+  bank_name: string;
+  bank_code: string;
+  account_number: string;
+  account_name: string;
+  created_at: string;
+  updated_at: string;
+};
+
+// NOTE: these three are derived from wallet_transactions as an approximation
+// (no separate `orders` table wired in yet). Swap the queries below if/when
+// you have a real orders table you want these tied to instead.
+export type SellerWalletStats = {
+  total_earnings: number;
+};
+
+export type SellerOrderStats = {
+  total_orders: number;
+  successful_orders: number;
+  pending_orders: number;
+  cancelled_orders: number;
+};
+
+export type MonthlySummaryPoint = {
+  month_start: string; // ISO date, first of month
+  earnings: number;
+  withdrawals: number;
+};
+
 /**
  * Get (or lazily create) a wallet row for a user.
  * Every new user starts at zero — no fake starting balance.
@@ -81,13 +112,20 @@ export async function getOrCreateWallet(userId: string): Promise<Wallet | null> 
 
 /**
  * Fetch a user's transaction history, newest first.
+ * Pass `limit` to cap how many rows come back (e.g. for a "recent" widget).
  */
-export async function getWalletTransactions(walletId: string): Promise<WalletTransaction[]> {
-  const { data, error } = await supabase
+export async function getWalletTransactions(walletId: string, limit?: number): Promise<WalletTransaction[]> {
+  let query = supabase
     .from("wallet_transactions")
     .select("*")
     .eq("wallet_id", walletId)
     .order("created_at", { ascending: false });
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("getWalletTransactions error:", error);
@@ -152,7 +190,6 @@ export async function submitWithdrawalRequest(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const { userId, amount, bankName, accountName, accountNumber } = params;
 
-  // Validate against wallet settings
   const settings = await getWalletSettings();
   if (settings) {
     if (amount < settings.minimum_withdrawal) {
@@ -163,7 +200,6 @@ export async function submitWithdrawalRequest(params: {
     }
   }
 
-  // Validate against available balance
   const wallet = await getOrCreateWallet(userId);
   if (!wallet) {
     return { success: false, error: "Could not load wallet." };
@@ -190,9 +226,193 @@ export async function submitWithdrawalRequest(params: {
 }
 
 /**
+ * Get the user's saved payout (bank) account, if any.
+ */
+export async function getPayoutAccount(userId: string): Promise<PayoutAccount | null> {
+  const { data, error } = await supabase
+    .from("payout_accounts")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("getPayoutAccount error:", error);
+    return null;
+  }
+  return data as PayoutAccount | null;
+}
+
+/**
+ * Resolve an account number to an account name via our server-side
+ * Flutterwave route (secret key never touches the browser).
+ */
+export async function verifyBankAccount(
+  bankCode: string,
+  accountNumber: string
+): Promise<{ success: boolean; accountName: string; bankCode: string; error?: string }> {
+  try {
+    const res = await fetch("/api/wallet/verify-bank", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bankCode, accountNumber }),
+    });
+    const json = await res.json();
+
+    if (!res.ok || !json.accountName) {
+      return { success: false, accountName: "", bankCode, error: json.error || "Verification failed." };
+    }
+
+    return { success: true, accountName: json.accountName, bankCode };
+  } catch (err) {
+    console.error("verifyBankAccount error:", err);
+    return { success: false, accountName: "", bankCode, error: "Verification failed. Try again." };
+  }
+}
+
+/**
+ * Save (upsert) the user's payout account.
+ */
+export async function savePayoutAccount(params: {
+  userId: string;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const { userId, bankName, bankCode, accountNumber, accountName } = params;
+
+  const { error } = await supabase.from("payout_accounts").upsert(
+    {
+      user_id: userId,
+      bank_name: bankName,
+      bank_code: bankCode,
+      account_number: accountNumber,
+      account_name: accountName,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (error) {
+    console.error("savePayoutAccount error:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Lifetime earnings, approximated from Escrow Release transactions
+ * (i.e. money actually released to the seller).
+ */
+export async function getSellerWalletStats(userId: string): Promise<SellerWalletStats> {
+  const wallet = await getOrCreateWallet(userId);
+  if (!wallet) return { total_earnings: 0 };
+
+  const { data, error } = await supabase
+    .from("wallet_transactions")
+    .select("amount")
+    .eq("wallet_id", wallet.id)
+    .eq("transaction_type", "Escrow Release")
+    .eq("status", "Completed");
+
+  if (error) {
+    console.error("getSellerWalletStats error:", error);
+    return { total_earnings: 0 };
+  }
+
+  const total_earnings = (data || []).reduce((sum, t: any) => sum + Number(t.amount || 0), 0);
+  return { total_earnings };
+}
+
+/**
+ * Order-shaped counts, approximated from wallet_transactions:
+ * Escrow Payment = order placed, Escrow Release = successful,
+ * Pending status = pending, Refund/Failed = cancelled.
+ * Replace with real `orders` table queries once you have one wired in.
+ */
+export async function getSellerOrderStats(userId: string): Promise<SellerOrderStats> {
+  const wallet = await getOrCreateWallet(userId);
+  if (!wallet) {
+    return { total_orders: 0, successful_orders: 0, pending_orders: 0, cancelled_orders: 0 };
+  }
+
+  const { data, error } = await supabase
+    .from("wallet_transactions")
+    .select("transaction_type, status")
+    .eq("wallet_id", wallet.id)
+    .eq("transaction_type", "Escrow Payment");
+
+  if (error) {
+    console.error("getSellerOrderStats error:", error);
+    return { total_orders: 0, successful_orders: 0, pending_orders: 0, cancelled_orders: 0 };
+  }
+
+  const rows = data || [];
+  const total_orders = rows.length;
+  const successful_orders = rows.filter((r: any) => r.status === "Completed").length;
+  const pending_orders = rows.filter((r: any) => r.status === "Pending" || r.status === "Processing").length;
+  const cancelled_orders = rows.filter((r: any) => r.status === "Cancelled" || r.status === "Failed").length;
+
+  return { total_orders, successful_orders, pending_orders, cancelled_orders };
+}
+
+/**
+ * Monthly earnings vs withdrawals for the last `months` months.
+ */
+export async function getWalletMonthlySummary(userId: string, months: number = 6): Promise<MonthlySummaryPoint[]> {
+  const wallet = await getOrCreateWallet(userId);
+  if (!wallet) return [];
+
+  const since = new Date();
+  since.setMonth(since.getMonth() - (months - 1));
+  since.setDate(1);
+  since.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("wallet_transactions")
+    .select("amount, transaction_type, status, created_at")
+    .eq("wallet_id", wallet.id)
+    .gte("created_at", since.toISOString());
+
+  if (error) {
+    console.error("getWalletMonthlySummary error:", error);
+    return [];
+  }
+
+  const buckets = new Map<string, { earnings: number; withdrawals: number }>();
+  for (let i = 0; i < months; i++) {
+    const d = new Date(since);
+    d.setMonth(d.getMonth() + i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+    buckets.set(key, { earnings: 0, withdrawals: 0 });
+  }
+
+  for (const t of data || []) {
+    const d = new Date(t.created_at as string);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
+
+    if (t.transaction_type === "Escrow Release" && t.status === "Completed") {
+      bucket.earnings += Number(t.amount || 0);
+    }
+    if (t.transaction_type === "Withdrawal" && t.status === "Completed") {
+      bucket.withdrawals += Number(t.amount || 0);
+    }
+  }
+
+  return Array.from(buckets.entries()).map(([month_start, v]) => ({
+    month_start,
+    earnings: v.earnings,
+    withdrawals: v.withdrawals,
+  }));
+}
+
+/**
  * Format a number as Naira currency.
  */
-export function formatNaira(amount: number): string {
+export function formatNaira(amount: number | null | undefined): string {
   return "₦" + Number(amount || 0).toLocaleString("en-NG", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
