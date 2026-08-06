@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUser } from "@/lib/auth";
 import {
-  getOrCreateWallet,
-  getUserWithdrawals,
-  getWalletSettings,
-  submitWithdrawalRequest,
-  formatNaira,
-  statusColor,
-  type Wallet,
-  type WithdrawalRequest,
-  type WalletSettings,
+  getPayoutAccount,
+  verifyBankAccount,
+  savePayoutAccount,
+  type PayoutAccount,
 } from "@/lib/wallet";
+import { ArrowLeft, CheckCircle2, Landmark } from "lucide-react";
 
 const nigerianBanks = [
   "Access Bank", "Citibank Nigeria", "Ecobank Nigeria", "Fidelity Bank",
@@ -25,179 +21,154 @@ const nigerianBanks = [
   "United Bank for Africa (UBA)", "Unity Bank", "Wema Bank", "Zenith Bank",
 ];
 
-export default function WithdrawPage() {
+export default function PayoutAccountPage() {
   const [user, setUser] = useState<any>(null);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [settings, setSettings] = useState<WalletSettings | null>(null);
-  const [history, setHistory] = useState<WithdrawalRequest[]>([]);
+  const [existing, setExisting] = useState<PayoutAccount | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
 
-  const [amount, setAmount] = useState("");
   const [bankName, setBankName] = useState("");
-  const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [resolved, setResolved] = useState<{ accountName: string; bankCode: string } | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
 
   useEffect(function () {
     async function load() {
-      setLoading(true);
       const currentUser = await getUser();
       if (!currentUser) {
         window.location.href = "/auth/login";
         return;
       }
       setUser(currentUser);
-
-      const w = await getOrCreateWallet(currentUser.id);
-      setWallet(w);
-
-      const s = await getWalletSettings();
-      setSettings(s);
-
-      const h = await getUserWithdrawals(currentUser.id);
-      setHistory(h);
-
+      const acct = await getPayoutAccount(currentUser.id);
+      setExisting(acct);
+      setEditing(!acct);
       setLoading(false);
     }
     load();
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleVerify() {
     setError("");
-
-    const amountNum = Number(amount);
-    if (!amountNum || amountNum <= 0) {
-      setError("Enter a valid withdrawal amount.");
+    setResolved(null);
+    if (!bankName || !/^\d{10}$/.test(accountNumber)) {
+      setError("Select a bank and enter a 10-digit account number.");
       return;
     }
-    if (!bankName || !accountName || !accountNumber) {
-      setError("Please fill in all bank details.");
-      return;
-    }
-
-    setSubmitting(true);
-    const result = await submitWithdrawalRequest({
-      userId: user.id,
-      amount: amountNum,
-      bankName,
-      accountName,
-      accountNumber,
-    });
-    setSubmitting(false);
-
+    setVerifying(true);
+    const result = await verifyBankAccount(bankName, accountNumber);
+    setVerifying(false);
     if (!result.success) {
-      setError(result.error || "Failed to submit withdrawal request.");
+      setError(result.error);
       return;
     }
+    setResolved({ accountName: result.accountName, bankCode: result.bankCode });
+  }
 
-    setSuccess(true);
-    setAmount("");
-    setAccountName("");
-    setAccountNumber("");
-    setBankName("");
-
-    const h = await getUserWithdrawals(user.id);
-    setHistory(h);
+  async function handleSave() {
+    if (!resolved || !user) return;
+    setSaving(true);
+    setError("");
+    const result = await savePayoutAccount({
+      userId: user.id,
+      bankName,
+      bankCode: resolved.bankCode,
+      accountNumber,
+      accountName: resolved.accountName,
+    });
+    setSaving(false);
+    if (!result.success) {
+      setError(result.error || "Failed to save payout account.");
+      return;
+    }
+    const acct = await getPayoutAccount(user.id);
+    setExisting(acct);
+    setEditing(false);
+    setResolved(null);
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0faf4]">
-        <div className="w-10 h-10 border-[3px] border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF7ED]">
+        <div className="w-10 h-10 border-[3px] border-[#F97316] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f0faf4]">
+    <div className="min-h-screen bg-[#FFF7ED]">
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-10">
 
-      {/* Header */}
-      <div className="bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] text-white px-4 py-10">
-        <div className="max-w-3xl mx-auto">
-          <Link href="/wallet" className="text-green-200 text-xs font-bold hover:text-white transition mb-2 inline-block">
-            ← Back to Wallet
-          </Link>
-          <h1 className="text-3xl font-black">Withdraw Funds</h1>
-          <p className="text-green-200 text-sm mt-1">Available Balance: {formatNaira(wallet?.available_balance || 0)}</p>
-        </div>
-      </div>
+        <Link href="/wallet" className="flex items-center gap-2 text-gray-500 hover:text-[#F97316] transition text-sm font-medium mb-6">
+          <ArrowLeft className="w-4 h-4" /> Wallet
+        </Link>
 
-      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+          <h1 className="text-xl font-black text-gray-900 mb-1">Payout Account</h1>
+          <p className="text-sm text-gray-500 mb-6">The bank account your withdrawals are sent to.</p>
 
-        {/* Withdraw form */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          {success ? (
-            <div className="text-center py-6">
-              <div className="w-14 h-14 bg-[#f0faf4] rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+          {!editing && existing ? (
+            <div>
+              <div className="flex items-center gap-3 p-4 bg-[#FFF3E8] rounded-xl mb-5">
+                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
+                  <Landmark className="w-5 h-5 text-[#F97316]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800">{existing.account_name}</p>
+                  <p className="text-xs text-gray-500">{existing.bank_name} · {existing.account_number}</p>
+                </div>
               </div>
-              <h2 className="text-xl font-black text-[#1a4731] mb-1">Withdrawal Requested</h2>
-              <p className="text-sm text-gray-500 mb-5">Your request is pending admin approval. Your balance has not been deducted yet.</p>
-              <button onClick={function () { setSuccess(false); }} className="text-sm font-bold text-[#2e8b5a] hover:underline">
-                Request Another Withdrawal
+              <button
+                onClick={function () { setEditing(true); setBankName(""); setAccountNumber(""); }}
+                className="w-full border border-gray-200 text-gray-700 py-3 rounded-xl font-semibold text-sm hover:bg-gray-50 transition"
+              >
+                Replace Account
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <h2 className="font-black text-gray-800 mb-2">Request a Withdrawal</h2>
-
-              {settings && (
-                <p className="text-xs text-gray-400 -mt-2">
-                  Min {formatNaira(settings.minimum_withdrawal)} · Max {formatNaira(settings.maximum_withdrawal)}
-                  {settings.withdrawal_fee > 0 ? ` · Fee ${formatNaira(settings.withdrawal_fee)}` : ""}
-                </p>
-              )}
-
+            <div className="space-y-4">
               <div>
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Amount (₦)</label>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={function (e) { setAmount(e.target.value); }}
-                  placeholder="e.g. 50000"
-                  className="w-full bg-gray-50 px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Bank Name</label>
+                <label className="text-sm font-medium text-gray-700 mb-1.5 block">Bank</label>
                 <select
                   value={bankName}
-                  onChange={function (e) { setBankName(e.target.value); }}
-                  className="w-full bg-gray-50 px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                  onChange={function (e) { setBankName(e.target.value); setResolved(null); }}
+                  className="w-full px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
                 >
                   <option value="">Select your bank…</option>
                   {nigerianBanks.map(function (b) { return <option key={b} value={b}>{b}</option>; })}
                 </select>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Account Name</label>
-                  <input
-                    type="text"
-                    value={accountName}
-                    onChange={function (e) { setAccountName(e.target.value); }}
-                    placeholder="As it appears on your bank account"
-                    className="w-full bg-gray-50 px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Account Number</label>
-                  <input
-                    type="text"
-                    value={accountNumber}
-                    onChange={function (e) { setAccountNumber(e.target.value); }}
-                    placeholder="0123456789"
-                    className="w-full bg-gray-50 px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
-                  />
-                </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1.5 block">Account Number</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={accountNumber}
+                  onChange={function (e) { setAccountNumber(e.target.value.replace(/\D/g, "")); setResolved(null); }}
+                  placeholder="0123456789"
+                  className="w-full px-4 py-3 rounded-xl text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#F97316]"
+                />
               </div>
+
+              {resolved ? (
+                <div className="flex items-center gap-2 p-3.5 bg-green-50 border border-green-200 rounded-xl text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span className="text-green-700 font-bold">{resolved.accountName}</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleVerify}
+                  disabled={verifying}
+                  className="w-full border-2 border-[#F97316] text-[#F97316] py-3 rounded-xl font-bold text-sm hover:bg-[#FFF3E8] transition disabled:opacity-50"
+                >
+                  {verifying ? "Verifying…" : "Verify Account"}
+                </button>
+              )}
 
               {error && (
                 <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl border border-red-100">
@@ -205,45 +176,25 @@ export default function WithdrawPage() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-200 text-white py-3.5 rounded-2xl font-black text-sm transition"
-              >
-                {submitting ? "Submitting…" : "Request Withdrawal"}
-              </button>
+              {resolved && (
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="w-full bg-[#F97316] hover:bg-[#c2410c] disabled:bg-gray-200 text-white py-3.5 rounded-xl font-black text-sm transition"
+                >
+                  {saving ? "Saving…" : "Save Payout Account"}
+                </button>
+              )}
 
-              <p className="text-[11px] text-gray-400 text-center">
-                Your balance is not deducted until an admin approves this request.
-              </p>
-            </form>
-          )}
-        </div>
-
-        {/* Withdrawal history */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div className="p-5 border-b border-gray-100">
-            <h2 className="font-black text-gray-800">Withdrawal History</h2>
-          </div>
-
-          {history.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-sm text-gray-400">No withdrawal requests yet.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {history.map(function (w) {
-                return (
-                  <div key={w.id} className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-gray-800 text-sm">{formatNaira(w.amount)}</p>
-                      <p className="text-xs text-gray-400">{w.bank_name} · {w.account_number}</p>
-                      <p className="text-xs text-gray-400">{new Date(w.created_at).toLocaleString()}</p>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${statusColor(w.status)}`}>{w.status}</span>
-                  </div>
-                );
-              })}
+              {existing && (
+                <button
+                  type="button"
+                  onClick={function () { setEditing(false); setError(""); setResolved(null); }}
+                  className="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 transition"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           )}
         </div>
