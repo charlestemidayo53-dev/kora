@@ -58,9 +58,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fdf7]">
+    <div className="min-h-screen bg-[#fff7f0]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] text-white py-16">
+      <div className="bg-gradient-to-r from-[#ea580c] to-[#c2410c] text-white py-16">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-4xl font-black mb-3">Get In Touch</h1>
           <p className="text-xl text-white/80">Have questions? We'd love to hear from you.</p>
@@ -90,8 +90,8 @@ export default function ContactPage() {
             },
           ].map((contact, i) => (
             <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100 text-center">
-              <contact.Icon className="w-12 h-12 text-[#2e8b5a] mx-auto mb-4" />
-              <h3 className="text-lg font-black text-[#1a4731] mb-2">{contact.title}</h3>
+              <contact.Icon className="w-12 h-12 text-[#ea580c] mx-auto mb-4" />
+              <h3 className="text-lg font-black text-[#c2410c] mb-2">{contact.title}</h3>
               <p className="font-bold text-gray-900 mb-1">{contact.content}</p>
               <p className="text-sm text-gray-600">{contact.subtext}</p>
             </div>
@@ -101,15 +101,15 @@ export default function ContactPage() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* Contact Form */}
           <div>
-            <h2 className="text-2xl font-black text-[#1a4731] mb-6">Send us a message</h2>
+            <h2 className="text-2xl font-black text-[#c2410c] mb-6">Send us a message</h2>
             {success ? (
-              <div className="bg-[#f0faf4] border border-[#2e8b5a] rounded-2xl p-8 text-center">
-                <svg className="w-12 h-12 text-[#2e8b5a] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-[#fff7ed] border border-[#ea580c] rounded-2xl p-8 text-center">
+                <svg className="w-12 h-12 text-[#ea580c] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <h3 className="text-lg font-black text-[#1a4731] mb-2">Message Sent!</h3>
+                <h3 className="text-lg font-black text-[#c2410c] mb-2">Message Sent!</h3>
                 <p className="text-gray-600 mb-4">Thank you for reaching out. We'll get back to you soon.</p>
-                <button onClick={() => setSuccess(false)} className="text-[#2e8b5a] font-bold hover:underline">
+                <button onClick={() => setSuccess(false)} className="text-[#ea580c] font-bold hover:underline">
                   Send another message
                 </button>
               </div>
@@ -123,7 +123,7 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                   />
                 </div>
                 <div>
@@ -134,7 +134,7 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                   />
                 </div>
                 <div>
@@ -145,7 +145,7 @@ export default function ContactPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                   />
                 </div>
                 <div>
@@ -156,13 +156,13 @@ export default function ContactPage() {
                     onChange={handleChange}
                     rows={5}
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-200 text-white py-3 rounded-lg font-black transition"
+                  className="w-full bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-200 text-white py-3 rounded-lg font-black transition"
                 >
                   {loading ? "Sending..." : "Send Message"}
                 </button>
@@ -172,7 +172,7 @@ export default function ContactPage() {
 
           {/* FAQ */}
           <div>
-            <h2 className="text-2xl font-black text-[#1a4731] mb-6">Frequently Asked Questions</h2>
+            <h2 className="text-2xl font-black text-[#c2410c] mb-6">Frequently Asked Questions</h2>
             <div className="space-y-4">
               {[
                 {

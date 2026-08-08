@@ -91,16 +91,16 @@ export default function ManufacturersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0faf4]">
+    <div className="min-h-screen bg-[#fff7ed]">
 
       {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] text-white px-4 py-10">
+      <div className="bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white px-4 py-10">
         <div className="max-w-6xl mx-auto">
-          <p className="text-green-300 text-xs font-black uppercase tracking-widest mb-2">
+          <p className="text-orange-300 text-xs font-black uppercase tracking-widest mb-2">
             Kora Directory
           </p>
           <h1 className="text-3xl font-black mb-1">Manufacturers</h1>
-          <p className="text-green-200 text-sm mb-6">
+          <p className="text-orange-200 text-sm mb-6">
             Browse manufacturers and producers selling directly on Kora
           </p>
 
@@ -149,7 +149,7 @@ export default function ManufacturersPage() {
 
         {loading ? (
           <div className="flex justify-center py-24">
-            <div className="w-10 h-10 border-[3px] border-[#2e8b5a] border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-[3px] border-[#ea580c] border-t-transparent rounded-full animate-spin" />
           </div>
 
         ) : filtered.length === 0 ? (
@@ -168,11 +168,11 @@ export default function ManufacturersPage() {
               return (
                 <div
                   key={s.owner}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#2e8b5a] transition flex flex-col"
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#ea580c] transition flex flex-col"
                 >
                   {/* Top */}
                   <div className="p-5 flex items-center gap-4 border-b border-gray-50">
-                    <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#2e8b5a] to-[#1a4731] text-white font-black text-lg">
+                    <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white font-black text-lg">
                       {initials(s.seller)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -188,7 +188,7 @@ export default function ManufacturersPage() {
 
                   {/* Listing count */}
                   <div className="px-5 py-4">
-                    <span className="inline-block text-xs font-black px-3 py-1 rounded-full bg-[#f0faf4] text-[#2e8b5a]">
+                    <span className="inline-block text-xs font-black px-3 py-1 rounded-full bg-[#fff7ed] text-[#ea580c]">
                       {s.product_count} active listing{s.product_count !== 1 ? "s" : ""}
                     </span>
                   </div>
@@ -197,13 +197,13 @@ export default function ManufacturersPage() {
                   <div className="grid grid-cols-2 gap-2 p-5 pt-0 mt-auto">
                     <Link
                       href={"/marketplace?owner=" + encodeURIComponent(s.owner)}
-                      className="text-center text-xs font-black py-2.5 rounded-xl bg-[#2e8b5a] text-white hover:bg-[#1a4731] transition"
+                      className="text-center text-xs font-black py-2.5 rounded-xl bg-[#ea580c] text-white hover:bg-[#c2410c] transition"
                     >
                       View Listings
                     </Link>
                     <Link
                       href={"/message?to=" + encodeURIComponent(s.owner)}
-                      className="text-center text-xs font-bold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-[#2e8b5a] hover:text-[#2e8b5a] transition"
+                      className="text-center text-xs font-bold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-[#ea580c] hover:text-[#ea580c] transition"
                     >
                       Contact
                     </Link>

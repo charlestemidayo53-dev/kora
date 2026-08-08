@@ -326,66 +326,32 @@ export async function markMessagesAsRead(receiverEmail: string, senderEmail: str
  */
 
 export async function getSellerProfile(email: string) {
-  return { email, business_name: email };
-}
-
-export async function getParentCategories() {
-  return [
-    { id: "agriculture", name: "Agriculture" },
-    { id: "machinery", name: "Machinery" },
-    { id: "industrial", name: "Industrial" },
-    { id: "raw-materials", name: "Raw Materials" },
-  ];
-}
-
-export async function getSubcategories(_categoryId: string) {
-  return [];
-}
-
-type CreatePendingOrderInput = {
-  productId: string;
-  productName: string;
-  buyer: string;
-  seller: string;
-  amount: number;
-  quantity: number;
-  txRef: string;
-};
-
-export async function createPendingOrder(input: CreatePendingOrderInput) {
   const { data, error } = await supabase
-    .from("orders")
-    .insert([{
-      product_id: input.productId,
-      product_name: input.productName,
-      buyer: input.buyer,
-      seller: input.seller,
-      amount: input.amount,
-      quantity: input.quantity,
-      status: "pending",
-      payment_status: "pending",
-      tx_ref: input.txRef,
-    }])
-    .select()
-    .single();
+    .from("profiles")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle();
 
-  if (error) throw error;
-  return data;
-}
+  if (error) {
+    console.error("Error fetching seller profile:", error);
+    return { email, business_name: email };
+  }
+  if (!data) {
+    return { email, business_name: email };
+  }
 
-export async function markOrderPaid(orderId: string, flwTransactionId: string) {
-  const { data, error } = await supabase
-    .from("orders")
-    .update({
-      status: "paid",
-      payment_status: "paid",
-      flw_transaction_id: flwTransactionId,
-      escrow_status: "holding",
-    })
-    .eq("id", orderId)
-    .select()
-    .single();
-
-  
-  return data;
+  return {
+    email: data.email,
+    business_name: data.company_name || data.full_name || email,
+    logo_url: data.avatar_url || null,
+    description: data.about_business || null,
+    city: data.city || null,
+    state: data.state || null,
+    country: data.country || null,
+    is_verified: data.verification_level === "Level 1" || data.verification_level === "Level 2",
+    verification_badge: data.verification_level ? `${data.verification_level} Verified` : null,
+    year_established: data.year_established || null,
+    main_products: data.main_products || null,
+    export_capable: data.export_capable || null,
+  };
 }

@@ -34,7 +34,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
-      <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] text-white py-20">
+      <div className="bg-gradient-to-r from-[#ea580c] to-[#c2410c] text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-black mb-4">About Kora</h1>
           <p className="text-xl text-white/80">Africa's leading B2B marketplace connecting verified suppliers with bulk buyers</p>
@@ -42,11 +42,11 @@ export default function AboutPage() {
       </div>
 
       {/* Mission */}
-      <section className="py-16 bg-[#f9fdf7]">
+      <section className="py-16 bg-[#fff7f0]">
         <div className="max-w-4xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-black text-[#1a4731] mb-4">Our Mission</h2>
+              <h2 className="text-3xl font-black text-[#c2410c] mb-4">Our Mission</h2>
               <p className="text-gray-600 mb-4 leading-relaxed">
                 We're building the infrastructure for African trade. Kora connects verified suppliers with bulk buyers, eliminating middlemen and enabling direct, secure transactions across all 36 Nigerian states and beyond.
               </p>
@@ -54,7 +54,7 @@ export default function AboutPage() {
                 By combining technology, trust, and escrow-protected payments, we're making B2B trade faster, safer, and more profitable for everyone.
               </p>
             </div>
-            <div className="bg-[#f0faf4] rounded-2xl p-8">
+            <div className="bg-[#fff7ed] rounded-2xl p-8">
               <div className="space-y-4">
                 {[
                   "Direct supplier-buyer connections",
@@ -63,7 +63,7 @@ export default function AboutPage() {
                   "Pan-African reach",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-[#2e8b5a] flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-[#ea580c] flex-shrink-0" />
                     <span className="font-semibold text-gray-900">{item}</span>
                   </div>
                 ))}
@@ -76,7 +76,7 @@ export default function AboutPage() {
       {/* Stats */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-black text-[#1a4731] text-center mb-12">By The Numbers</h2>
+          <h2 className="text-3xl font-black text-[#c2410c] text-center mb-12">By The Numbers</h2>
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { label: "Active Suppliers", value: "5,000+" },
@@ -85,7 +85,7 @@ export default function AboutPage() {
               { label: "Successful Transactions", value: "50,000+" },
             ].map((stat, i) => (
               <div key={i} className="text-center">
-                <p className="text-4xl font-black text-[#2e8b5a] mb-2">{stat.value}</p>
+                <p className="text-4xl font-black text-[#ea580c] mb-2">{stat.value}</p>
                 <p className="text-gray-600 font-semibold">{stat.label}</p>
               </div>
             ))}
@@ -94,9 +94,9 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-16 bg-[#f9fdf7]">
+      <section className="py-16 bg-[#fff7f0]">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-black text-[#1a4731] text-center mb-12">Our Values</h2>
+          <h2 className="text-3xl font-black text-[#c2410c] text-center mb-12">Our Values</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
@@ -116,8 +116,8 @@ export default function AboutPage() {
               },
             ].map((value, i) => (
               <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100">
-                <value.Icon className="w-12 h-12 text-[#2e8b5a] mb-4" />
-                <h3 className="text-xl font-black text-[#1a4731] mb-2">{value.title}</h3>
+                <value.Icon className="w-12 h-12 text-[#ea580c] mb-4" />
+                <h3 className="text-xl font-black text-[#c2410c] mb-2">{value.title}</h3>
                 <p className="text-gray-600">{value.description}</p>
               </div>
             ))}
@@ -126,12 +126,12 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] text-white">
+      <section className="py-16 bg-gradient-to-r from-[#ea580c] to-[#c2410c] text-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-black mb-4">Ready to Trade Smarter?</h2>
           <p className="text-xl text-white/80 mb-8">Join thousands of suppliers and buyers already using Kora</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth" className="bg-white text-[#2e8b5a] px-8 py-3 rounded-lg font-black hover:bg-gray-100 transition">
+            <Link href="/auth" className="bg-white text-[#ea580c] px-8 py-3 rounded-lg font-black hover:bg-gray-100 transition">
               Get Started
             </Link>
             <Link href="/contact" className="border-2 border-white text-white px-8 py-3 rounded-lg font-black hover:bg-white/10 transition">

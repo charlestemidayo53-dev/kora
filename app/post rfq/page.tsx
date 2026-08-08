@@ -96,20 +96,20 @@ export default function PostRFQPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#f9fdf7] flex items-center justify-center px-6">
+      <div className="min-h-screen bg-[#fff7f0] flex items-center justify-center px-6">
         <div className="w-full max-w-[500px] bg-white rounded-2xl shadow-lg border border-gray-100 p-10 text-center">
-          <div className="w-16 h-16 bg-[#f0faf4] rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-[#2e8b5a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-[#fff7ed] rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-[#ea580c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-[#1a4731] mb-2">Request Posted Successfully!</h2>
+          <h2 className="text-2xl font-black text-[#c2410c] mb-2">Request Posted Successfully!</h2>
           <p className="text-gray-600 mb-6">Your RFQ is now live and suppliers can start responding.</p>
           <div className="space-y-3">
-            <Link href="/rfq" className="block w-full bg-[#2e8b5a] hover:bg-[#1a4731] text-white py-3 rounded-lg font-bold transition">
+            <Link href="/rfq" className="block w-full bg-[#ea580c] hover:bg-[#c2410c] text-white py-3 rounded-lg font-bold transition">
               View All Requests
             </Link>
-            <button onClick={() => setSuccess(false)} className="w-full border-2 border-[#2e8b5a] text-[#2e8b5a] hover:bg-[#f0faf4] py-3 rounded-lg font-bold transition">
+            <button onClick={() => setSuccess(false)} className="w-full border-2 border-[#ea580c] text-[#ea580c] hover:bg-[#fff7ed] py-3 rounded-lg font-bold transition">
               Post Another Request
             </button>
           </div>
@@ -119,9 +119,9 @@ export default function PostRFQPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fdf7]">
+    <div className="min-h-screen bg-[#fff7f0]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#2e8b5a] to-[#1a4731] text-white py-12">
+      <div className="bg-gradient-to-r from-[#ea580c] to-[#c2410c] text-white py-12">
         <div className="max-w-3xl mx-auto px-6">
           <h1 className="text-4xl font-black mb-3">Post a Request for Quote</h1>
           <p className="text-white/80 text-lg">Tell suppliers what you need and get competitive quotes</p>
@@ -148,7 +148,7 @@ export default function PostRFQPage() {
                 onChange={handleChange}
                 placeholder="e.g., Bulk Honey Purchase - 5000 kg"
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               />
             </div>
 
@@ -162,7 +162,7 @@ export default function PostRFQPage() {
                 placeholder="Provide details about your requirements, quality standards, delivery preferences, etc."
                 rows={5}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               />
             </div>
 
@@ -174,7 +174,7 @@ export default function PostRFQPage() {
                 value={formData.category}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               >
                 <option value="">Select a category</option>
                 {categories.map(cat => (
@@ -194,7 +194,7 @@ export default function PostRFQPage() {
                   onChange={handleChange}
                   placeholder="e.g., 5000"
                   required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                 />
               </div>
               <div>
@@ -203,7 +203,7 @@ export default function PostRFQPage() {
                   name="unit"
                   value={formData.unit}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
                 >
                   <option value="kg">Kilogram (kg)</option>
                   <option value="ton">Ton</option>
@@ -224,7 +224,7 @@ export default function PostRFQPage() {
                 onChange={handleChange}
                 placeholder="e.g., 4250000"
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               />
             </div>
 
@@ -237,7 +237,7 @@ export default function PostRFQPage() {
                 value={formData.deadline}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               />
             </div>
 
@@ -251,7 +251,7 @@ export default function PostRFQPage() {
                 onChange={handleChange}
                 placeholder="e.g., Lagos, Nigeria"
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2e8b5a]"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ea580c]"
               />
             </div>
 
@@ -259,7 +259,7 @@ export default function PostRFQPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#2e8b5a] hover:bg-[#1a4731] disabled:bg-gray-200 text-white py-4 rounded-lg font-black text-lg transition flex items-center justify-center gap-2"
+              className="w-full bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-200 text-white py-4 rounded-lg font-black text-lg transition flex items-center justify-center gap-2"
             >
               <Send className="w-5 h-5" />
               {loading ? "Posting Request..." : "Post Request"}
