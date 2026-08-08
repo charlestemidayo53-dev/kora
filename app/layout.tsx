@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Buy and sell products in bulk across Africa. Verified suppliers, secure escrow, real-time trade connecting buyers and businesses continent-wide.",
   icons: {
-    icon: "/logo-icon.png.png.",
+    icon: "/logo-icon.png",
   },
 };
 
