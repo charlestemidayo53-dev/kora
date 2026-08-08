@@ -42,43 +42,48 @@ export default function SettingsPage() {
   }, []);
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const file = e.target.files?.[0];
+  if (!file || !user) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage("Image must be under 5MB.");
-      setMessageType("error");
-      return;
-    }
-
-    setUploading(true);
-    setMessage("");
-
-    try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const publicUrl = urlData.publicUrl + "?t=" + Date.now();
-
-      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
-
-      setAvatarUrl(publicUrl);
-      setMessage("Profile photo updated.");
-      setMessageType("success");
-    } catch (err: any) {
-      setMessage(err.message || "Upload failed.");
-      setMessageType("error");
-    } finally {
-      setUploading(false);
-    }
+  if (file.size > 5 * 1024 * 1024) {
+    setMessage("Image must be under 5MB.");
+    setMessageType("error");
+    return;
   }
+
+  setUploading(true);
+  setMessage("");
+
+  try {
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${user.id}/avatar.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: publicUrl })
+      .eq("id", user.id);
+
+    if (updateError) throw updateError;
+
+    setAvatarUrl(publicUrl);
+    setMessage("Profile photo updated.");
+    setMessageType("success");
+  } catch (err: any) {
+    setMessage(err.message || "Upload failed.");
+    setMessageType("error");
+  } finally {
+    setUploading(false);
+  }
+}
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
