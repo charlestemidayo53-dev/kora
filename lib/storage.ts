@@ -355,3 +355,63 @@ export async function getSellerProfile(email: string) {
     export_capable: data.export_capable || null,
   };
 }
+
+export async function getParentCategories() {
+  return [
+    { id: "agriculture", name: "Agriculture" },
+    { id: "machinery", name: "Machinery" },
+    { id: "industrial", name: "Industrial" },
+    { id: "raw-materials", name: "Raw Materials" },
+  ];
+}
+
+export async function getSubcategories(_categoryId: string) {
+  return [];
+}
+
+type CreatePendingOrderInput = {
+  productId: string;
+  productName: string;
+  buyer: string;
+  seller: string;
+  amount: number;
+  quantity: number;
+  txRef: string;
+};
+
+export async function createPendingOrder(input: CreatePendingOrderInput) {
+  const { data, error } = await supabase
+    .from("orders")
+    .insert([{
+      product_id: input.productId,
+      product_name: input.productName,
+      buyer: input.buyer,
+      seller: input.seller,
+      amount: input.amount,
+      quantity: input.quantity,
+      status: "pending",
+      payment_status: "pending",
+      tx_ref: input.txRef,
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function markOrderPaid(orderId: string, flwTransactionId: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update({
+      status: "paid",
+      payment_status: "paid",
+      flw_transaction_id: flwTransactionId,
+      escrow_status: "holding",
+    })
+    .eq("id", orderId)
+    .select()
+    .single();
+
+  return data;
+}
