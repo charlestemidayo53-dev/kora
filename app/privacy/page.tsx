@@ -6,20 +6,20 @@ export const metadata = {
 };
 
 export default function PrivacyPage() {
-  const pageWrapperClasses = "min-h-screen bg-[#f0faf4]";
-  const headerClasses = "bg-[#1a4731] text-white py-12 px-6";
+  const pageWrapperClasses = "min-h-screen bg-[#fff7ed]";
+  const headerClasses = "bg-[#c2410c] text-white py-10 px-6";
   const headerInnerClasses = "max-w-4xl mx-auto";
-  const headerTitleClasses = "text-3xl md:text-4xl font-bold mb-2";
-  const headerSubtitleClasses = "text-[#d4ecdd] text-sm";
-  const contentWrapperClasses = "max-w-4xl mx-auto px-6 py-10";
-  const cardClasses = "bg-white border border-[#d4ecdd] rounded-lg shadow-sm p-6 md:p-10";
-  const sectionClasses = "mb-7";
-  const sectionTitleClasses = "text-xl font-semibold text-[#1a4731] mb-2";
+  const headerTitleClasses = "text-2xl md:text-3xl font-bold mb-2";
+  const headerSubtitleClasses = "text-[#ffedd5] text-xs";
+  const contentWrapperClasses = "max-w-4xl mx-auto px-6 py-8";
+  const cardClasses = "bg-white border border-[#fed7aa] rounded-lg shadow-sm p-5 md:p-8";
+  const sectionClasses = "mb-6";
+  const sectionTitleClasses = "text-lg font-semibold text-[#c2410c] mb-2";
   const paragraphClasses = "text-gray-700 leading-relaxed mb-2";
   const listClasses = "list-disc pl-6 space-y-1 text-gray-700 mb-2";
   const lastUpdatedClasses = "text-sm text-gray-500 mb-6";
-  const contactBoxClasses = "bg-[#f0faf4] border border-[#d4ecdd] rounded-lg p-6 mt-2";
-  const backLinkClasses = "inline-block mt-6 text-[#2e8b5a] hover:text-[#1a4731] hover:underline text-sm";
+  const contactBoxClasses = "bg-[#fff7ed] border border-[#fed7aa] rounded-lg p-5 mt-2";
+  const backLinkClasses = "inline-block mt-6 text-[#ea580c] hover:text-[#c2410c] hover:underline text-sm";
 
   return (
     <div className={pageWrapperClasses}>

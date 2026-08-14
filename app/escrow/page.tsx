@@ -226,7 +226,7 @@ export default function EscrowPage() {
               </div>
               <span className="text-orange-200 text-xs sm:text-sm font-semibold uppercase tracking-wide">Secure Escrow</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Escrow Payments</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Payments</h1>
             <p className="text-orange-100 text-xs sm:text-sm max-w-lg">
               Every order paid through Kora is held securely until you confirm delivery — then funds are released to the seller.
             </p>

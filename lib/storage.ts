@@ -356,17 +356,98 @@ export async function getSellerProfile(email: string) {
   };
 }
 
+const CATEGORY_DATA: { id: string; name: string; subcategories: string[] }[] = [
+  { id: "agriculture-food", name: "Agriculture & Food", subcategories: [
+    "Grains & Cereals", "Fresh Produce", "Livestock & Poultry", "Fish & Seafood",
+    "Cocoa & Coffee", "Spices & Seasonings", "Cooking Oils", "Processed Foods",
+  ]},
+  { id: "apparel-accessories", name: "Apparel & Accessories", subcategories: [
+    "Men's Clothing", "Women's Clothing", "Children's Clothing", "Footwear",
+    "Bags & Luggage", "Jewelry & Watches", "Fabrics & Textiles",
+  ]},
+  { id: "chemicals", name: "Chemicals", subcategories: [
+    "Industrial Chemicals", "Agrochemicals", "Petrochemicals", "Cleaning Chemicals",
+    "Dyes & Pigments", "Adhesives & Sealants",
+  ]},
+  { id: "computer-products", name: "Computer Products", subcategories: [
+    "Laptops & Desktops", "Computer Accessories", "Networking Equipment",
+    "Storage Devices", "Software",
+  ]},
+  { id: "construction-decoration", name: "Construction & Decoration", subcategories: [
+    "Building Materials", "Cement & Concrete", "Roofing", "Doors & Windows",
+    "Paints & Coatings", "Tiles & Flooring", "Interior Decor",
+  ]},
+  { id: "consumer-electronics", name: "Consumer Electronics", subcategories: [
+    "Mobile Phones", "TVs & Displays", "Audio Equipment", "Cameras",
+    "Home Appliances", "Wearable Devices",
+  ]},
+  { id: "electrical-electronics", name: "Electrical & Electronics", subcategories: [
+    "Cables & Wires", "Switches & Sockets", "Generators", "Transformers",
+    "Circuit Boards", "Batteries",
+  ]},
+  { id: "furniture", name: "Furniture", subcategories: [
+    "Office Furniture", "Home Furniture", "Outdoor Furniture", "Furniture Materials",
+  ]},
+  { id: "health-medicine", name: "Health & Medicine", subcategories: [
+    "Pharmaceuticals", "Medical Equipment", "Health Supplements",
+    "Personal Care", "First Aid Supplies",
+  ]},
+  { id: "industrial-equipment", name: "Industrial Equipment", subcategories: [
+    "Manufacturing Machinery", "Processing Equipment", "Material Handling",
+    "Industrial Tools", "Spare Parts",
+  ]},
+  { id: "lights-lighting", name: "Lights & Lighting", subcategories: [
+    "LED Lights", "Solar Lights", "Industrial Lighting", "Decorative Lighting",
+  ]},
+  { id: "machinery", name: "Machinery", subcategories: [
+    "Agricultural Machinery", "Construction Machinery", "Packaging Machinery",
+    "Textile Machinery", "Food Processing Machinery",
+  ]},
+  { id: "metallurgy-energy", name: "Metallurgy & Energy", subcategories: [
+    "Steel & Iron", "Metal Sheets & Bars", "Solar Energy Products",
+    "Fuel & Gas Equipment",
+  ]},
+  { id: "office-supplies", name: "Office Supplies", subcategories: [
+    "Stationery", "Printers & Copiers", "Office Furniture", "Filing & Storage",
+  ]},
+  { id: "packaging-printing", name: "Packaging & Printing", subcategories: [
+    "Packaging Materials", "Boxes & Cartons", "Labels & Stickers",
+    "Printing Services", "Bottles & Containers",
+  ]},
+  { id: "raw-materials", name: "Raw Materials", subcategories: [
+    "Plastics & Polymers", "Rubber", "Wood & Timber", "Minerals & Ores",
+    "Textile Raw Materials",
+  ]},
+  { id: "security-protection", name: "Security & Protection", subcategories: [
+    "CCTV & Surveillance", "Alarm Systems", "Safety Gear", "Locks & Access Control",
+  ]},
+  { id: "sporting-goods", name: "Sporting Goods", subcategories: [
+    "Fitness Equipment", "Outdoor & Camping", "Team Sports Gear", "Sportswear",
+  ]},
+  { id: "textile", name: "Textile", subcategories: [
+    "Cotton Fabrics", "Synthetic Fabrics", "Yarn & Thread", "Home Textiles",
+  ]},
+  { id: "tools-hardware", name: "Tools & Hardware", subcategories: [
+    "Hand Tools", "Power Tools", "Fasteners", "Plumbing Supplies",
+  ]},
+  { id: "transportation", name: "Transportation", subcategories: [
+    "Vehicle Parts", "Tires", "Motorcycles & Tricycles", "Logistics Equipment",
+  ]},
+  { id: "wholesale", name: "Wholesale", subcategories: [
+    "Bulk Food Items", "Bulk Household Goods", "Bulk Electronics", "Assorted Lots",
+  ]},
+];
+
 export async function getParentCategories() {
-  return [
-    { id: "agriculture", name: "Agriculture" },
-    { id: "machinery", name: "Machinery" },
-    { id: "industrial", name: "Industrial" },
-    { id: "raw-materials", name: "Raw Materials" },
-  ];
+  return CATEGORY_DATA.map(function (c) { return { id: c.id, name: c.name }; });
 }
 
-export async function getSubcategories(_categoryId: string) {
-  return [];
+export async function getSubcategories(categoryId: string) {
+  const match = CATEGORY_DATA.find(function (c) { return c.id === categoryId; });
+  if (!match) return [];
+  return match.subcategories.map(function (name) {
+    return { id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name };
+  });
 }
 
 type CreatePendingOrderInput = {
