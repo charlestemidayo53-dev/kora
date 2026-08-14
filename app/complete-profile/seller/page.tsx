@@ -33,10 +33,21 @@ export default function CompleteSellerProfile() {
     setLoading(true);
 
     try {
-      // Read the confirmed user directly at submit time — never trust
-      // component state here, since it can be stale or not-yet-loaded.
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
+      // Read the locally stored session first — it's already confirmed
+      // and doesn't need a network round-trip, so it's more reliable
+      // right after an email-confirmation redirect than getUser().
+      let userId: string | undefined;
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      userId = sessionData?.session?.user?.id;
+
+      if (!userId) {
+        // Fall back to a live check only if there's truly no local session.
+        const { data: userData } = await supabase.auth.getUser();
+        userId = userData?.user?.id;
+      }
+
+      if (!userId) {
         setError("Your session has expired. Please log in again.");
         setLoading(false);
         router.push("/auth/login");
@@ -45,7 +56,7 @@ export default function CompleteSellerProfile() {
 
       const { error: upsertError } = await supabase.from("profiles").upsert(
         {
-          id: userData.user.id,
+          id: userId,
           role: "seller",
           company_name: companyName,
           phone,
@@ -149,7 +160,7 @@ export default function CompleteSellerProfile() {
               disabled={loading}
               className="w-full bg-[#F97316] hover:bg-[#EA580C] disabled:bg-[#FED7AA] text-white py-3.5 rounded-lg font-bold transition shadow-sm hover:shadow-md"
             >
-              {loading ? "Saving..." : "Save and Add My First Product"}
+              {loading ? "Saving..." : "Save"}
             </button>
           </form>
         </div>

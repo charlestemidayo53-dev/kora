@@ -84,7 +84,7 @@ export default function MobileBottomNav({ user, msgCount }: { user: any; msgCoun
             key={label}
             href={href}
             className={`relative flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium leading-none whitespace-nowrap overflow-hidden transition ${
-              active ? "text-[#2e8b5a]" : "text-gray-500"
+              active ? "text-[#ea580c]" : "text-gray-500"
             }`}
           >
             <span className="relative">
