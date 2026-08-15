@@ -170,9 +170,7 @@ export default function AddProduct() {
         {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-[#111827] mb-2">List Your Product</h1>
-          <p className="text-[#6B7280]">
-            Add a new product to reach buyers, wholesalers, and distributors across Nigeria.
-          </p>
+        
         </div>
 
         {/* Form Card */}
