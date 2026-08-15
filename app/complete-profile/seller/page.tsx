@@ -106,7 +106,7 @@ export default function CompleteSellerProfile() {
                 type="text"
                 required
                 className={inputClass}
-                placeholder="e.g. Dangote Agro Industries Ltd."
+                placeholder="."
                 value={companyName}
                 onChange={function (e) { setCompanyName(e.target.value); }}
               />

@@ -196,7 +196,7 @@ export default function AddProduct() {
                   <input
                     required
                     className={inputClass}
-                    placeholder="Dried Maize"
+                    placeholder=""
                     value={name}
                     onChange={function(e) { setName(e.target.value); }}
                   />
@@ -206,7 +206,7 @@ export default function AddProduct() {
                   <input
                     required
                     className={inputClass}
-                    placeholder="50000"
+                    placeholder=""
                     value={price}
                     onChange={function(e) { setPrice(e.target.value); }}
                   />
@@ -219,7 +219,7 @@ export default function AddProduct() {
                   <input
                     required
                     className={inputClass}
-                    placeholder="500"
+                    placeholder=""
                     value={quantity}
                     onChange={function(e) { setQuantity(e.target.value); }}
                   />

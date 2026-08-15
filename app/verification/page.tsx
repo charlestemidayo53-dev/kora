@@ -246,8 +246,8 @@ export default function VerificationPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Full Name</label>
-                    <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="As on ID or documents" />
+                    <label className={labelClass}>Business Name</label>
+                    <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="" />
                   </div>
                   <div>
                     <label className={labelClass}>Phone Number</label>
@@ -259,12 +259,12 @@ export default function VerificationPage() {
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className={labelClass}>NIN</label>
-                        <input className={inputClass} value={ninNumber} onChange={(e) => setNinNumber(e.target.value)} placeholder="National ID number" />
+                        <label className={labelClass}>Business name</label>
+                        <input className={inputClass} value={ninNumber} onChange={(e) => setNinNumber(e.target.value)} placeholder=" " />
                       </div>
                       <div>
-                        <label className={labelClass}>BVN</label>
-                        <input className={inputClass} value={bvnNumber} onChange={(e) => setBvnNumber(e.target.value)} placeholder="Bank verification number" />
+                        <label className={labelClass}>Phone Number</label>
+                        <input className={inputClass} value={bvnNumber} onChange={(e) => setBvnNumber(e.target.value)} placeholder="" />
                       </div>
                     </div>
 
@@ -294,7 +294,7 @@ export default function VerificationPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className={labelClass}>Business Name</label>
-                        <input className={inputClass} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Alhaji Musa Farms Ltd" />
+                        <input className={inputClass} value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="" />
                       </div>
                       <div>
                         <label className={labelClass}>CAC Number</label>
