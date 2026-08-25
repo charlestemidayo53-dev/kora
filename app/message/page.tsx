@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { getMyConversations, getMessagesBetween, markMessagesAsRead, sendMessage } from "@/lib/storage";
+import { getMyConversations, getMessagesBetween, markMessagesAsRead, sendMessage, getSellerProfile } from "@/lib/storage";
 
 type Message = {
   id?: string;
@@ -20,6 +20,11 @@ type Conversation = {
   lastMessage: string;
   lastTime: string;
   unanswered: number;
+};
+
+type ContactProfile = {
+  business_name?: string;
+  logo_url?: string | null;
 };
 
 export default function MessagesPage() {
@@ -42,11 +47,13 @@ function MessagesPageInner() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [contactProfiles, setContactProfiles] = useState<Record<string, ContactProfile>>({});
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(function () {
     async function init() {
@@ -94,7 +101,27 @@ function MessagesPageInner() {
         convMap[otherEmail].unanswered = countUnansweredMessages(allMessages, email, otherEmail);
       });
 
-      setConversations(Object.values(convMap));
+      const convList = Object.values(convMap);
+      setConversations(convList);
+
+      // Load each unique contact's real profile (business name + logo)
+      // so the list shows a real company photo, never a generic icon,
+      // whenever one is on file.
+      const profiles: Record<string, ContactProfile> = {};
+      await Promise.all(
+        convList.map(async function (conv) {
+          try {
+            const profile = await getSellerProfile(conv.email);
+            profiles[conv.email] = {
+              business_name: profile?.business_name,
+              logo_url: profile?.logo_url || null,
+            };
+          } catch (err) {
+            console.error("Failed to load contact profile for", conv.email, err);
+          }
+        })
+      );
+      setContactProfiles(profiles);
     } catch (err) {
       console.error("loadConversations error:", err);
     }
@@ -180,6 +207,17 @@ function MessagesPageInner() {
     return email ? email.charAt(0).toUpperCase() : "?";
   }
 
+  const filteredConversations = conversations.filter(function (conv) {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const profile = contactProfiles[conv.email];
+    return (
+      conv.email.toLowerCase().includes(q) ||
+      (profile?.business_name || "").toLowerCase().includes(q) ||
+      conv.lastMessage.toLowerCase().includes(q)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -193,8 +231,36 @@ function MessagesPageInner() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        <div className="mb-10">
+      <div className="max-w-6xl mx-auto px-6 py-6 sm:py-10">
+
+        {/* Top bar: back arrow left, search icon right — only shown on the
+            list view (mobile); on desktop the two-pane layout below still
+            has its own search box. */}
+        <div className={`flex items-center justify-between mb-6 ${activeChat ? "hidden sm:flex" : "flex"}`}>
+          <button
+            onClick={function () { router.back(); }}
+            className="p-2 -ml-2 text-[#6B7280] hover:text-[#F97316] transition"
+            aria-label="Back"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={function () {
+              const el = document.getElementById("messenger-search-input");
+              el?.focus();
+            }}
+            className="p-2 -mr-2 text-[#6B7280] hover:text-[#F97316] transition"
+            aria-label="Search"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+        </div>
+
+        <div className={`mb-8 ${activeChat ? "hidden sm:block" : "block"}`}>
           <h1 className="text-3xl font-bold text-[#111827] mb-2">Messages</h1>
           <p className="text-[#6B7280]">Secure communication with buyers and sellers</p>
         </div>
@@ -208,37 +274,54 @@ function MessagesPageInner() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
+                  id="messenger-search-input"
                   type="text"
                   placeholder="Search chats..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FB923C] transition"
+                  value={searchQuery}
+                  onChange={function (e) { setSearchQuery(e.target.value); }}
+                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-[#E5E7EB] rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#FB923C] transition"
                 />
               </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              {conversations.length === 0 ? (
+              {filteredConversations.length === 0 ? (
                 <div className="text-center py-20 px-6">
                   <p className="text-[#6B7280] font-bold text-sm uppercase tracking-wider mb-2">No chats</p>
                   <p className="text-[#9CA3AF] text-xs">Your messages will appear here</p>
                 </div>
               ) : (
-                conversations.map(function (conv) {
+                filteredConversations.map(function (conv) {
                   const isActive = activeChat === conv.email;
+                  const profile = contactProfiles[conv.email];
+                  const businessName = profile?.business_name;
+                  const showBusinessName = businessName && businessName !== conv.email;
+
                   return (
-                    <div 
-                      key={conv.email} 
-                      onClick={function () { openChat(conv.email); }} 
-                      className={`flex items-center gap-4 px-5 py-5 cursor-pointer transition-colors border-b border-[#F9FAFB] ${isActive ? "bg-[#FFF7ED] border-r-4 border-r-[#F97316]" : "hover:bg-[#F9FAFB]"}`}
+                    <div
+                      key={conv.email}
+                      onClick={function () { openChat(conv.email); }}
+                      className={`flex items-center gap-4 px-5 py-4 cursor-pointer transition-colors border-b border-[#F9FAFB] ${isActive ? "bg-[#FFF7ED] border-r-4 border-r-[#F97316]" : "hover:bg-[#F9FAFB]"}`}
                     >
-                      <div className="w-11 h-11 bg-[#F97316] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <span className="text-white text-sm font-black">{getInitial(conv.email)}</span>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden bg-[#F97316]">
+                        {profile?.logo_url ? (
+                          <img src={profile.logo_url} alt={businessName || conv.email} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white text-sm font-black">{getInitial(businessName || conv.email)}</span>
+                        )}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <p className={`text-sm truncate ${conv.unanswered > 0 ? "font-black text-[#111827]" : "font-bold text-[#374151]"}`}>{conv.email}</p>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <p className={`text-sm truncate ${conv.unanswered > 0 ? "font-black text-[#111827]" : "font-bold text-[#374151]"}`}>
+                            {conv.email}
+                          </p>
                           <span className="text-[10px] font-bold text-[#9CA3AF] flex-shrink-0 ml-2">{formatTime(conv.lastTime)}</span>
                         </div>
+
+                        {showBusinessName && (
+                          <p className="text-xs text-[#9CA3AF] truncate mb-0.5">{businessName}</p>
+                        )}
 
                         <div className="flex items-center justify-between">
                           <p className={`text-xs truncate ${conv.unanswered > 0 ? "text-[#111827] font-bold" : "text-[#6B7280]"}`}>{conv.lastMessage}</p>
@@ -266,12 +349,20 @@ function MessagesPageInner() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  <div className="w-10 h-10 bg-[#F97316] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <span className="text-white text-sm font-black">{getInitial(activeChat)}</span>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden bg-[#F97316]">
+                    {contactProfiles[activeChat]?.logo_url ? (
+                      <img src={contactProfiles[activeChat]!.logo_url!} alt={activeChat} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-white text-sm font-black">{getInitial(contactProfiles[activeChat]?.business_name || activeChat)}</span>
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="font-bold text-[#111827] text-sm truncate">{activeChat}</p>
-                    <p className="text-[10px] font-black text-[#16A34A] uppercase tracking-widest">Online</p>
+                    {contactProfiles[activeChat]?.business_name && contactProfiles[activeChat]?.business_name !== activeChat ? (
+                      <p className="text-[11px] text-[#6B7280] truncate">{contactProfiles[activeChat]?.business_name}</p>
+                    ) : (
+                      <p className="text-[10px] font-black text-[#16A34A] uppercase tracking-widest">Online</p>
+                    )}
                   </div>
                 </div>
 
