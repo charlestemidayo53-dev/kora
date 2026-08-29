@@ -496,3 +496,125 @@ export async function markOrderPaid(orderId: string, flwTransactionId: string) {
 
   return data;
 }
+
+/**
+ * PRODUCT DISCOVERY — additive layer
+ *
+ * Everything below is new. Nothing above this line was changed.
+ * Discovered products are just rows in `products` (listing_source:
+ * 'discovered'), so getProducts()/getProductById() already return them —
+ * no changes needed to either function.
+ */
+
+export async function getDiscoverySources() {
+  const { data, error } = await supabase
+    .from("discovery_sources")
+    .select("*, discovery_runs(status, started_at, items_new, items_updated)")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching discovery sources:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function addDiscoverySource(source: {
+  name: string;
+  source_type: "api" | "csv" | "scrape";
+  config: Record<string, unknown>;
+  schedule_cron?: string;
+}) {
+  const { data, error } = await supabase
+    .from("discovery_sources")
+    .insert([{ ...source, enabled: true }])
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function setDiscoverySourceEnabled(id: string, enabled: boolean) {
+  const { error } = await supabase
+    .from("discovery_sources")
+    .update({ enabled })
+    .eq("id", id);
+
+  if (error) throw error;
+}
+
+/**
+ * Buyer clicks "Request This Product" on a discovered listing.
+ *
+ * Reuses your existing `rfqs` table (tagged with product_id, so it shows up
+ * on /rfq automatically) and your existing `sendMessage` for notification —
+ * no new tables for the common case. supplier_claim_invites is only touched
+ * when the product has no matching registered supplier yet.
+ */
+type SubmitProductRequestInput = {
+  productId: string;
+  productName: string;
+  category: string;
+  quantity: string;
+  location?: string;
+  specifications?: string;
+  buyer: string; // buyer's email
+};
+
+export async function submitProductRequest(input: SubmitProductRequestInput) {
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("owner, external_supplier_contact_phone, external_supplier_contact_email, is_claimed")
+    .eq("id", input.productId)
+    .single();
+
+  if (productError) throw productError;
+
+  const description = [
+    `Requested quantity: ${input.quantity}`,
+    input.location ? `Destination: ${input.location}` : null,
+    input.specifications ? `Requirements: ${input.specifications}` : null,
+  ].filter(Boolean).join("\n");
+
+  const { data: rfq, error: rfqError } = await supabase
+    .from("rfqs")
+    .insert([{
+      title: `Request for ${input.productName}`,
+      description,
+      category: input.category,
+      quantity: input.quantity,
+      budget: "",
+      urgency: "medium",
+      buyer: input.buyer,
+      responses: 0,
+      status: "open",
+      product_id: input.productId,
+    }])
+    .select()
+    .single();
+
+  if (rfqError) throw rfqError;
+
+  if (product?.owner) {
+    // Claimed supplier (internal or already-matched discovered listing) —
+    // exact same path as a normal "Message Supplier" message.
+    await sendMessage({
+      sender_email: input.buyer,
+      receiver_email: product.owner,
+      content: `A buyer has requested ${input.quantity} of your "${input.productName}" listing. Log in to KORA to view the request and respond: /rfq`,
+    });
+  } else {
+    // No registered owner yet — queue a claim invite instead of failing
+    // silently. Actually sending the SMS/email to the external contact
+    // needs your notification provider wired in here.
+    await supabase.from("supplier_claim_invites").insert({
+      product_id: input.productId,
+      contact_phone: product?.external_supplier_contact_phone || null,
+      contact_email: product?.external_supplier_contact_email || null,
+      status: "pending",
+    });
+  }
+
+  return rfq;
+}

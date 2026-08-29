@@ -12,6 +12,7 @@ type Seller = {
   state: string;
   business_type: string;
   product_count: number;
+  profile_image: string | null;
 };
 
 export default function ManufacturersPage() {
@@ -36,6 +37,23 @@ export default function ManufacturersPage() {
         return;
       }
 
+      // Load profile images for the manufacturers using the existing profiles.avatar_url field
+      const ownerEmails = Array.from(new Set(data
+        .filter(function (row) { return row.business_type === "Manufacturer" && row.owner; })
+        .map(function (row) { return row.owner; })));
+      const profileMap = new Map<string, string | null>();
+
+      if (ownerEmails.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("email, avatar_url")
+          .in("email", ownerEmails);
+
+        (profiles || []).forEach(function (profile) {
+          profileMap.set(profile.email, profile.avatar_url || null);
+        });
+      }
+
       // Group by owner email — one card per unique seller
       const map = new Map<string, Seller>();
       data.forEach(function (row) {
@@ -54,6 +72,7 @@ export default function ManufacturersPage() {
             state: row.state || "",
             business_type: row.business_type || "",
             product_count: 1,
+            profile_image: profileMap.get(row.owner) || null,
           });
         }
       });
@@ -172,8 +191,16 @@ export default function ManufacturersPage() {
                 >
                   {/* Top */}
                   <div className="p-5 flex items-center gap-4 border-b border-gray-50">
-                    <div className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white font-black text-lg">
-                      {initials(s.seller)}
+                    <div className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white font-black text-lg">
+                      {s.profile_image ? (
+                        <img
+                          src={s.profile_image}
+                          alt={s.seller + " profile"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        initials(s.seller)
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-black text-gray-800 text-sm truncate">{s.seller}</h3>

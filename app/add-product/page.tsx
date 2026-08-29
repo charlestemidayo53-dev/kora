@@ -105,6 +105,7 @@ export default function AddProduct() {
     setLoading(true);
 
     try {
+      const normalizedPrice = price.replace(/,/g, "").trim();
       const imageUrl = await uploadProductImage(imageFile);
       
       console.log("Image URL:", imageUrl);
@@ -114,7 +115,7 @@ export default function AddProduct() {
 
       await addProduct({
         name,
-        price,
+        price: normalizedPrice,
         location: city ? city + ", " + state : state,
         quantity,
         unit,
