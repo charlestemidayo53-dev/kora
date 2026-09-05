@@ -1,62 +1,115 @@
 ﻿// lib/discovery/adapters/api-adapter.ts
 import type { ApiSourceConfig, Availability, NormalizedProduct } from "../types";
 
-function getByPath(obj: any, path: string): any {
-  return path.split(".").reduce((acc, key) => (acc == null ? acc : acc[key]), obj);
+function readPath(value: unknown, path: string): unknown {
+  if (!path) return undefined;
+
+  return path.split(".").reduce(function (current: unknown, key: string) {
+    if (current === null || current === undefined) return undefined;
+    if (Array.isArray(current) && /^\d+$/.test(key)) return current[Number(key)];
+    if (typeof current !== "object") return undefined;
+    return (current as Record<string, unknown>)[key];
+  }, value);
 }
 
-function normalizeAvailability(raw: unknown): Availability {
-  if (raw == null) return "available";
-  const s = String(raw).trim().toLowerCase();
-  if (["out_of_stock", "out of stock", "unavailable", "sold_out", "sold out", "false", "0"].includes(s)) {
-    return "unavailable";
+function asString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  return text ? text : null;
+}
+
+function asNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+  const numeric = Number(String(value).replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+function asImages(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map(asString)
+      .filter(function (item): item is string { return Boolean(item); });
   }
-  if (["limited", "low_stock", "low stock", "few_left"].includes(s)) {
-    return "limited";
+
+  const text = asString(value);
+  if (!text) return [];
+
+  return text
+    .split(",")
+    .map(function (item) { return item.trim(); })
+    .filter(Boolean);
+}
+
+function asAvailability(value: unknown): Availability {
+  const normalized = String(value || "available").trim().toLowerCase();
+  if (normalized === "limited") return "limited";
+  if (normalized === "unavailable" || normalized === "out_of_stock" || normalized === "out of stock") {
+    return "unavailable";
   }
   return "available";
 }
 
+function getItems(payload: unknown, resultsPath?: string): unknown[] {
+  const result = resultsPath ? readPath(payload, resultsPath) : payload;
+  if (Array.isArray(result)) return result;
+  if (result && typeof result === "object") return [result];
+  return [];
+}
+
 export async function fetchFromApi(config: ApiSourceConfig): Promise<NormalizedProduct[]> {
-  const headers: Record<string, string> = { ...(config.headers ?? {}) };
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(config.headers || {}),
+  };
+
   if (config.authEnvKey) {
     const token = process.env[config.authEnvKey];
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    if (token && !headers.Authorization && !headers.authorization) {
+      headers.Authorization = `Bearer ${token}`;
+    }
   }
 
-  const res = await fetch(config.endpoint, { method: config.method ?? "GET", headers });
-  if (!res.ok) throw new Error(`API source fetch failed: ${res.status} ${res.statusText}`);
+  const response = await fetch(config.endpoint, {
+    method: config.method || "GET",
+    headers,
+    cache: "no-store",
+  });
 
-  const body = await res.json();
-  const items: any[] = config.resultsPath ? getByPath(body, config.resultsPath) ?? [] : body;
-  if (!Array.isArray(items)) {
-    throw new Error("API source did not return an array at the configured resultsPath");
+  if (!response.ok) {
+    throw new Error(`API request failed with ${response.status} ${response.statusText}`);
   }
 
-  const { fieldMap } = config;
+  const payload: unknown = await response.json();
+  const items = getItems(payload, config.resultsPath);
 
-  return items.map((item): NormalizedProduct => {
-    const images = fieldMap.images ? getByPath(item, fieldMap.images) : [];
-    return {
-      externalId: String(getByPath(item, fieldMap.externalId)),
-      name: getByPath(item, fieldMap.name) ?? "Untitled product",
-      description: fieldMap.description ? getByPath(item, fieldMap.description) ?? null : null,
-      category: fieldMap.category ? getByPath(item, fieldMap.category) ?? null : null,
-      price: fieldMap.price ? Number(getByPath(item, fieldMap.price)) || null : null,
-      unit: fieldMap.unit ? getByPath(item, fieldMap.unit) ?? null : null,
-      quantityAvailable: fieldMap.quantityAvailable
-        ? Number(getByPath(item, fieldMap.quantityAvailable)) || null
-        : null,
-      location: fieldMap.location ? getByPath(item, fieldMap.location) ?? null : null,
-      images: Array.isArray(images) ? images : images ? [images] : [],
-      supplierName: fieldMap.supplierName ? getByPath(item, fieldMap.supplierName) ?? null : null,
-      supplierPhone: fieldMap.supplierPhone ? getByPath(item, fieldMap.supplierPhone) ?? null : null,
-      supplierEmail: fieldMap.supplierEmail ? getByPath(item, fieldMap.supplierEmail) ?? null : null,
-      sourceUrl: fieldMap.sourceUrl ? getByPath(item, fieldMap.sourceUrl) ?? null : null,
-      availability: normalizeAvailability(
-        fieldMap.availability ? getByPath(item, fieldMap.availability) : null
-      ),
-      raw: item,
-    };
+  return items.flatMap(function (raw): NormalizedProduct[] {
+    if (!raw || typeof raw !== "object") return [];
+
+    const source = raw as Record<string, unknown>;
+    const fieldMap = config.fieldMap;
+    const externalId = asString(readPath(source, fieldMap.externalId));
+    const name = asString(readPath(source, fieldMap.name));
+
+    if (!externalId || !name) return [];
+
+    return [{
+      externalId,
+      name,
+      description: asString(readPath(source, fieldMap.description || "")),
+      category: asString(readPath(source, fieldMap.category || "")),
+      price: asNumber(readPath(source, fieldMap.price || "")),
+      unit: asString(readPath(source, fieldMap.unit || "")),
+      quantityAvailable: asNumber(readPath(source, fieldMap.quantityAvailable || "")),
+      location: asString(readPath(source, fieldMap.location || "")),
+      images: asImages(readPath(source, fieldMap.images || "")),
+      supplierName: asString(readPath(source, fieldMap.supplierName || "")),
+      supplierPhone: asString(readPath(source, fieldMap.supplierPhone || "")),
+      supplierEmail: asString(readPath(source, fieldMap.supplierEmail || "")),
+      sourceUrl: asString(readPath(source, fieldMap.sourceUrl || "")),
+      availability: asAvailability(readPath(source, fieldMap.availability || "")),
+      raw,
+    }];
   });
 }
