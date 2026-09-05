@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProducts } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
+import ProductCard from "@/components/ProductCard";
 
 type Product = {
   id?: string;
@@ -23,11 +24,11 @@ type Product = {
   verified?: boolean;
   is_verified?: boolean;
   description?: string;
+  listing_source?: "internal" | "discovered";
+  availability?: "available" | "limited" | "unavailable";
+  source_name?: string;
 };
 
-// ─── Parent categories (mobile quick-filter strip) ─────────────────────────
-// NOTE: static list matching the parent categories used elsewhere on the
-// site. Swap this for a Supabase query if/when you want it DB-driven.
 const CATEGORY_PILLS = [
   { name: "Agriculture & Food", slug: "agriculture-food" },
   { name: "Apparel & Accessories", slug: "apparel" },
@@ -75,10 +76,6 @@ const banners = [
     image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    // Swapped — the old photo here was a car/vehicle shot, which had nothing
-    // to do with "supplier screened before listing." Replaced with a real
-    // inspection/audit photo (person reviewing a clipboard) that actually
-    // matches the copy.
     eyebrow: "Verified Suppliers",
     title: "Every supplier screened before listing",
     body: "Trade with confidence — Kora verifies business details before sellers go live.",
@@ -87,7 +84,6 @@ const banners = [
     image: "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    // Replaced — now a shipping containers / export-import image
     eyebrow: "Nationwide Reach",
     title: "From the farm to every Nigerian state",
     body: "Source agricultural products and raw materials from sellers across all 36 states.",
@@ -96,7 +92,6 @@ const banners = [
     image: "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    // Replaced — now a warehouse shelving/packaging image
     eyebrow: "Seller Tools",
     title: "Show buyers what you have in stock",
     body: "List products with MOQ, units, location, and company details buyers need before ordering.",
@@ -105,71 +100,6 @@ const banners = [
     image: "https://images.unsplash.com/photo-1553413077-190983eb075e?auto=format&fit=crop&w=1200&q=80",
   },
 ];
-
-// ─── Product card helpers / icons ──────────────────────────────────────────
-function formatNaira(price: string | number | undefined): string {
-  if (price === undefined || price === null || price === "") return "₦0";
-  const numeric =
-    typeof price === "number" ? price : parseFloat(String(price).replace(/[^0-9.]/g, ""));
-  if (isNaN(numeric)) return "₦" + price;
-  return "₦" + numeric.toLocaleString("en-NG", { maximumFractionDigits: 0 });
-}
-
-// Redesigned — no white circular background, plain outline/filled heart that
-// sits directly on the image, with a short pop animation on toggle.
-function CardHeartIcon({ filled, popping }: { filled: boolean; popping: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={
-        "w-5 h-5 transition-transform duration-200 ease-out drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)] " +
-        (popping ? "scale-125" : "scale-100")
-      }
-      fill={filled ? "#ef4444" : "none"}
-      stroke={filled ? "#ef4444" : "#ffffff"}
-      strokeWidth={1.8}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 21s-7.5-4.6-10-9.1C.5 8.6 2 5 5.6 5c2 0 3.4 1.1 4.4 2.5C11 6.1 12.4 5 14.4 5 18 5 19.5 8.6 22 11.9 19.5 16.4 12 21 12 21z"
-      />
-    </svg>
-  );
-}
-
-// Verified is a genuine status (a supplier passed screening), so this is
-// one of the few spots that intentionally stays green rather than orange.
-function CardVerifiedBadge() {
-  return (
-    <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-white/95 text-green-700 text-[9px] font-bold px-2 py-1 rounded-full shadow-sm">
-      <svg viewBox="0 0 24 24" className="w-3 h-3">
-        <path
-          fill="#15803d"
-          d="M12 2l2.4 1.7 2.9-.4 1.1 2.7 2.7 1.1-.4 2.9L22 12l-1.7 2.4.4 2.9-2.7 1.1-1.1 2.7-2.9-.4L12 22l-2.4-1.7-2.9.4-1.1-2.7-2.7-1.1.4-2.9L2 12l1.7-2.4-.4-2.9 2.7-1.1 1.1-2.7 2.9.4L12 2z"
-        />
-        <path
-          d="M8.6 12.3l2 2 4.4-4.6"
-          stroke="white"
-          strokeWidth={1.8}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      Verified Supplier
-    </div>
-  );
-}
-
-function CardPinIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s7-6.5 7-11.5A7 7 0 105 9.5C5 14.5 12 21 12 21z" />
-      <circle cx="12" cy="9.5" r="2.2" />
-    </svg>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -194,10 +124,8 @@ function HomePageInner() {
   const [activeBanner, setActiveBanner] = useState(0);
 
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
-  // Tracks which product ids are mid-"pop" animation after a wishlist toggle.
   const [poppingIds, setPoppingIds] = useState<Set<string>>(new Set());
 
-  // Swipe tracking for the banner carousel (touch only).
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
@@ -282,18 +210,12 @@ function HomePageInner() {
     });
   }, [products, search, categoryFilter]);
 
-  function stopCardNav(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
   function selectCategory(name: string) {
     setCategoryFilter(function (current) {
       return current === name ? null : name;
     });
   }
 
-  // ── Banner swipe handlers ────────────────────────────────────────────────
   function handleBannerTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
     touchDeltaX.current = 0;
@@ -333,7 +255,6 @@ function HomePageInner() {
     else next.add(productId);
     setWishlistIds(next);
 
-    // Trigger the pop animation, then clear it after it plays out.
     setPoppingIds(function (current) {
       const updated = new Set(current);
       updated.add(productId);
@@ -357,7 +278,6 @@ function HomePageInner() {
       }
     } catch (err) {
       console.error("Failed to update wishlist:", err);
-      // Revert on failure.
       setWishlistIds(wishlistIds);
     }
   }
@@ -378,9 +298,6 @@ function HomePageInner() {
             />
           </div>
 
-          {/* ── Mobile category quick-filter strip ─────────────────────────
-              Sits directly under the search bar, mobile only. Desktop
-              already has "All Categories" + the nav bar in SiteShell. */}
           <div
             className="md:hidden mt-2.5 -mx-4 sm:-mx-6 px-4 sm:px-6 flex gap-2.5 overflow-x-auto kora-cat-scroll"
             style={{ scrollbarWidth: "none" }}
@@ -467,7 +384,12 @@ function HomePageInner() {
       </section>
 
       <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
-        <h2 className="text-lg sm:text-2xl font-black text-gray-900 mb-4 sm:mb-6">For You</h2>
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-2xl font-black text-gray-900">For You</h2>
+          <a href="/discover" className="text-xs sm:text-sm font-semibold text-[#F97316] hover:text-[#c2410c] transition">
+            Discover Supply -&gt;
+          </a>
+        </div>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-32">
@@ -486,56 +408,18 @@ function HomePageInner() {
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
             {filteredProducts.map(function (product, i) {
               const productId = product.id || String(i);
-              const verified = Boolean(product.verified || product.is_verified);
               const wishlisted = wishlistIds.has(productId);
               const popping = poppingIds.has(productId);
 
               return (
-                <div
+                <ProductCard
                   key={productId}
-                  onClick={() => router.push("/product/" + product.id)}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden group flex flex-col cursor-pointer"
-                >
-                  <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                    {product.image ? (
-                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-[10px] font-semibold text-gray-400">No Image</div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={function (e) { toggleWishlist(e, product.id); }}
-                      aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                      className="absolute top-1.5 right-1.5 flex items-center justify-center active:scale-90 transition"
-                    >
-                      <CardHeartIcon filled={wishlisted} popping={popping} />
-                    </button>
-
-                    {verified && <CardVerifiedBadge />}
-                  </div>
-
-                  <div className="p-2 sm:p-2.5 flex flex-col flex-1 gap-1">
-                    <h3 className="text-[11px] sm:text-xs font-semibold text-gray-800 leading-snug line-clamp-2 group-hover:text-[#F97316]">
-                      {product.name}
-                    </h3>
-
-                    {product.description && (
-                      <p className="text-[10px] sm:text-[11px] text-gray-500 line-clamp-2">{product.description}</p>
-                    )}
-
-                    {product.location && (
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <CardPinIcon />
-                        <span className="truncate">{product.location}</span>
-                      </div>
-                    )}
-
-                    <p className="mt-auto pt-1 text-xs sm:text-sm font-bold text-[#F97316]">
-                      {formatNaira(product.price)}
-                    </p>
-                  </div>
-                </div>
+                  product={product}
+                  wishlisted={wishlisted}
+                  popping={popping}
+                  onToggleWishlist={function (e) { toggleWishlist(e, product.id); }}
+                  onClick={function () { router.push("/product/" + product.id); }}
+                />
               );
             })}
           </div>
