@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { usePathname } from "next/navigation";
 
-// --- Category data ------------------------------------------------------------
+// ─── Category data ────────────────────────────────────────────────────────────
 const categories = [
   {
     name: "Agriculture & Food", slug: "agriculture-food",
@@ -100,7 +100,7 @@ const categories = [
   },
 ];
 
-// --- Languages ----------------------------------------------------------------
+// ─── Languages ────────────────────────────────────────────────────────────────
 const LANGUAGES = [
   { code: "en",  label: "English",    native: "English"      },
   { code: "yo",  label: "Yoruba",     native: "Yoruba"       },
@@ -115,13 +115,13 @@ const LANGUAGES = [
   { code: "pt",  label: "Portuguese", native: "Portugues"    },
 ];
 
-// --- Currencies ---------------------------------------------------------------
+// ─── Currencies ───────────────────────────────────────────────────────────────
 const CURRENCIES = [
-  { code: "NGN", symbol: "?",   label: "Nigerian Naira"     },
+  { code: "NGN", symbol: "₦",   label: "Nigerian Naira"     },
   { code: "USD", symbol: "$",   label: "US Dollar"          },
-  { code: "GBP", symbol: "�",   label: "British Pound"      },
-  { code: "EUR", symbol: "�",   label: "Euro"               },
-  { code: "GHS", symbol: "GH?", label: "Ghanaian Cedi"      },
+  { code: "GBP", symbol: "£",   label: "British Pound"      },
+  { code: "EUR", symbol: "€",   label: "Euro"               },
+  { code: "GHS", symbol: "GH₵", label: "Ghanaian Cedi"      },
   { code: "KES", symbol: "KSh", label: "Kenyan Shilling"    },
   { code: "ZAR", symbol: "R",   label: "South African Rand" },
   { code: "XOF", symbol: "CFA", label: "West African CFA"   },
@@ -137,7 +137,7 @@ const navLinks = [
   { label: "Contact",       href: "/contact"        },
 ];
 
-// --- SVG icon components ------------------------------------------------------
+// ─── SVG icon components ──────────────────────────────────────────────────────
 const IconMessage = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -217,7 +217,7 @@ const IconWallet = () => (
   </svg>
 );
 
-// --- Helpers ------------------------------------------------------------------
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getFirstName(profile: any, user: any): string {
   const fullName =
     profile?.full_name ||
@@ -250,13 +250,13 @@ function getInitials(profile: any, user: any): string {
   return email.charAt(0).toUpperCase() || "U";
 }
 
-// --- Brand palette -------------------------------------------------------------
+// ─── Brand palette ─────────────────────────────────────────────────────────────
 const BRAND        = "#F97316";
 const BRAND_DARK    = "#c2410c";
 const BRAND_TINT    = "#FFF3E8";
 const BRAND_BORDER  = "#FDBA8C";
 
-// --- Site Shell (client) -------------------------------------------------------
+// ─── Site Shell (client) ───────────────────────────────────────────────────────
 export default function SiteShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
@@ -361,7 +361,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {/* -- MAIN HEADER ------------------------------------------------------ */}
+      {/* ══ MAIN HEADER ══════════════════════════════════════════════════════ */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
 
         <div className={topRowClass}>
@@ -601,7 +601,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
       <main className="min-h-screen pb-16 md:pb-0">{children}</main>
 
-      {/* -- FOOTER � home page only ------------------------------------------
+      {/* ══ FOOTER — home page only ══════════════════════════════════════════
           Changed from dark brown to white background with orange text,
           per direct request. */}
       {isHome && (
@@ -678,7 +678,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p className="text-xs text-[#F97316]/60">� 2026 Kora Marketplace Ltd. All rights reserved.</p>
+              <p className="text-xs text-[#F97316]/60">© 2026 Kora Marketplace Ltd. All rights reserved.</p>
               <p className="text-xs text-[#F97316]/50">Built for African Trade</p>
             </div>
           </div>
@@ -689,4 +689,3 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     </>
   );
 }
-
