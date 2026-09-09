@@ -5,12 +5,14 @@ import { searchProductImage } from "@/lib/discovery/pexels-image-search";
 export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get("limit") || "8", 10);
+  const onlyMissing = searchParams.get("all") !== "true";
 
-  const { data: products, error } = await supabase
-    .from("catalogue_products")
-    .select("id, name")
-    .is("image_url", null)
-    .limit(limit);
+  let query = supabase.from("catalogue_products").select("id, name, category").limit(limit);
+  if (onlyMissing) {
+    query = query.is("image_url", null);
+  }
+
+  const { data: products, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
   const failed: string[] = [];
 
   for (const product of products || []) {
-    const result = await searchProductImage(product.name);
+    const result = await searchProductImage(product.name, product.category);
 
     if (!result) {
       failed.push(product.name);
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({
-    message: "Updated " + updated.length + ", failed " + failed.length + ". Run again if products remain without images.",
+    message: "Updated " + updated.length + ", failed " + failed.length + ".",
     updated,
     failed,
   });
