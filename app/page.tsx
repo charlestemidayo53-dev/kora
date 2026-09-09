@@ -59,7 +59,7 @@ const banners = [
     body: "Compare products, message sellers, and place secure orders from one marketplace.",
     cta: "Start sourcing",
     href: "#products",
-    image: "public/farm land.jpg",
+    image: "public/farm land.jpg/",
   },
   {
     eyebrow: "Secure Trading",

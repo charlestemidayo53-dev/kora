@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
@@ -356,8 +356,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const firstName    = getFirstName(profile, user);
   const avatarUrl    = profile?.avatar_url || null;
 
-  const topRowClass = "hidden md:flex max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center justify-between gap-3";
-
+  const topRowClass = "hidden md:flex max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center justify-end gap-3";
 
   return (
     <>
