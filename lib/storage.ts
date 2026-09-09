@@ -678,3 +678,4 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
