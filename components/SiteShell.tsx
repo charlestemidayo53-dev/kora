@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
@@ -251,16 +251,10 @@ function getInitials(profile: any, user: any): string {
 }
 
 // ─── Brand palette ─────────────────────────────────────────────────────────────
-// Single orange brand identity, matching the rest of the site. Green is
-// intentionally NOT used here except for the two footer trust badges,
-// which mark a genuinely verified/protected status — a real semantic use,
-// not decoration. Every other accent (links, hovers, active states,
-// avatars, the Post RFQ highlight) uses this same orange scale so the
-// header, dropdowns and footer all read as one system.
-const BRAND        = "#F97316"; // primary orange
-const BRAND_DARK    = "#c2410c"; // hover / pressed
-const BRAND_TINT    = "#FFF3E8"; // light orange background
-const BRAND_BORDER  = "#FDBA8C"; // light orange border
+const BRAND        = "#F97316";
+const BRAND_DARK    = "#c2410c";
+const BRAND_TINT    = "#FFF3E8";
+const BRAND_BORDER  = "#FDBA8C";
 
 // ─── Site Shell (client) ───────────────────────────────────────────────────────
 export default function SiteShell({ children }: { children: React.ReactNode }) {
@@ -362,10 +356,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
   const firstName    = getFirstName(profile, user);
   const avatarUrl    = profile?.avatar_url || null;
 
-  // The top row now only ever holds the desktop icon cluster (language,
-  // currency, messages, orders, cart, account) since the duplicate search
-  // bar that used to live here on the home page has been removed — the one
-  // search bar on HomePage.tsx is now the site's only search bar.
   const topRowClass = "hidden md:flex max-w-[1400px] mx-auto px-4 md:px-6 py-3 items-center justify-end gap-3";
 
   return (
@@ -373,13 +363,10 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       {/* ══ MAIN HEADER ══════════════════════════════════════════════════════ */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
 
-        {/* ── Top row: Logo + Search + Icons ─────────────────────────────── */}
         <div className={topRowClass}>
 
-          {/* ── Right side icons (desktop only — mobile uses bottom nav) ──── */}
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
 
-            {/* Language picker */}
             <div className="relative" ref={langRef}>
               <button
                 onClick={function () { setShowLangMenu(function (v) { return !v; }); setShowCurrMenu(false); setShowUserMenu(false); }}
@@ -405,7 +392,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Currency picker */}
             <div className="relative" ref={currRef}>
               <button
                 onClick={function () { setShowCurrMenu(function (v) { return !v; }); setShowLangMenu(false); setShowUserMenu(false); }}
@@ -436,7 +422,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
             <div className="w-px h-7 bg-gray-200 mx-1" />
 
-            {/* Messages — only if logged in */}
             {user && (
               <Link href="/message"
                 className="relative flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
@@ -450,7 +435,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </Link>
             )}
 
-            {/* Orders — only if logged in */}
             {user && (
               <Link href="/orders"
                 className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
@@ -459,7 +443,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </Link>
             )}
 
-            {/* Cart — only if logged in */}
             {user && (
               <Link href="/cart"
                 className="flex flex-col items-center px-2.5 py-1.5 text-gray-600 hover:text-[#F97316] hover:bg-[#FFF3E8] rounded-lg transition">
@@ -470,7 +453,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
 
             <div className="w-px h-7 bg-gray-200 mx-1" />
 
-            {/* Account — logged in */}
             {user ? (
               <div className="relative" ref={userRef}>
                 <button
@@ -546,11 +528,9 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* ── Navigation bar ─────────────────────────────────────────────── */}
         <div className="hidden md:block border-t border-gray-100 bg-white">
           <div className="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center">
 
-            {/* All Categories link */}
             <Link
               href="/categories"
               className="hidden md:flex items-center gap-2 px-4 py-3 text-sm font-bold transition flex-shrink-0 border-r border-gray-100 text-gray-700 hover:bg-[#FFF3E8] hover:text-[#F97316]"
@@ -559,7 +539,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               All Categories
             </Link>
 
-            {/* Nav links */}
             <nav className="hidden md:flex items-center flex-1">
               {navLinks.map(function (link) {
                 return (
@@ -571,7 +550,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            {/* Right quick actions */}
             <div className="hidden lg:flex items-center gap-1 ml-auto pl-4 border-l border-gray-100">
               <Link href="/escrow" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#F97316] transition px-3 py-2.5">
                 <IconLock />
@@ -585,7 +563,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* ── Mobile menu ────────────────────────────────────────────────── */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-1">
             {navLinks.map(function (link) {
@@ -621,12 +598,13 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      {/* ══ MAIN CONTENT (bottom padding so mobile nav doesn't overlap it) ══ */}
       <main className="min-h-screen pb-16 md:pb-0">{children}</main>
 
-      {/* ══ FOOTER — home page only ══════════════════════════════════════════ */}
+      {/* ══ FOOTER — home page only ══════════════════════════════════════════
+          Changed from dark brown to white background with orange text,
+          per direct request. */}
       {isHome && (
-        <footer className="bg-[#211308] text-white">
+        <footer className="bg-white text-[#F97316] border-t border-gray-100">
           <div className="max-w-[1400px] mx-auto px-6 py-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-10">
               <div className="lg:col-span-2">
@@ -639,26 +617,24 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     </svg>
                   </div>
                   <div>
-                    <div className="text-lg font-black tracking-tight">Kora</div>
-                    <div className="text-[10px] text-[#FDBA8C] uppercase tracking-wide font-medium">B2B Marketplace</div>
+                    <div className="text-lg font-black tracking-tight text-[#F97316]">Kora</div>
+                    <div className="text-[10px] text-[#c2410c] uppercase tracking-wide font-medium">B2B Marketplace</div>
                   </div>
                 </div>
-                <p className="text-sm text-white/60 leading-relaxed max-w-xs mb-5">
+                <p className="text-sm text-[#F97316]/80 leading-relaxed max-w-xs mb-5">
                   Nigeria's trusted B2B trading platform connecting buyers and verified suppliers across all 36 states and beyond.
                 </p>
-                {/* These two badges are the only green in the site — they mark a
-                    genuinely verified/protected status, not decoration. */}
                 <div className="flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Verified Suppliers
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Verified Suppliers
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-500/10 text-green-400 px-3 py-1.5 rounded-full font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400" />Escrow Protected
+                  <span className="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Escrow Protected
                   </span>
                 </div>
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Marketplace</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#F97316]/60 mb-4">Marketplace</h4>
                 <ul className="space-y-2.5">
                   {[
                     { label: "Browse Products", href: "/marketplace" },
@@ -667,12 +643,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     { label: "Trade Assurance", href: "/escrow" },
                     { label: "Categories",      href: "/categories" },
                   ].map(function (item) {
-                    return (<li key={item.label}><Link href={item.href} className="text-sm text-white/60 hover:text-white transition">{item.label}</Link></li>);
+                    return (<li key={item.label}><Link href={item.href} className="text-sm text-[#F97316]/80 hover:text-[#c2410c] transition">{item.label}</Link></li>);
                   })}
                 </ul>
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">For Suppliers</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#F97316]/60 mb-4">For Suppliers</h4>
                 <ul className="space-y-2.5">
                   {[
                     { label: "Become a Supplier", href: "/auth/register?type=supplier" },
@@ -681,12 +657,12 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     { label: "Pricing Plans",     href: "/pricing" },
                     { label: "Verification",      href: "/verification" },
                   ].map(function (item) {
-                    return (<li key={item.label}><Link href={item.href} className="text-sm text-white/60 hover:text-white transition">{item.label}</Link></li>);
+                    return (<li key={item.label}><Link href={item.href} className="text-sm text-[#F97316]/80 hover:text-[#c2410c] transition">{item.label}</Link></li>);
                   })}
                 </ul>
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 mb-4">Company</h4>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-[#F97316]/60 mb-4">Company</h4>
                 <ul className="space-y-2.5">
                   {[
                     { label: "About Us",        href: "/about" },
@@ -695,20 +671,19 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     { label: "Privacy Policy",  href: "/privacy" },
                     { label: "Terms of Service", href: "/terms" },
                   ].map(function (item) {
-                    return (<li key={item.label}><Link href={item.href} className="text-sm text-white/60 hover:text-white transition">{item.label}</Link></li>);
+                    return (<li key={item.label}><Link href={item.href} className="text-sm text-[#F97316]/80 hover:text-[#c2410c] transition">{item.label}</Link></li>);
                   })}
                 </ul>
               </div>
             </div>
-            <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-              <p className="text-xs text-white/40">© 2026 Kora Marketplace Ltd. All rights reserved.</p>
-              <p className="text-xs text-white/30">Built for African Trade</p>
+            <div className="border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p className="text-xs text-[#F97316]/60">© 2026 Kora Marketplace Ltd. All rights reserved.</p>
+              <p className="text-xs text-[#F97316]/50">Built for African Trade</p>
             </div>
           </div>
         </footer>
       )}
 
-      {/* ══ MOBILE BOTTOM NAV (Alibaba-style) ══════════════════════════════ */}
       <MobileBottomNav user={user} msgCount={msgCount} />
     </>
   );
