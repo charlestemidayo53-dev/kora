@@ -1,5 +1,4 @@
 ﻿import { supabase } from "./supabase";
-import { getCategoryImage } from "./categoryImage";
 
 /**
  * DATABASE OPERATIONS - PRODUCTS
@@ -607,6 +606,8 @@ export async function getMergedFeed() {
       listing_source: "catalogue_only",
       is_estimated_price: true,
       image: cp.image_url || undefined,
+      image_credit: cp.image_credit || undefined,
+      image_credit_url: cp.image_credit_url || undefined,
     };
   });
 
@@ -670,11 +671,7 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   if (error) throw error;
 
-  // TODO: wire real email/SMS notification to yourself here.
   console.log("ADMIN NOTIFY: catalogue product requested with no seller —", catalogueProduct.name, "by", input.buyer);
 
   return data;
 }
-
-
-
