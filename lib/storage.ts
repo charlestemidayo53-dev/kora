@@ -606,6 +606,7 @@ export async function getMergedFeed() {
       owner: "",
       listing_source: "catalogue_only",
       is_estimated_price: true,
+      image: cp.image_url || undefined,
     };
   });
 
@@ -674,4 +675,5 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
 
