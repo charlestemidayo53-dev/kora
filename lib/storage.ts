@@ -1,4 +1,5 @@
 ﻿import { supabase } from "./supabase";
+import { getCategoryImage } from "./categoryImage";
 
 /**
  * DATABASE OPERATIONS - PRODUCTS
@@ -493,11 +494,6 @@ export async function markOrderPaid(orderId: string, flwTransactionId: string) {
 
 /**
  * PRODUCT DISCOVERY — "Request This Product"
- * Reuses your existing `rfqs` table (same one the /rfq board reads) instead
- * of creating a parallel request system. This just inserts a row that's
- * OPTIONALLY targeted at one product/supplier via product_id +
- * target_seller_email — both nullable, so the general /rfq board (which
- * ignores these columns) keeps working exactly as before.
  */
 
 type SubmitProductRequestInput = {
@@ -610,6 +606,7 @@ export async function getMergedFeed() {
       owner: "",
       listing_source: "catalogue_only",
       is_estimated_price: true,
+      image: getCategoryImage(cp.category),
     };
   });
 
@@ -678,4 +675,3 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
-
