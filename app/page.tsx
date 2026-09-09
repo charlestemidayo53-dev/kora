@@ -59,7 +59,7 @@ const banners = [
     body: "Compare products, message sellers, and place secure orders from one marketplace.",
     cta: "Start sourcing",
     href: "#products",
-    image: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&w=1200&q=80",
+    image: "public/farm land.jpg",
   },
   {
     eyebrow: "Secure Trading",
@@ -99,7 +99,7 @@ const banners = [
     body: "List products with MOQ, units, location, and company details buyers need before ordering.",
     cta: "Add product",
     href: "/add-product",
-    image: "https://images.unsplash.com/photo-1553413077-190983eb075e?auto=format&fit=crop&w=1200&q=80",
+    image: "public/Ploughs.jpg",
   },
 ];
 
