@@ -562,3 +562,119 @@ export async function submitProductRequest(input: SubmitProductRequestInput) {
 
   return data;
 }
+
+/**
+ * CATALOGUE — merged feed (real seller offers + catalogue-only entries)
+ */
+
+export async function getCatalogueProductsWithoutOffers() {
+  const { data: catalogueProducts, error: catError } = await supabase
+    .from("catalogue_products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (catError) {
+    console.error("Error fetching catalogue products:", catError);
+    return [];
+  }
+
+  const { data: offers, error: offerError } = await supabase
+    .from("products")
+    .select("catalogue_product_id")
+    .not("catalogue_product_id", "is", null);
+
+  if (offerError) {
+    console.error("Error fetching offers for catalogue filter:", offerError);
+    return catalogueProducts || [];
+  }
+
+  const attachedIds = new Set((offers || []).map(function (o: any) { return o.catalogue_product_id; }));
+
+  return (catalogueProducts || []).filter(function (cp: any) { return !attachedIds.has(cp.id); });
+}
+
+export async function getMergedFeed() {
+  const [realProducts, catalogueOnly] = await Promise.all([
+    getProducts(),
+    getCatalogueProductsWithoutOffers(),
+  ]);
+
+  const catalogueAsProducts = (catalogueOnly || []).map(function (cp: any) {
+    return {
+      id: "cat_" + cp.id,
+      catalogue_product_id: cp.id,
+      name: cp.name,
+      price: cp.estimated_market_price ? String(cp.estimated_market_price) : "",
+      category: cp.category,
+      unit: cp.unit,
+      owner: "",
+      listing_source: "catalogue_only",
+      is_estimated_price: true,
+    };
+  });
+
+  return [...(realProducts || []), ...catalogueAsProducts];
+}
+
+export async function getCatalogueProductById(catalogueId: string) {
+  const { data, error } = await supabase
+    .from("catalogue_products")
+    .select("*")
+    .eq("id", catalogueId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching catalogue product:", error);
+    return null;
+  }
+  return data;
+}
+
+/**
+ * CATALOGUE — "Request This Product" for items with no seller yet
+ */
+
+type SubmitCatalogueProductRequestInput = {
+  catalogueProductId: string;
+  buyer: string;
+  quantity: string;
+  location?: string;
+  message?: string;
+};
+
+export async function submitCatalogueProductRequest(input: SubmitCatalogueProductRequestInput) {
+  const catalogueProduct = await getCatalogueProductById(input.catalogueProductId);
+  if (!catalogueProduct) throw new Error("Catalogue product not found");
+
+  const description =
+    input.message ||
+    ("Buyer requested " + input.quantity + (catalogueProduct.unit ? " " + catalogueProduct.unit : "") +
+      " of " + catalogueProduct.name +
+      (input.location ? " for delivery to " + input.location : ""));
+
+  const { data, error } = await supabase
+    .from("rfqs")
+    .insert([{
+      title: "Request: " + catalogueProduct.name,
+      description,
+      category: catalogueProduct.category,
+      quantity: input.quantity,
+      budget: "",
+      deadline: null,
+      urgency: "medium",
+      buyer: input.buyer,
+      responses: 0,
+      status: "open",
+      catalogue_product_id: catalogueProduct.id,
+      target_seller_email: null,
+    }])
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // TODO: wire real email/SMS notification to yourself here.
+  console.log("ADMIN NOTIFY: catalogue product requested with no seller —", catalogueProduct.name, "by", input.buyer);
+
+  return data;
+}

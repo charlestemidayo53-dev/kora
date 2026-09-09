@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getProducts } from "@/lib/storage";
+import { getMergedFeed } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
 
@@ -24,9 +24,11 @@ type Product = {
   verified?: boolean;
   is_verified?: boolean;
   description?: string;
-  listing_source?: "internal" | "discovered";
+  listing_source?: "internal" | "discovered" | "catalogue_only";
   availability?: "available" | "limited" | "unavailable";
   source_name?: string;
+  is_estimated_price?: boolean;
+  catalogue_product_id?: string;
 };
 
 const CATEGORY_PILLS = [
@@ -178,7 +180,7 @@ function HomePageInner() {
 
   async function loadProducts() {
     try {
-      const data = await getProducts();
+      const data = await getMergedFeed();
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load products:", err);
@@ -279,6 +281,14 @@ function HomePageInner() {
     } catch (err) {
       console.error("Failed to update wishlist:", err);
       setWishlistIds(wishlistIds);
+    }
+  }
+
+  function goToProduct(product: Product) {
+    if (product.listing_source === "catalogue_only" && product.catalogue_product_id) {
+      router.push("/catalogue/" + product.catalogue_product_id);
+    } else {
+      router.push("/product/" + product.id);
     }
   }
 
@@ -418,7 +428,7 @@ function HomePageInner() {
                   wishlisted={wishlisted}
                   popping={popping}
                   onToggleWishlist={function (e) { toggleWishlist(e, product.id); }}
-                  onClick={function () { router.push("/product/" + product.id); }}
+                  onClick={function () { goToProduct(product); }}
                 />
               );
             })}

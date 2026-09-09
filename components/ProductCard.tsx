@@ -10,9 +10,11 @@ type Product = {
   description?: string;
   verified?: boolean;
   is_verified?: boolean;
-  listing_source?: "internal" | "discovered";
+  listing_source?: "internal" | "discovered" | "catalogue_only";
   availability?: "available" | "limited" | "unavailable";
   source_name?: string;
+  is_estimated_price?: boolean;
+  catalogue_product_id?: string;
 };
 
 function formatNaira(price: string | number | undefined): string {
@@ -67,6 +69,14 @@ function CardVerifiedBadge() {
 }
 
 function CardSourcedTag({ product }: { product: Product }) {
+  if (product.listing_source === "catalogue_only") {
+    return (
+      <div className="absolute bottom-1.5 right-1.5 text-[9px] font-bold px-2 py-1 rounded-full shadow-sm bg-white/95 text-[#0369a1]">
+        Request Only
+      </div>
+    );
+  }
+
   if (product.listing_source !== "discovered") return null;
   const unavailable = product.availability === "unavailable";
   return (
@@ -126,7 +136,7 @@ export default function ProductCard({
           <CardHeartIcon filled={wishlisted} popping={popping} />
         </button>
 
-        {verified && product.listing_source !== "discovered" && <CardVerifiedBadge />}
+        {verified && product.listing_source !== "discovered" && product.listing_source !== "catalogue_only" && <CardVerifiedBadge />}
         <CardSourcedTag product={product} />
       </div>
 
@@ -147,7 +157,7 @@ export default function ProductCard({
         )}
 
         <p className="mt-auto pt-1 text-xs sm:text-sm font-bold text-[#F97316]">
-          {formatNaira(product.price)}
+          {product.is_estimated_price ? "Est. " : ""}{formatNaira(product.price)}
         </p>
       </div>
     </div>
