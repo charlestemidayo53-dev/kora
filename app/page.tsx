@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getProducts } from "@/lib/storage";
+import { getMergedFeed } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
 
@@ -180,7 +180,7 @@ function HomePageInner() {
 
   async function loadProducts() {
     try {
-      const data = await getProducts();
+      const data = await getMergedFeed();
       setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load products:", err);
@@ -438,4 +438,5 @@ function HomePageInner() {
     </div>
   );
 }
+
 

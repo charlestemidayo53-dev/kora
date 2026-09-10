@@ -594,7 +594,14 @@ export async function getMergedFeed() {
     getCatalogueProductsWithoutOffers(),
   ]);
 
-  const catalogueAsProducts = (catalogueOnly || []).map(function (cp: any) {
+  // Only show catalogue-only products that have a real, verified,
+  // correctly-matched photo (image_source = "seller_upload") — everything
+  // else (Pexels guesses, icons, no image) stays hidden from buyers for now.
+  const catalogueWithVerifiedImages = (catalogueOnly || []).filter(function (cp: any) {
+    return cp.image_source === "seller_upload" && Boolean(cp.image_url);
+  });
+
+  const catalogueAsProducts = catalogueWithVerifiedImages.map(function (cp: any) {
     return {
       id: "cat_" + cp.id,
       catalogue_product_id: cp.id,
@@ -675,3 +682,4 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
