@@ -363,6 +363,15 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       {/* ══ MAIN HEADER ══════════════════════════════════════════════════════ */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
 
+        {/* ── Brand bar — Kora logo, visible on all screen sizes ─────────── */}
+        <div className="border-b border-gray-100">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-2.5 flex items-center">
+            <Link href="/" className="flex items-center">
+              <img src="/kora%20logo.jpeg" alt="Kora" className="h-8 sm:h-9 w-auto" />
+            </Link>
+          </div>
+        </div>
+
         <div className={topRowClass}>
 
           <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
@@ -688,3 +697,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
     </>
   );
 }
+
+
+
