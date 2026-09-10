@@ -99,7 +99,7 @@ const banners = [
     body: "List products with MOQ, units, location, and company details buyers need before ordering.",
     cta: "Add product",
     href: "/add-product",
-    image: "public/Ploughs.jpg",
+    image: "/farm land.jpg",
   },
 ];
 
