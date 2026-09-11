@@ -59,7 +59,7 @@ const banners = [
     body: "Compare products, message sellers, and place secure orders from one marketplace.",
     cta: "Start sourcing",
     href: "#products",
-    image: "public/farm land.jpg/",
+    image: "/oil machine.jpg",
   },
   {
     eyebrow: "Secure Trading",
@@ -73,8 +73,8 @@ const banners = [
     eyebrow: "Trade On the Go",
     title: "Run your business from your phone",
     body: "Manage orders, chat with buyers, and track sales anywhere — Kora is built mobile-first.",
-    cta: "Open dashboard",
-    href: "/dashboard",
+    cta: "Start Supplying",
+    href: "/add-product",
     image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
@@ -82,7 +82,7 @@ const banners = [
     title: "Every supplier screened before listing",
     body: "Trade with confidence — Kora verifies business details before sellers go live.",
     cta: "Meet our suppliers",
-    href: "/suppliers",
+    href: "/add-product",
     image: "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
   },
   {
@@ -90,7 +90,7 @@ const banners = [
     title: "From the farm to every Nigerian state",
     body: "Source agricultural products and raw materials from sellers across all 36 states.",
     cta: "Explore categories",
-    href: "/categories",
+    href: "/add-product",
     image: "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=1200&q=80",
   },
   {
