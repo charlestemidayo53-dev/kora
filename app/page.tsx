@@ -59,7 +59,7 @@ const banners = [
     body: "Compare products, message sellers, and place secure orders from one marketplace.",
     cta: "Start sourcing",
     href: "#products",
-    image: "kora log.jpeg",
+    image: "/images/kora-logo.jpeg",
   },
   {
     eyebrow: "Secure Trading",
@@ -91,7 +91,7 @@ const banners = [
     body: "Source agricultural products and raw materials from sellers across all 36 states.",
     cta: "Explore categories",
     href: "/add-product",
-    image: "kora log.jpeg",
+    image: "/images/kora-logo.jpeg",
   },
   {
     eyebrow: "Seller Tools",
