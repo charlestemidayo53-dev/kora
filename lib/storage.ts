@@ -450,6 +450,8 @@ type CreatePendingOrderInput = {
   buyer: string;
   seller: string;
   amount: number;
+  sellerAmount: number;
+  commissionAmount: number;
   quantity: number;
   txRef: string;
 };
@@ -463,6 +465,8 @@ export async function createPendingOrder(input: CreatePendingOrderInput) {
       buyer: input.buyer,
       seller: input.seller,
       amount: input.amount,
+      seller_amount: input.sellerAmount,
+      commission_amount: input.commissionAmount,
       quantity: input.quantity,
       status: "pending",
       payment_status: "pending",
@@ -682,4 +686,5 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
 
