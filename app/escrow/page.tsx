@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import { supabase } from "@/lib/supabase";
 import { getOrdersByBuyer, getOrdersBySeller, updateOrder } from "@/lib/storage";
 
@@ -17,12 +16,6 @@ type Order = {
   escrow_status?: "holding" | "released" | "refunded" | null;
 };
 
-declare global {
-  interface Window {
-    FlutterwaveCheckout?: (options: any) => void;
-  }
-}
-
 export default function EscrowPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -30,7 +23,6 @@ export default function EscrowPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
-  const [payingId, setPayingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -61,65 +53,6 @@ export default function EscrowPage() {
   async function switchTab(tab: "buyer" | "seller") {
     setActiveTab(tab);
     if (user?.email) await loadOrders(user.email, tab);
-  }
-
-  // ---- PAY NOW: opens Flutterwave checkout, buyer pays the platform (not the seller directly) ----
-  function handlePayNow(order: Order) {
-    if (!order.id || !user?.email) return;
-
-    if (!window.FlutterwaveCheckout) {
-      alert("Payment is still loading. Wait a second and try again.");
-      return;
-    }
-
-    const amountNumber = Number(order.amount);
-    if (!amountNumber || amountNumber <= 0) {
-      alert("This order has no valid amount set.");
-      return;
-    }
-
-    setPayingId(order.id);
-
-    const txRef = `kora_${order.id}_${Date.now()}`;
-
-    window.FlutterwaveCheckout({
-      public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-      tx_ref: txRef,
-      amount: amountNumber,
-      currency: "NGN",
-      payment_options: "card,banktransfer,ussd",
-      customer: {
-        email: user.email,
-      },
-      customizations: {
-        title: "Kora Marketplace",
-        description: `Payment for ${order.product_name || order.productName || "order"}`,
-      },
-      callback: async (response: any) => {
-        try {
-          if (response.status === "successful" || response.status === "completed") {
-            const res = await fetch("/api/flutterwave/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                transaction_id: response.transaction_id,
-                order_id: order.id,
-              }),
-            });
-            const result = await res.json();
-            if (!res.ok || !result.success) {
-              alert("Payment could not be verified. Contact support with reference: " + txRef);
-            }
-          }
-        } finally {
-          setPayingId(null);
-          if (user?.email) await loadOrders(user.email, activeTab);
-        }
-      },
-      onclose: () => {
-        setPayingId(null);
-      },
-    });
   }
 
   // ---- CONFIRM DELIVERY: releases escrow to seller ----
@@ -187,9 +120,6 @@ export default function EscrowPage() {
 
   return (
     <div className="min-h-screen bg-[#fff7ed]">
-      {/* Flutterwave inline checkout script */}
-      <Script src="https://checkout.flutterwave.com/v3.js" strategy="afterInteractive" />
-
       {/* Nav */}
       <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
@@ -264,7 +194,7 @@ export default function EscrowPage() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-50 rounded-xl flex items-center justify-center mb-2 sm:mb-3">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+                </svg>
             </div>
             <div className="text-xl sm:text-2xl font-bold text-purple-600">
               {orders.filter((o) => o.escrow_status === "holding").length}
@@ -356,17 +286,6 @@ export default function EscrowPage() {
                           </div>
                         </div>
                       </div>
-
-                      {/* Action: buyer pays for pending order */}
-                      {activeTab === "buyer" && order.status === "pending" && (
-                        <button
-                          onClick={() => handlePayNow(order)}
-                          disabled={payingId === order.id}
-                          className="w-full md:w-auto bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-300 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap"
-                        >
-                          {payingId === order.id ? "Opening payment..." : "Pay Now"}
-                        </button>
-                      )}
 
                       {/* Action: buyer confirms delivery to release funds */}
                       {activeTab === "buyer" && order.escrow_status === "holding" && (
