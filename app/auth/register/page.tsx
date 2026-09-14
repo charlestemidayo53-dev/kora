@@ -11,7 +11,6 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,10 +22,6 @@ export default function RegisterPage() {
     e.preventDefault();
     if (!role) {
       setError("Please select Buyer or Supplier to continue.");
-      return;
-    }
-    if (!agreedToTerms) {
-      setError("Please agree to the Terms and Conditions and Privacy Policy to continue.");
       return;
     }
     setError("");
@@ -62,10 +57,6 @@ export default function RegisterPage() {
   async function handleGoogle() {
     if (!role) {
       setError("Please select Buyer or Supplier first.");
-      return;
-    }
-    if (!agreedToTerms) {
-      setError("Please agree to the Terms and Conditions and Privacy Policy to continue.");
       return;
     }
     setGoogleLoading(true);
@@ -281,31 +272,22 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Terms and Conditions agreement */}
-            <div className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                id="agree-terms"
-                checked={agreedToTerms}
-                onChange={function (e) { setAgreedToTerms(e.target.checked); setError(""); }}
-                className="mt-1 w-4 h-4 accent-[#F97316] rounded border-[#E5E7EB] shrink-0 cursor-pointer"
-              />
-              <label htmlFor="agree-terms" className="text-xs text-[#6B7280] leading-relaxed cursor-pointer">
-                I agree to Kora Marketplace's{" "}
-                <Link href="/terms" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
-                  Terms and Conditions
-                </Link>
-                ,{" "}
-                <Link href="/privacy" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
-                  Privacy Policy
-                </Link>
-                , and{" "}
-                <Link href="/acceptable-use" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
-                  Acceptable Use Policy
-                </Link>
-                .
-              </label>
-            </div>
+            {/* Terms and Conditions links */}
+            <p className="text-xs text-[#6B7280] leading-relaxed">
+              Kora Marketplace's{" "}
+              <Link href="/terms" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
+                Terms and Conditions
+              </Link>
+              ,{" "}
+              <Link href="/privacy" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
+                Privacy Policy
+              </Link>
+              , and{" "}
+              <Link href="/acceptable-use" target="_blank" className="text-[#F97316] font-bold hover:text-[#EA580C] transition">
+                Acceptable Use Policy
+              </Link>
+              .
+            </p>
 
             {error && (
               <div className="p-4 bg-[#FEE2E2] text-[#DC2626] text-sm font-medium rounded-lg border border-[#FECACA]">
@@ -315,7 +297,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={loading || !role || !agreedToTerms}
+              disabled={loading || !role}
               className="w-full bg-[#F97316] hover:bg-[#EA580C] disabled:bg-[#FED7AA] text-white py-3.5 rounded-lg font-bold transition shadow-sm hover:shadow-md"
             >
               {loading ? "Creating account..." : "Create Account"}
