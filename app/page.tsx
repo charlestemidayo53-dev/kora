@@ -55,48 +55,36 @@ const CATEGORY_PILLS = [
 const banners = [
   {
     eyebrow: "Kora Sourcing",
-    title: "",
-    body: "",
     cta: "Start sourcing",
     href: "#products",
-    image: "/kora-logo.jpeg",
+    image: "/images/kora-logo.jpeg",
   },
   {
     eyebrow: "Secure Trading",
-    title: "",
-    body: "",
     cta: "Browse products",
     href: "#products",
     image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
   },
   {
     eyebrow: "Trade On the Go",
-    title: "",
-    body: "",
     cta: "Start Supplying",
     href: "/add-product",
     image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
     eyebrow: "Verified Suppliers",
-    title: "",
-    body: "",
     cta: "Meet our suppliers",
     href: "/add-product",
     image: "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
   },
   {
     eyebrow: "Nationwide Reach",
-    title: "",
-    body: "",
     cta: "Explore categories",
     href: "/add-product",
-    image: "/kora-logo.jpeg",
+    image: "/images/kora-logo.jpeg",
   },
   {
     eyebrow: "Seller Tools",
-    title: "",
-    body: "",
     cta: "Add product",
     href: "/add-product",
     image: "/farm land.jpg",
@@ -296,16 +284,27 @@ function HomePageInner() {
     <div className="min-h-screen bg-[#f5f7f6]">
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              value={search}
-              onChange={function (e) { setSearch(e.target.value); }}
-              placeholder="Search products, suppliers, or locations"
-              className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#F97316]"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                value={search}
+                onChange={function (e) { setSearch(e.target.value); }}
+                placeholder="Search products, suppliers, or locations"
+                className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#F97316]"
+              />
+            </div>
+            
+              href="/add-product"
+              className="flex-shrink-0 flex items-center gap-1.5 bg-[#F97316] hover:bg-[#c2410c] text-white px-3.5 sm:px-4 py-3 rounded-full text-xs sm:text-sm font-bold transition whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="hidden sm:inline">Add Product</span>
+            </a>
           </div>
 
           <div
@@ -438,5 +437,6 @@ function HomePageInner() {
     </div>
   );
 }
+
 
 
