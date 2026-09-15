@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { addProduct, uploadProductImage, getParentCategories, getSubcategories } from "@/lib/storage";
@@ -17,6 +17,18 @@ const nigerianStates = [
   "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
 ];
 
+type QueuedProduct = {
+  name: string;
+  price: string;
+  quantity: string;
+  unit: string;
+  category: string;
+  subcategory: string;
+  description: string;
+  imageFiles: File[];
+  previews: string[];
+};
+
 export default function AddProduct() {
   const [user, setUser] = useState<any>(null);
   const [name, setName] = useState("");
@@ -30,10 +42,13 @@ export default function AddProduct() {
   const [description, setDescription] = useState("");
   const [sellerName, setSellerName] = useState("");
   const [businessType, setBusinessType] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [progressText, setProgressText] = useState("");
+
+  const [queue, setQueue] = useState<QueuedProduct[]>([]);
 
   const [parentCategories, setParentCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
@@ -91,55 +106,140 @@ export default function AddProduct() {
     }
   }
 
+  function handleImageFilesChange(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const newFiles = Array.from(files);
+    setImageFiles(function(prev) { return [...prev, ...newFiles]; });
+    setPreviews(function(prev) { return [...prev, ...newFiles.map(function(f) { return URL.createObjectURL(f); })]; });
+  }
+
+  function removeImageAt(index: number) {
+    setImageFiles(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
+    setPreviews(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
+  }
+
+  function currentFormIsFilled() {
+    return Boolean(name || price || quantity || category || imageFiles.length > 0);
+  }
+
+  function resetProductFields() {
+    setName("");
+    setPrice("");
+    setQuantity("");
+    setUnit("");
+    setCategory("");
+    setSubcategory("");
+    setSubcategories([]);
+    setDescription("");
+    setImageFiles([]);
+    setPreviews([]);
+  }
+
+  function validateCurrentProduct(): string | null {
+    if (!name.trim()) return "Product name is required.";
+    if (!price.trim()) return "Price is required.";
+    if (!quantity.trim()) return "Quantity is required.";
+    if (!unit) return "Unit is required.";
+    if (!category) return "Category is required.";
+    if (imageFiles.length === 0) return "Please upload at least one image.";
+    return null;
+  }
+
+  function handleAddToList() {
+    setError("");
+    const validationError = validateCurrentProduct();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    if (!state) {
+      setError("Please select a state before adding products \u2014 it applies to every item in this batch.");
+      return;
+    }
+
+    setQueue(function(prev) {
+      return [...prev, { name, price, quantity, unit, category, subcategory, description, imageFiles, previews }];
+    });
+    resetProductFields();
+  }
+
+  function removeFromQueue(index: number) {
+    setQueue(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
+  }
+
+  async function publishOne(item: QueuedProduct) {
+    const normalizedPrice = item.price.replace(/,/g, "").trim();
+    const imageUrls: string[] = [];
+    for (const file of item.imageFiles) {
+      const url = await uploadProductImage(file);
+      if (!url) throw new Error("Image upload failed for \"" + item.name + "\". Please check your storage settings.");
+      imageUrls.push(url);
+    }
+
+    await addProduct({
+      name: item.name,
+      price: normalizedPrice,
+      location: city ? city + ", " + state : state,
+      quantity: item.quantity,
+      unit: item.unit,
+      image: imageUrls[0],
+      images: imageUrls,
+      category: item.category,
+      subcategory: item.subcategory,
+      state,
+      city,
+      description: item.description,
+      seller: sellerName || user.email || "Unknown Seller",
+      owner: user.email || "unknown",
+      business_type: businessType || "Trading Company",
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!imageFile) {
-      setError("Please upload a product image.");
+    if (!user) return;
+    if (!state) {
+      setError("Please select a state.");
       return;
     }
 
-    if (!user) return;
+    const finalList: QueuedProduct[] = [...queue];
+
+    if (currentFormIsFilled()) {
+      const validationError = validateCurrentProduct();
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+      finalList.push({ name, price, quantity, unit, category, subcategory, description, imageFiles, previews });
+    }
+
+    if (finalList.length === 0) {
+      setError("Add at least one product before publishing.");
+      return;
+    }
 
     setLoading(true);
-
     try {
-      const normalizedPrice = price.replace(/,/g, "").trim();
-      const imageUrl = await uploadProductImage(imageFile);
-      
-      console.log("Image URL:", imageUrl);
-      if (!imageUrl) {
-        throw new Error("Image upload failed. Please check your storage settings.");
+      for (let i = 0; i < finalList.length; i++) {
+        setProgressText("Publishing " + (i + 1) + " of " + finalList.length + "...");
+        await publishOne(finalList[i]);
       }
-
-      await addProduct({
-        name,
-        price: normalizedPrice,
-        location: city ? city + ", " + state : state,
-        quantity,
-        unit,
-        image: imageUrl,
-        category,
-        subcategory,
-        state,
-        city,
-        description,
-        seller: sellerName || user.email || "Unknown Seller",
-        owner: user.email || "unknown",
-        business_type: businessType || "Trading Company",
-      });
-
       window.location.href = "/seller-dashboard";
     } catch (err: any) {
       console.error("Product Upload Error:", err);
       setError(err.message || "Failed to upload product. Please try again.");
     } finally {
       setLoading(false);
+      setProgressText("");
     }
   }
 
   if (!user) return null;
+
+  const totalToPublish = queue.length + (currentFormIsFilled() ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-white">
@@ -170,9 +270,36 @@ export default function AddProduct() {
 
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-4xl font-bold text-[#111827] mb-2">List Your Product</h1>
-        
+          <h1 className="text-4xl font-bold text-[#111827] mb-2">List Your Products</h1>
+          <p className="text-[#6B7280] text-sm">Fill in a product below, then either publish it alone or add it to a batch and list several at once.</p>
         </div>
+
+        {/* Queue preview */}
+        {queue.length > 0 && (
+          <div className="bg-[#FFF7ED] border border-[#FDBA8C] rounded-xl p-5 mb-6">
+            <h3 className="text-sm font-bold text-[#111827] mb-3">Products ready to publish ({queue.length})</h3>
+            <div className="space-y-2">
+              {queue.map(function(item, i) {
+                return (
+                  <div key={i} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-[#FED7AA]">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {item.previews[0] && (
+                        <img src={item.previews[0]} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[#111827] truncate">{item.name}</p>
+                        <p className="text-xs text-[#6B7280]">₦{item.price} &middot; {item.imageFiles.length} image{item.imageFiles.length !== 1 ? "s" : ""}</p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={function() { removeFromQueue(i); }} className="text-xs text-red-500 hover:text-red-700 font-semibold flex-shrink-0 ml-3">
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Form Card */}
         <div className="bg-white rounded-xl border border-[#E5E7EB] p-8">
@@ -193,7 +320,6 @@ export default function AddProduct() {
                 <div>
                   <label className={labelClass}>Product Name *</label>
                   <input
-                    required
                     className={inputClass}
                     placeholder=""
                     value={name}
@@ -203,7 +329,6 @@ export default function AddProduct() {
                 <div>
                   <label className={labelClass}>Price (₦) *</label>
                   <input
-                    required
                     className={inputClass}
                     placeholder=""
                     value={price}
@@ -216,7 +341,6 @@ export default function AddProduct() {
                 <div>
                   <label className={labelClass}>Quantity *</label>
                   <input
-                    required
                     className={inputClass}
                     placeholder=""
                     value={quantity}
@@ -226,7 +350,6 @@ export default function AddProduct() {
                 <div>
                   <label className={labelClass}>Unit *</label>
                   <select
-                    required
                     className={inputClass}
                     value={unit}
                     onChange={function(e) { setUnit(e.target.value); }}
@@ -253,7 +376,6 @@ export default function AddProduct() {
                 <div>
                   <label className={labelClass}>Category *</label>
                   <select
-                    required
                     className={inputClass}
                     value={category}
                     onChange={function(e) { handleCategoryChange(e.target.value); }}
@@ -293,12 +415,12 @@ export default function AddProduct() {
             {/* Section 3: Location */}
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Location</h3>
+              <p className="text-xs text-[#6B7280] -mt-4 mb-6">Applies to every product in this batch.</p>
               
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className={labelClass}>State *</label>
                   <select
-                    required
                     className={inputClass}
                     value={state}
                     onChange={function(e) { setState(e.target.value); }}
@@ -326,11 +448,11 @@ export default function AddProduct() {
             {/* Section 4: Business Info */}
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Business Information</h3>
+              <p className="text-xs text-[#6B7280] -mt-4 mb-6">Applies to every product in this batch.</p>
               
               <div>
                 <label className={labelClass}>Business / Seller Name *</label>
                 <input
-                  required
                   className={inputClass}
                   placeholder="Your business name"
                   value={sellerName}
@@ -355,44 +477,71 @@ export default function AddProduct() {
               </div>
             </div>
 
-            {/* Section 6: Image */}
+            {/* Section 6: Images */}
             <div className="border-t border-[#E5E7EB] pt-8">
-              <h3 className="text-lg font-semibold text-[#111827] mb-6">Product Image</h3>
-              
-              <div className="border-2 border-dashed border-[#FED7AA] rounded-lg p-8 text-center hover:border-[#F97316] transition bg-[#FFF7ED]">
+              <h3 className="text-lg font-semibold text-[#111827] mb-2">Product Images</h3>
+              <p className="text-xs text-[#6B7280] mb-6">Minimum 1 image required. Add as many as you like.</p>
+
+              {previews.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
+                  {previews.map(function(src, i) {
+                    return (
+                      <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-[#E5E7EB]">
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={function() { removeImageAt(i); }}
+                          className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xs"
+                        >
+                          ✕
+                        </button>
+                        {i === 0 && (
+                          <span className="absolute bottom-1 left-1 bg-[#F97316] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="border-2 border-dashed border-[#FED7AA] rounded-lg p-6 text-center hover:border-[#F97316] transition bg-[#FFF7ED]">
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
                   id="image-upload"
                   onChange={function(e) {
-                    const file = e.target.files?.[0] || null;
-                    setImageFile(file);
-                    if (file) {
-                      setPreview(URL.createObjectURL(file));
-                    }
+                    handleImageFilesChange(e.target.files);
+                    e.target.value = "";
                   }}
                 />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt="Preview"
-                      className="rounded-lg w-full max-h-64 object-cover mx-auto"
-                    />
-                  ) : (
-                    <div>
-                      <div className="w-12 h-12 bg-[#F97316] rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                      <p className="text-[#111827] font-medium">Click to upload or drag and drop</p>
-                      <p className="text-[#6B7280] text-sm mt-1">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-                  )}
+                <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center">
+                  <div className="w-10 h-10 bg-[#F97316] rounded-lg flex items-center justify-center mb-2">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <p className="text-[#111827] font-medium text-sm">
+                    {previews.length > 0 ? "Add more images" : "Click to upload images"}
+                  </p>
+                  <p className="text-[#6B7280] text-xs mt-1">PNG, JPG, GIF up to 10MB each</p>
                 </label>
               </div>
+            </div>
+
+            {/* Add to batch */}
+            <div className="border-t border-[#E5E7EB] pt-8">
+              <button
+                type="button"
+                onClick={handleAddToList}
+                className="w-full bg-white border-2 border-[#F97316] text-[#F97316] hover:bg-[#FFF7ED] font-semibold py-3 px-6 rounded-lg transition"
+              >
+                + Add This Product to the List
+              </button>
+              <p className="text-xs text-[#6B7280] text-center mt-2">
+                Use this to line up several products, then publish them all together below.
+              </p>
             </div>
 
             {/* Submit Button */}
@@ -402,9 +551,13 @@ export default function AddProduct() {
                 disabled={loading}
                 className="flex-1 bg-[#F97316] hover:bg-[#EA580C] text-white font-medium py-3 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Publishing..." : "Publish Product"}
+                {loading
+                  ? (progressText || "Publishing...")
+                  : totalToPublish > 1
+                  ? "Publish All (" + totalToPublish + " Products)"
+                  : "Publish Product"}
               </button>
-              <a
+              
                 href="/seller-dashboard"
                 className="flex-1 bg-[#F9FAFB] hover:bg-[#F3F4F6] text-[#111827] font-medium py-3 px-6 rounded-lg transition text-center border border-[#E5E7EB]"
               >

@@ -593,10 +593,20 @@ export async function getCatalogueProductsWithoutOffers() {
 }
 
 export async function getMergedFeed() {
-  const [realProducts, catalogueOnly] = await Promise.all([
+  const [realProductsRaw, catalogueOnly] = await Promise.all([
     getProducts(),
     getCatalogueProductsWithoutOffers(),
   ]);
+
+  // Genuine seller-uploaded listings always surface above old bulk-imported
+  // "Sourced Supply" stock, regardless of which has the newer timestamp —
+  // a real new upload should never get buried under imported inventory.
+  const realProducts = [...(realProductsRaw || [])].sort(function (a: any, b: any) {
+    const aDiscovered = a.listing_source === "discovered" ? 1 : 0;
+    const bDiscovered = b.listing_source === "discovered" ? 1 : 0;
+    if (aDiscovered !== bDiscovered) return aDiscovered - bDiscovered;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   // Only show catalogue-only products that have a real, verified,
   // correctly-matched photo (image_source = "seller_upload") — everything
@@ -686,5 +696,6 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
 
 
