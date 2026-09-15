@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState, useRef, Suspense } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getMergedFeed } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
@@ -31,6 +31,14 @@ type Product = {
   catalogue_product_id?: string;
 };
 
+type Banner = {
+  id: string;
+  body: string;
+  cta: string;
+  href: string;
+  image: string;
+};
+
 const CATEGORY_PILLS = [
   { name: "Agriculture & Food", slug: "agriculture-food" },
   { name: "Apparel & Accessories", slug: "apparel" },
@@ -52,52 +60,71 @@ const CATEGORY_PILLS = [
   { name: "Transportation", slug: "transportation" },
 ];
 
-const banners = [
+const banners: Banner[] = [
   {
-    eyebrow: "Kora Sourcing",
+    id: "kora-sourcing",
+    body: "Find the products and suppliers you need for your next order.",
     cta: "Start sourcing",
     href: "#products",
     image: "/images/kora-logo.jpeg",
   },
   {
-    eyebrow: "Secure Trading",
+    id: "secure-trading",
+    body: "Browse marketplace products and connect with reliable businesses.",
     cta: "Browse products",
     href: "#products",
-    image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
+    image:
+      "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    eyebrow: "Trade On the Go",
-    cta: "Start Supplying",
+    id: "trade-on-the-go",
+    body: "List your products and reach customers wherever they are.",
+    cta: "Start supplying",
     href: "/add-product",
-    image: "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
+    image:
+      "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    eyebrow: "Verified Suppliers",
+    id: "verified-suppliers",
+    body: "Discover businesses and products built for dependable trade.",
     cta: "Meet our suppliers",
-    href: "/add-product",
-    image: "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
+    href: "/discover",
+    image:
+      "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    eyebrow: "Nationwide Reach",
+    id: "nationwide-reach",
+    body: "Search a growing marketplace of products from across the country.",
     cta: "Explore categories",
-    href: "/add-product",
+    href: "#products",
     image: "/images/kora-logo.jpeg",
   },
   {
-    eyebrow: "Seller Tools",
+    id: "seller-tools",
+    body: "Add your products and make it easier for buyers to find you.",
     cta: "Add product",
     href: "/add-product",
     image: "/farm land.jpg",
   },
 ];
 
+function normalizeCategory(value: string | undefined): string {
+  return (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[\s_]+/g, "-");
+}
+
 export default function HomePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f7f6]">
-        <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#f5f7f6]">
+          <div className="w-12 h-12 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
       <HomePageInner />
     </Suspense>
   );
@@ -110,9 +137,8 @@ function HomePageInner() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string } | null>(null);
   const [activeBanner, setActiveBanner] = useState(0);
-
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [poppingIds, setPoppingIds] = useState<Set<string>>(new Set());
 
@@ -122,17 +148,20 @@ function HomePageInner() {
   useEffect(function () {
     async function init() {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
+      if (data?.user) setUser({ id: data.user.id });
       await loadProducts();
     }
 
     init();
   }, []);
 
-  useEffect(function () {
-    const q = searchParams.get("q");
-    if (q) setSearch(q);
-  }, [searchParams]);
+  useEffect(
+    function () {
+      const q = searchParams.get("q");
+      if (q !== null) setSearch(q);
+    },
+    [searchParams],
+  );
 
   useEffect(function () {
     const timer = window.setInterval(function () {
@@ -146,25 +175,39 @@ function HomePageInner() {
     };
   }, []);
 
-  useEffect(function () {
-    if (!user?.id) {
-      setWishlistIds(new Set());
-      return;
-    }
-    async function loadWishlist() {
-      try {
-        const { data, error } = await supabase
-          .from("wishlists")
-          .select("product_id")
-          .eq("user_id", user.id);
-        if (error) throw error;
-        setWishlistIds(new Set((data || []).map(function (w: any) { return w.product_id; })));
-      } catch (err) {
-        console.error("Failed to load wishlist:", err);
+  useEffect(
+    function () {
+      if (!user?.id) {
+        setWishlistIds(new Set());
+        return;
       }
-    }
-    loadWishlist();
-  }, [user]);
+
+      async function loadWishlist() {
+        try {
+          const { data, error } = await supabase
+            .from("wishlists")
+            .select("product_id")
+            .eq("user_id", user.id);
+
+          if (error) throw error;
+          setWishlistIds(
+            new Set(
+              (data || [])
+                .map(function (wishlist: { product_id: string | null }) {
+                  return wishlist.product_id;
+                })
+                .filter((productId): productId is string => Boolean(productId)),
+            ),
+          );
+        } catch (err) {
+          console.error("Failed to load wishlist:", err);
+        }
+      }
+
+      loadWishlist();
+    },
+    [user],
+  );
 
   async function loadProducts() {
     try {
@@ -178,42 +221,47 @@ function HomePageInner() {
     }
   }
 
-  const filteredProducts = useMemo(function () {
-    return products.filter(function (product) {
-      const name = product?.name || "";
-      const location = product?.location || "";
-      const seller = product?.seller || product?.company_name || "";
-      const category = product?.category || "";
-      const description = product?.description || "";
+  const filteredProducts = useMemo(
+    function () {
+      const normalizedSearch = search.trim().toLowerCase();
 
-      const matchesSearch =
-        name.toLowerCase().includes(search.toLowerCase()) ||
-        location.toLowerCase().includes(search.toLowerCase()) ||
-        seller.toLowerCase().includes(search.toLowerCase()) ||
-        category.toLowerCase().includes(search.toLowerCase()) ||
-        description.toLowerCase().includes(search.toLowerCase());
+      return products.filter(function (product) {
+        const name = product?.name || "";
+        const location = product?.location || "";
+        const seller = product?.seller || product?.company_name || "";
+        const category = product?.category || "";
+        const description = product?.description || "";
 
-      const matchesCategory =
-        !categoryFilter || category.toLowerCase() === categoryFilter.toLowerCase();
+        const searchableText = [name, location, seller, category, description]
+          .join(" ")
+          .toLowerCase();
 
-      return matchesSearch && matchesCategory;
-    });
-  }, [products, search, categoryFilter]);
+        const matchesSearch = searchableText.includes(normalizedSearch);
+        const matchesCategory =
+          !categoryFilter ||
+          normalizeCategory(category) === normalizeCategory(categoryFilter);
 
-  function selectCategory(name: string) {
+        return matchesSearch && matchesCategory;
+      });
+    },
+    [products, search, categoryFilter],
+  );
+
+  function selectCategory(slug: string) {
     setCategoryFilter(function (current) {
-      return current === name ? null : name;
+      return current === slug ? null : slug;
     });
   }
 
-  function handleBannerTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
+  function handleBannerTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
     touchDeltaX.current = 0;
   }
 
-  function handleBannerTouchMove(e: React.TouchEvent) {
+  function handleBannerTouchMove(e: React.TouchEvent<HTMLDivElement>) {
     if (touchStartX.current === null) return;
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
+    touchDeltaX.current =
+      (e.touches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
   }
 
   function handleBannerTouchEnd() {
@@ -234,13 +282,18 @@ function HomePageInner() {
     touchDeltaX.current = 0;
   }
 
-  async function toggleWishlist(e: React.MouseEvent, productId: string | undefined) {
+  async function toggleWishlist(
+    e: React.MouseEvent<HTMLButtonElement>,
+    productId: string | undefined,
+  ) {
     e.preventDefault();
     e.stopPropagation();
     if (!productId) return;
 
     const isWishlisted = wishlistIds.has(productId);
+    const previousWishlistIds = wishlistIds;
     const next = new Set(wishlistIds);
+
     if (isWishlisted) next.delete(productId);
     else next.add(productId);
     setWishlistIds(next);
@@ -250,6 +303,7 @@ function HomePageInner() {
       updated.add(productId);
       return updated;
     });
+
     window.setTimeout(function () {
       setPoppingIds(function (current) {
         const updated = new Set(current);
@@ -262,20 +316,31 @@ function HomePageInner() {
 
     try {
       if (isWishlisted) {
-        await supabase.from("wishlists").delete().eq("user_id", user.id).eq("product_id", productId);
+        const { error } = await supabase
+          .from("wishlists")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("product_id", productId);
+        if (error) throw error;
       } else {
-        await supabase.from("wishlists").insert({ user_id: user.id, product_id: productId });
+        const { error } = await supabase
+          .from("wishlists")
+          .insert({ user_id: user.id, product_id: productId });
+        if (error) throw error;
       }
     } catch (err) {
       console.error("Failed to update wishlist:", err);
-      setWishlistIds(wishlistIds);
+      setWishlistIds(previousWishlistIds);
     }
   }
 
   function goToProduct(product: Product) {
     if (product.listing_source === "catalogue_only" && product.catalogue_product_id) {
       router.push("/catalogue/" + product.catalogue_product_id);
-    } else {
+      return;
+    }
+
+    if (product.id) {
       router.push("/product/" + product.id);
     }
   }
@@ -286,12 +351,24 @@ function HomePageInner() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 value={search}
-                onChange={function (e) { setSearch(e.target.value); }}
+                onChange={function (e) {
+                  setSearch(e.target.value);
+                }}
                 placeholder="Search products, suppliers, or locations"
                 className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#F97316]"
               />
@@ -313,7 +390,9 @@ function HomePageInner() {
           >
             <button
               type="button"
-              onClick={function () { setCategoryFilter(null); }}
+              onClick={function () {
+                setCategoryFilter(null);
+              }}
               className={
                 "flex-shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-[11px] tracking-wide border transition " +
                 (categoryFilter === null
@@ -324,12 +403,14 @@ function HomePageInner() {
               All
             </button>
             {CATEGORY_PILLS.map(function (cat) {
-              const isActive = categoryFilter === cat.name;
+              const isActive = categoryFilter === cat.slug;
               return (
                 <button
                   key={cat.slug}
                   type="button"
-                  onClick={function () { selectCategory(cat.name); }}
+                  onClick={function () {
+                    selectCategory(cat.slug);
+                  }}
                   className={
                     "flex-shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-full text-[11px] tracking-wide border transition " +
                     (isActive
@@ -358,16 +439,20 @@ function HomePageInner() {
               const isActive = index === activeBanner;
               return (
                 <div
-                  key={banner.title}
-                  className={"absolute inset-0 transition-opacity duration-700 " + (isActive ? "opacity-100" : "opacity-0 pointer-events-none")}
+                  key={banner.id}
+                  className={
+                    "absolute inset-0 transition-opacity duration-700 " +
+                    (isActive ? "opacity-100" : "opacity-0 pointer-events-none")
+                  }
                 >
                   <img src={banner.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
                   <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 max-w-2xl text-white">
-                    <p className="text-xs sm:text-sm font-bold uppercase tracking-wide text-[#ffcfa0] mb-1.5">{banner.eyebrow}</p>
-                    <h1 className="text-xl sm:text-4xl font-black leading-tight [-webkit-text-stroke:1px_rgba(0,0,0,0.6)] sm:[-webkit-text-stroke:2px_rgba(0,0,0,0.6)] [paint-order:stroke_fill]">{banner.title}</h1>
                     <p className="mt-2 text-xs sm:text-base text-white/85 max-w-xl">{banner.body}</p>
-                    <a href={banner.href} className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#F97316] hover:bg-[#FFF3E8] transition">
+                    <a
+                      href={banner.href}
+                      className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#F97316] hover:bg-[#FFF3E8] transition"
+                    >
                       {banner.cta}
                     </a>
                   </div>
@@ -376,14 +461,19 @@ function HomePageInner() {
             })}
 
             <div className="absolute bottom-3 left-5 sm:left-10 flex gap-2">
-              {banners.map(function (_, index) {
+              {banners.map(function (banner, index) {
                 return (
                   <button
-                    key={index}
+                    key={banner.id}
                     type="button"
                     aria-label={"Show banner " + (index + 1)}
-                    onClick={function () { setActiveBanner(index); }}
-                    className={"h-1.5 rounded-full transition-all " + (index === activeBanner ? "w-7 bg-white" : "w-1.5 bg-white/50")}
+                    onClick={function () {
+                      setActiveBanner(index);
+                    }}
+                    className={
+                      "h-1.5 rounded-full transition-all " +
+                      (index === activeBanner ? "w-7 bg-white" : "w-1.5 bg-white/50")
+                    }
                   />
                 );
               })}
@@ -426,8 +516,12 @@ function HomePageInner() {
                   product={product}
                   wishlisted={wishlisted}
                   popping={popping}
-                  onToggleWishlist={function (e) { toggleWishlist(e, product.id); }}
-                  onClick={function () { goToProduct(product); }}
+                  onToggleWishlist={function (e) {
+                    toggleWishlist(e, product.id);
+                  }}
+                  onClick={function () {
+                    goToProduct(product);
+                  }}
                 />
               );
             })}
@@ -437,6 +531,3 @@ function HomePageInner() {
     </div>
   );
 }
-
-
-
