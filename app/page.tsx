@@ -277,7 +277,7 @@ function HomePageInner() {
   }
 
   async function toggleWishlist(
-    e: React.MouseEvent<HTMLButtonElement>,
+    e: React.MouseEvent<Element>,
     productId: string | undefined,
   ) {
     e.preventDefault();
