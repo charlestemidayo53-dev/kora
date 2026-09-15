@@ -110,7 +110,7 @@ export default function ProductCard({
   product: Product;
   wishlisted: boolean;
   popping: boolean;
-  onToggleWishlist: (e: React.MouseEvent) => void;
+  onToggleWishlist: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onClick: () => void;
 }) {
   const verified = Boolean(product.verified || product.is_verified);
