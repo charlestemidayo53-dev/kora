@@ -63,14 +63,12 @@ const CATEGORY_PILLS = [
 const banners: Banner[] = [
   {
     id: "kora-sourcing",
-    body: "Find the products and suppliers you need for your next order.",
     cta: "Start sourcing",
     href: "#products",
-    image: "/images/kora-logo.jpeg",
+    image: "/kora logo.jpeg",
   },
   {
     id: "secure-trading",
-    body: "Browse marketplace products and connect with reliable businesses.",
     cta: "Browse products",
     href: "#products",
     image:
@@ -78,7 +76,6 @@ const banners: Banner[] = [
   },
   {
     id: "trade-on-the-go",
-    body: "List your products and reach customers wherever they are.",
     cta: "Start supplying",
     href: "/add-product",
     image:
@@ -86,7 +83,6 @@ const banners: Banner[] = [
   },
   {
     id: "verified-suppliers",
-    body: "Discover businesses and products built for dependable trade.",
     cta: "Meet our suppliers",
     href: "/discover",
     image:
@@ -94,14 +90,12 @@ const banners: Banner[] = [
   },
   {
     id: "nationwide-reach",
-    body: "Search a growing marketplace of products from across the country.",
     cta: "Explore categories",
     href: "#products",
-    image: "/images/kora-logo.jpeg",
+    image: "/kora logo.jpeg",
   },
   {
     id: "seller-tools",
-    body: "Add your products and make it easier for buyers to find you.",
     cta: "Add product",
     href: "/add-product",
     image: "/farm land.jpg",
