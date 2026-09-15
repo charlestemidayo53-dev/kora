@@ -557,7 +557,7 @@ export default function AddProduct() {
                   ? "Publish All (" + totalToPublish + " Products)"
                   : "Publish Product"}
               </button>
-              
+              <a
                 href="/seller-dashboard"
                 className="flex-1 bg-[#F9FAFB] hover:bg-[#F3F4F6] text-[#111827] font-medium py-3 px-6 rounded-lg transition text-center border border-[#E5E7EB]"
               >

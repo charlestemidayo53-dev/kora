@@ -296,7 +296,7 @@ function HomePageInner() {
                 className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-[#F97316]"
               />
             </div>
-            
+            <a
               href="/add-product"
               className="flex-shrink-0 flex items-center gap-1.5 bg-[#F97316] hover:bg-[#c2410c] text-white px-3.5 sm:px-4 py-3 rounded-full text-xs sm:text-sm font-bold transition whitespace-nowrap"
             >
