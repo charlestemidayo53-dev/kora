@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -33,7 +33,7 @@ type Product = {
 
 type Banner = {
   id: string;
-  body: string;
+
   cta: string;
   href: string;
   image: string;
