@@ -65,7 +65,7 @@ const banners: Banner[] = [
     id: "kora-sourcing",
     cta: "Start sourcing",
     href: "#products",
-    image: "/kora logo.jpeg",
+    image: "/kora log.jpeg",
   },
   {
     id: "secure-trading",
@@ -92,7 +92,7 @@ const banners: Banner[] = [
     id: "nationwide-reach",
     cta: "Explore categories",
     href: "#products",
-    image: "/kora logo.jpeg",
+    image: "/kora log.jpeg",
   },
   {
     id: "seller-tools",
