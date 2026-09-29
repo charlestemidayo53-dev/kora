@@ -1,6 +1,7 @@
-import "./globals.css";
+﻿import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import SiteShell from "@/components/SiteShell";
+import InAppBrowserBanner from "@/components/InAppBrowserBanner";
 
 export const metadata: Metadata = {
   title: "Kora Marketplace | African B2B Trading Platform",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-[#f8faf8] text-gray-900 antialiased">
         <SiteShell>{children}</SiteShell>
+        <InAppBrowserBanner />
       </body>
     </html>
   );
