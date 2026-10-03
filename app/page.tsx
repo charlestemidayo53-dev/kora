@@ -31,14 +31,6 @@ type Product = {
   catalogue_product_id?: string;
 };
 
-type Banner = {
-  id: string;
-
-  cta: string;
-  href: string;
-  image: string;
-};
-
 const CATEGORY_PILLS = [
   { name: "Agriculture & Food", slug: "agriculture-food" },
   { name: "Apparel & Accessories", slug: "apparel" },
@@ -60,46 +52,13 @@ const CATEGORY_PILLS = [
   { name: "Transportation", slug: "transportation" },
 ];
 
-const banners: Banner[] = [
-  {
-    id: "kora-sourcing",
-    cta: "Start sourcing",
-    href: "#products",
-    image: "/kora log.jpeg",
-  },
-  {
-    id: "secure-trading",
-    cta: "Browse products",
-    href: "#products",
-    image:
-      "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "trade-on-the-go",
-    cta: "Start supplying",
-    href: "/add-product",
-    image:
-      "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "verified-suppliers",
-    cta: "Meet our suppliers",
-    href: "/discover",
-    image:
-      "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    id: "nationwide-reach",
-    cta: "Explore categories",
-    href: "#products",
-    image: "/kora log.jpeg",
-  },
-  {
-    id: "seller-tools",
-    cta: "Add product",
-    href: "/add-product",
-    image: "/farm land.jpg",
-  },
+const SEARCH_PLACEHOLDERS = [
+  "Search for ginger...",
+  "Search for palm oil...",
+  "Search for rice...",
+  "Search for machinery...",
+  "Search for packaging...",
+  "Search for bulk suppliers...",
 ];
 
 function normalizeCategory(value: string | undefined): string {
@@ -132,12 +91,9 @@ function HomePageInner() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ id: string } | null>(null);
-  const [activeBanner, setActiveBanner] = useState(0);
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [poppingIds, setPoppingIds] = useState<Set<string>>(new Set());
-
-  const touchStartX = useRef<number | null>(null);
-  const touchDeltaX = useRef(0);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   useEffect(function () {
     async function init() {
@@ -159,10 +115,10 @@ function HomePageInner() {
 
   useEffect(function () {
     const timer = window.setInterval(function () {
-      setActiveBanner(function (current) {
-        return (current + 1) % banners.length;
+      setPlaceholderIndex(function (current) {
+        return (current + 1) % SEARCH_PLACEHOLDERS.length;
       });
-    }, 4500);
+    }, 2600);
 
     return function () {
       window.clearInterval(timer);
@@ -247,33 +203,8 @@ function HomePageInner() {
     });
   }
 
-  function handleBannerTouchStart(e: React.TouchEvent<HTMLDivElement>) {
-    touchStartX.current = e.touches[0]?.clientX ?? null;
-    touchDeltaX.current = 0;
-  }
-
-  function handleBannerTouchMove(e: React.TouchEvent<HTMLDivElement>) {
-    if (touchStartX.current === null) return;
-    touchDeltaX.current =
-      (e.touches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
-  }
-
-  function handleBannerTouchEnd() {
-    const delta = touchDeltaX.current;
-    const SWIPE_THRESHOLD = 40;
-
-    if (delta > SWIPE_THRESHOLD) {
-      setActiveBanner(function (current) {
-        return (current - 1 + banners.length) % banners.length;
-      });
-    } else if (delta < -SWIPE_THRESHOLD) {
-      setActiveBanner(function (current) {
-        return (current + 1) % banners.length;
-      });
-    }
-
-    touchStartX.current = null;
-    touchDeltaX.current = 0;
+  function scrollToProducts() {
+    document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
   }
 
   async function toggleWishlist(
@@ -341,6 +272,95 @@ function HomePageInner() {
 
   return (
     <div className="min-h-screen bg-[#f5f7f6]">
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden min-h-[520px] sm:min-h-[620px] flex flex-col">
+        <img
+          src="/Cargo-ship.webp"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/55 to-[#0b1120]/90" />
+
+        <div className="relative z-10 flex-1 flex flex-col justify-center max-w-4xl mx-auto px-5 sm:px-8 text-center pt-16 sm:pt-20">
+          <span className="inline-block w-fit mx-auto mb-4 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-[11px] sm:text-xs font-semibold tracking-wide uppercase">
+            Africa's B2B Trading Platform
+          </span>
+
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] mb-4">
+            Source. Trade. <span className="text-[#F97316]">Grow.</span>
+          </h1>
+
+          <p className="text-sm sm:text-lg text-white/80 max-w-xl mx-auto mb-8">
+            Connecting African buyers and verified suppliers for secure,
+            large-scale trade — all in one marketplace.
+          </p>
+
+          <div className="w-full max-w-xl mx-auto mb-7">
+            <div className="relative">
+              <svg
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                value={search}
+                onChange={function (e) {
+                  setSearch(e.target.value);
+                }}
+                onFocus={scrollToProducts}
+                placeholder={SEARCH_PLACEHOLDERS[placeholderIndex]}
+                className="w-full pl-12 pr-4 py-3.5 sm:py-4 bg-white rounded-full text-sm shadow-lg outline-none focus:ring-2 focus:ring-[#F97316] transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={scrollToProducts}
+              className="inline-flex items-center justify-center gap-2 bg-[#F97316] hover:bg-[#c2410c] text-white px-6 py-3 rounded-lg text-sm font-bold transition shadow-md"
+            >
+              Browse Marketplace
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+            <a
+              href="/add-product"
+              className="inline-flex items-center justify-center gap-2 bg-transparent border border-white/40 hover:bg-white/10 text-white px-6 py-3 rounded-lg text-sm font-bold transition"
+            >
+              Start Supplying
+            </a>
+          </div>
+        </div>
+
+        <div className="relative z-10 border-t border-white/10 bg-black/30 backdrop-blur-sm">
+          <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4 sm:py-5 grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="text-white font-black text-lg sm:text-2xl">{CATEGORY_PILLS.length}+</p>
+              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Categories</p>
+            </div>
+            <div className="border-x border-white/10">
+              <p className="text-white font-black text-lg sm:text-2xl">Secure</p>
+              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Escrow Protection</p>
+            </div>
+            <div>
+              <p className="text-white font-black text-lg sm:text-2xl">Nationwide</p>
+              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Reach</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SEARCH BAR + CATEGORY PILLS ── */}
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center gap-2">
@@ -418,60 +438,6 @@ function HomePageInner() {
             })}
           </div>
           <style>{".kora-cat-scroll::-webkit-scrollbar{display:none}"}</style>
-        </div>
-      </section>
-
-      <section className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
-          <div
-            className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#2b1a10]"
-            onTouchStart={handleBannerTouchStart}
-            onTouchMove={handleBannerTouchMove}
-            onTouchEnd={handleBannerTouchEnd}
-          >
-            {banners.map(function (banner, index) {
-              const isActive = index === activeBanner;
-              return (
-                <div
-                  key={banner.id}
-                  className={
-                    "absolute inset-0 transition-opacity duration-700 " +
-                    (isActive ? "opacity-100" : "opacity-0 pointer-events-none")
-                  }
-                >
-                  <img src={banner.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
-                  <div className="relative z-10 h-full flex flex-col justify-center px-5 sm:px-10 max-w-2xl text-white">
-                    <a
-                      href={banner.href}
-                      className="mt-3 sm:mt-4 inline-flex w-fit items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-3 text-xs sm:text-sm font-bold text-[#F97316] hover:bg-[#FFF3E8] transition"
-                    >
-                      {banner.cta}
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="absolute bottom-3 left-5 sm:left-10 flex gap-2">
-              {banners.map(function (banner, index) {
-                return (
-                  <button
-                    key={banner.id}
-                    type="button"
-                    aria-label={"Show banner " + (index + 1)}
-                    onClick={function () {
-                      setActiveBanner(index);
-                    }}
-                    className={
-                      "h-1.5 rounded-full transition-all " +
-                      (index === activeBanner ? "w-7 bg-white" : "w-1.5 bg-white/50")
-                    }
-                  />
-                );
-              })}
-            </div>
-          </div>
         </div>
       </section>
 
