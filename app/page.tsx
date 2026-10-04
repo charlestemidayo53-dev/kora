@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getMergedFeed } from "@/lib/storage";
+import { getMergedFeed, CATEGORY_DATA } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
 
@@ -31,26 +31,16 @@ type Product = {
   catalogue_product_id?: string;
 };
 
-const CATEGORY_PILLS = [
-  { name: "Agriculture & Food", slug: "agriculture-food" },
-  { name: "Apparel & Accessories", slug: "apparel" },
-  { name: "Auto, Motorcycle & Parts", slug: "auto-motorcycle" },
-  { name: "Chemicals", slug: "chemicals" },
-  { name: "Construction & Decoration", slug: "construction" },
-  { name: "Consumer Electronics", slug: "electronics" },
-  { name: "Electrical & Electronics", slug: "electrical" },
-  { name: "Furniture", slug: "furniture" },
-  { name: "Health & Medicine", slug: "health" },
-  { name: "Industrial Equipment", slug: "industrial" },
-  { name: "Lights & Lighting", slug: "lighting" },
-  { name: "Manufacturing Machinery", slug: "machinery" },
-  { name: "Metallurgy & Energy", slug: "metallurgy" },
-  { name: "Packaging & Printing", slug: "packaging" },
-  { name: "Security & Protection", slug: "security" },
-  { name: "Textile", slug: "textile" },
-  { name: "Tools & Hardware", slug: "tools" },
-  { name: "Transportation", slug: "transportation" },
-];
+type Banner = {
+  id: string;
+  cta: string;
+  href: string;
+  image: string;
+};
+
+const CATEGORY_PILLS = CATEGORY_DATA.map(function (c) {
+  return { name: c.name, slug: c.id };
+});
 
 const SEARCH_PLACEHOLDERS = [
   "Search for ginger...",
@@ -61,12 +51,50 @@ const SEARCH_PLACEHOLDERS = [
   "Search for bulk suppliers...",
 ];
 
+const banners: Banner[] = [
+  {
+    id: "kora-sourcing",
+    cta: "Start sourcing",
+    href: "#products",
+    image: "/kora log.jpeg",
+  },
+  {
+    id: "secure-trading",
+    cta: "Browse products",
+    href: "#products",
+    image:
+      "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "trade-on-the-go",
+    cta: "Start supplying",
+    href: "/add-product",
+    image:
+      "https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "verified-suppliers",
+    cta: "Meet our suppliers",
+    href: "/discover",
+    image:
+      "https://images.unsplash.com/photo-1700727448575-6f1680cd7d75?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "nationwide-reach",
+    cta: "Explore categories",
+    href: "/categories",
+    image: "/kora log.jpeg",
+  },
+  {
+    id: "seller-tools",
+    cta: "Add product",
+    href: "/add-product",
+    image: "/farm land.jpg",
+  },
+];
+
 function normalizeCategory(value: string | undefined): string {
-  return (value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[\s_]+/g, "-");
+  return (value || "").trim().toLowerCase();
 }
 
 export default function HomePage() {
@@ -94,6 +122,10 @@ function HomePageInner() {
   const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const [poppingIds, setPoppingIds] = useState<Set<string>>(new Set());
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [activeBanner, setActiveBanner] = useState(0);
+
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
 
   useEffect(function () {
     async function init() {
@@ -109,6 +141,9 @@ function HomePageInner() {
     function () {
       const q = searchParams.get("q");
       if (q !== null) setSearch(q);
+
+      const cat = searchParams.get("category");
+      if (cat !== null) setCategoryFilter(cat);
     },
     [searchParams],
   );
@@ -119,6 +154,18 @@ function HomePageInner() {
         return (current + 1) % SEARCH_PLACEHOLDERS.length;
       });
     }, 2600);
+
+    return function () {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(function () {
+    const timer = window.setInterval(function () {
+      setActiveBanner(function (current) {
+        return (current + 1) % banners.length;
+      });
+    }, 4500);
 
     return function () {
       window.clearInterval(timer);
@@ -205,6 +252,35 @@ function HomePageInner() {
 
   function scrollToProducts() {
     document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function handleBannerTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+    touchDeltaX.current = 0;
+  }
+
+  function handleBannerTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartX.current === null) return;
+    touchDeltaX.current =
+      (e.touches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+  }
+
+  function handleBannerTouchEnd() {
+    const delta = touchDeltaX.current;
+    const SWIPE_THRESHOLD = 40;
+
+    if (delta > SWIPE_THRESHOLD) {
+      setActiveBanner(function (current) {
+        return (current - 1 + banners.length) % banners.length;
+      });
+    } else if (delta < -SWIPE_THRESHOLD) {
+      setActiveBanner(function (current) {
+        return (current + 1) % banners.length;
+      });
+    }
+
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
   }
 
   async function toggleWishlist(
@@ -441,11 +517,67 @@ function HomePageInner() {
         </div>
       </section>
 
+      {/* ── RESTORED PROMO CAROUSEL ── */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 pb-5">
+          <div
+            className="relative overflow-hidden rounded-xl sm:rounded-2xl min-h-[170px] sm:min-h-[260px] bg-[#2b1a10]"
+            onTouchStart={handleBannerTouchStart}
+            onTouchMove={handleBannerTouchMove}
+            onTouchEnd={handleBannerTouchEnd}
+          >
+            {banners.map(function (banner, index) {
+              const isActive = index === activeBanner;
+              return (
+                <div
+                  key={banner.id}
+                  className={
+                    "absolute inset-0 transition-opacity duration-700 " +
+                    (isActive ? "opacity-100" : "opacity-0 pointer-events-none")
+                  }
+                >
+                  <img src={banner.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
+                </div>
+              );
+            })}
+
+            <div className="absolute bottom-3 left-5 right-5 sm:left-10 sm:right-10 z-10 flex items-center justify-between gap-3">
+              <div className="flex gap-2">
+                {banners.map(function (banner, index) {
+                  return (
+                    <button
+                      key={banner.id}
+                      type="button"
+                      aria-label={"Show banner " + (index + 1)}
+                      onClick={function () {
+                        setActiveBanner(index);
+                      }}
+                      className={
+                        "h-1.5 rounded-full transition-all " +
+                        (index === activeBanner ? "w-7 bg-white" : "w-1.5 bg-white/50")
+                      }
+                    />
+                  );
+                })}
+              </div>
+
+              <a
+                href={banners[activeBanner].href}
+                className="inline-flex items-center justify-center rounded-lg bg-white px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#F97316] hover:bg-[#FFF3E8] transition whitespace-nowrap"
+              >
+                {banners[activeBanner].cta}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-2xl font-black text-gray-900">For You</h2>
-          <a href="/discover" className="text-xs sm:text-sm font-semibold text-[#F97316] hover:text-[#c2410c] transition">
-            Discover Supply -&gt;
+          <a href="/marketplace" className="text-xs sm:text-sm font-semibold text-[#F97316] hover:text-[#c2410c] transition">
+            View Full Marketplace -&gt;
           </a>
         </div>
 

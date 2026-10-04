@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
 
-// ─── Category data (same categories used across Kora) ───────────────────
+// â”€â”€â”€ Category data (same categories used across Kora) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const categories = [
   {
     name: "Agriculture & Food", slug: "agriculture-food",
@@ -11,7 +11,7 @@ const categories = [
     subcategories: ["Cash Crops", "Grains & Cereals", "Fruits & Vegetables", "Livestock & Poultry", "Dairy Products", "Seafood & Fishery", "Spices & Herbs", "Processed Food", "Animal Feed", "Fertilizers & Inputs", "Seeds & Seedlings", "Agri Machinery"],
   },
   {
-    name: "Apparel & Accessories", slug: "apparel",
+    name: "Apparel & Accessories", slug: "apparel-accessories",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M20.38 3.46L16 2l-4 4-4-4-4.38 1.46a1 1 0 00-.62.93V7l4 4v12h9V11l4-4V4.39a1 1 0 00-.62-.93z" /></svg>,
     subcategories: ["Men's Clothing", "Women's Clothing", "Children's Clothing", "Traditional Wear", "Footwear", "Bags & Wallets", "Workwear & Uniforms", "Sportswear", "Wedding Attire", "Hats & Caps"],
   },
@@ -26,17 +26,17 @@ const categories = [
     subcategories: ["Industrial Chemicals", "Agrochemicals", "Cleaning Agents", "Paint & Coatings", "Adhesives & Sealants", "Water Treatment", "Pharmaceutical Chemicals", "Detergents", "Solvents"],
   },
   {
-    name: "Construction & Decoration", slug: "construction",
+    name: "Construction & Decoration", slug: "construction-decoration",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M3 21h18M9 21V9l3-6 3 6v12M3 21V11l6-4M21 21V11l-6-4" /></svg>,
     subcategories: ["Cement & Concrete", "Iron Rods & Steel", "Roofing Materials", "Tiles & Flooring", "Doors & Windows", "Paints & Finishes", "Plumbing Materials", "Electrical Fittings", "Interior Decor", "Granite & Marble"],
   },
   {
-    name: "Consumer Electronics", slug: "electronics",
+    name: "Consumer Electronics", slug: "consumer-electronics",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2" /><line x1="12" y1="18" x2="12.01" y2="18" /></svg>,
     subcategories: ["Smartphones", "Tablets", "Smart TVs", "Audio Systems", "Cameras", "Wearable Devices", "Gaming Consoles", "Smart Home Devices", "Earphones & Headphones", "Projectors"],
   },
   {
-    name: "Electrical & Electronics", slug: "electrical",
+    name: "Electrical & Electronics", slug: "electrical-electronics",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>,
     subcategories: ["Cables & Wires", "Switches & Sockets", "Circuit Breakers", "Transformers", "Generators & Inverters", "Solar Panels", "Electric Motors", "LED Modules", "Batteries", "Control Panels"],
   },
@@ -46,17 +46,17 @@ const categories = [
     subcategories: ["Office Furniture", "Home Furniture", "School Furniture", "Hospital Furniture", "Sofas & Couches", "Beds & Mattresses", "Wardrobes & Cabinets", "Tables & Chairs", "Outdoor Furniture"],
   },
   {
-    name: "Health & Medicine", slug: "health",
+    name: "Health & Medicine", slug: "health-medicine",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>,
     subcategories: ["Pharmaceuticals", "Medical Devices", "Surgical Equipment", "Diagnostic Tools", "First Aid Supplies", "Vitamins & Supplements", "PPE", "Dental Products", "Lab Equipment"],
   },
   {
-    name: "Industrial Equipment", slug: "industrial",
+    name: "Industrial Equipment", slug: "industrial-equipment",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><circle cx="12" cy="12" r="3" /><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" /></svg>,
     subcategories: ["Pumps & Valves", "Compressors", "Hydraulic Equipment", "Bearings & Seals", "Welding Equipment", "Heat Exchangers", "Filtration Systems", "Safety Equipment"],
   },
   {
-    name: "Lights & Lighting", slug: "lighting",
+    name: "Lights & Lighting", slug: "lights-lighting",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.5-1.5 4.5-3 5.5V16H8v-1.5C6.5 13.5 5 11.5 5 9a7 7 0 017-7z" /></svg>,
     subcategories: ["LED Bulbs", "Solar Lights", "Street Lights", "Indoor Lighting", "Outdoor Lighting", "Floodlights", "Emergency Lights", "Chandeliers"],
   },
@@ -66,17 +66,17 @@ const categories = [
     subcategories: ["Food Processing Machines", "Textile Machinery", "Packaging Machines", "CNC Machines", "Metal Fabrication", "Printing Machines", "Wood Processing", "Moulding Equipment"],
   },
   {
-    name: "Metallurgy & Energy", slug: "metallurgy",
+    name: "Metallurgy & Energy", slug: "metallurgy-energy",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M12 22V12M20 17l-8 5-8-5V7l8-5 8 5v10z" /><path d="M12 12L4 7M12 12l8-5" /></svg>,
     subcategories: ["Steel & Iron", "Aluminium Products", "Copper & Brass", "Coal & Coke", "Crude Oil & Petroleum", "Renewable Energy", "Mining Equipment", "Minerals & Ores"],
   },
   {
-    name: "Packaging & Printing", slug: "packaging",
+    name: "Packaging & Printing", slug: "packaging-printing",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>,
     subcategories: ["Cardboard Boxes", "Polythene Bags", "Bubble Wrap", "Labels & Stickers", "Printing Services", "Custom Packaging", "Woven Sacks", "Blister Packs"],
   },
   {
-    name: "Security & Protection", slug: "security",
+    name: "Security & Protection", slug: "security-protection",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
     subcategories: ["CCTV Cameras", "Access Control", "Alarm Systems", "Fire Protection", "Biometric Systems", "Door Locks & Bolts", "Perimeter Fencing", "Vehicle Tracking"],
   },
@@ -86,7 +86,7 @@ const categories = [
     subcategories: ["Cotton Fabric", "Polyester Fabric", "Ankara & African Print", "Lace & Embroidered Fabric", "Denim Fabric", "Silk & Satin", "Yarn & Thread", "Upholstery Fabric"],
   },
   {
-    name: "Tools & Hardware", slug: "tools",
+    name: "Tools & Hardware", slug: "tools-hardware",
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.77 3.77z" /></svg>,
     subcategories: ["Hand Tools", "Power Tools", "Cutting Tools", "Measuring Tools", "Fasteners & Bolts", "Padlocks & Hinges", "Welding Tools", "Plumbing Tools"],
   },
@@ -98,7 +98,7 @@ const categories = [
 ];
 
 export default function CategoriesPage() {
-  // Starts fully collapsed — no category's subcategories render until the
+  // Starts fully collapsed â€” no category's subcategories render until the
   // user actually clicks it, so nothing extra loads on page open.
   const [openCategory, setOpenCategory] = useState<string>("");
 
@@ -139,14 +139,14 @@ export default function CategoriesPage() {
                 </button>
 
                 {/* Only rendered once this category has actually been
-                    clicked open — nothing here loads on initial page view. */}
+                    clicked open â€” nothing here loads on initial page view. */}
                 {isOpen && (
                   <div className="pl-[68px] pr-5 bg-white">
                     {cat.subcategories.slice(0, 3).map(function (sub) {
                       return (
                         <Link
                           key={sub}
-                          href={"/marketplace?category=" + encodeURIComponent(cat.name) + "&sub=" + encodeURIComponent(sub)}
+                          href={"/marketplace?category=" + encodeURIComponent(cat.slug) + "&sub=" + encodeURIComponent(sub)}
                           className="block border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#F97316] transition"
                         >
                           {sub}
@@ -154,7 +154,7 @@ export default function CategoriesPage() {
                       );
                     })}
                     <Link
-                      href={"/marketplace?category=" + encodeURIComponent(cat.name)}
+                      href={"/marketplace?category=" + encodeURIComponent(cat.slug)}
                       className="flex items-center gap-2 border-t border-gray-100 py-4 text-[15px] font-normal text-gray-600 hover:text-[#F97316] transition"
                     >
                       More

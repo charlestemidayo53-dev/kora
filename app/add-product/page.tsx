@@ -99,7 +99,7 @@ export default function AddProduct() {
     setSubcategory("");
     setSubcategories([]);
 
-    const selected = parentCategories.find(function(c) { return c.name === catName; });
+    const selected = parentCategories.find(function(c) { return c.id === catName; });
     if (selected?.id) {
       const subs = await getSubcategories(selected.id);
       setSubcategories(Array.isArray(subs) ? subs : []);
@@ -386,7 +386,7 @@ export default function AddProduct() {
                     </option>
                     {parentCategories.map(function(cat) {
                       return (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
                       );
                     })}
                   </select>
@@ -574,3 +574,4 @@ export default function AddProduct() {
     </div>
   );
 }
+

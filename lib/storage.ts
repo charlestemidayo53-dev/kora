@@ -350,7 +350,11 @@ export async function getSellerProfile(email: string) {
   };
 }
 
-const CATEGORY_DATA: { id: string; name: string; subcategories: string[] }[] = [
+export const CATEGORY_DATA: { id: string; name: string; subcategories: string[] }[] = [
+  { id: "auto-motorcycle", name: "Auto, Motorcycle & Parts", subcategories: [
+    "Car Engine Parts", "Tyres & Wheels", "Motorcycle Parts", "Body Parts & Panels",
+    "Batteries & Electrical", "Filters & Belts", "Brakes & Suspension", "Lubricants & Fluids", "Car Care Products",
+  ]},
   { id: "agriculture-food", name: "Agriculture & Food", subcategories: [
     "Grains & Cereals", "Fresh Produce", "Livestock & Poultry", "Fish & Seafood",
     "Cocoa & Coffee", "Spices & Seasonings", "Cooking Oils", "Processed Foods",
@@ -393,7 +397,7 @@ const CATEGORY_DATA: { id: string; name: string; subcategories: string[] }[] = [
   { id: "lights-lighting", name: "Lights & Lighting", subcategories: [
     "LED Lights", "Solar Lights", "Industrial Lighting", "Decorative Lighting",
   ]},
-  { id: "machinery", name: "Machinery", subcategories: [
+  { id: "machinery", name: "Manufacturing Machinery", subcategories: [
     "Agricultural Machinery", "Construction Machinery", "Packaging Machinery",
     "Textile Machinery", "Food Processing Machinery",
   ]},
@@ -696,6 +700,7 @@ export async function submitCatalogueProductRequest(input: SubmitCatalogueProduc
 
   return data;
 }
+
 
 
 
