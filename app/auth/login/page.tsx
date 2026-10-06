@@ -30,7 +30,7 @@ export default function LoginPage() {
         }
         throw error;
       }
-      window.location.href = "/dashboard";
+      window.location.href = "/marketplace";
     } catch (err: any) {
       setError(err.message || "Invalid email or password.");
     } finally {
@@ -44,7 +44,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin + "/dashboard" },
+        options: { redirectTo: window.location.origin + "/marketplace" },
       });
       if (error) throw error;
     } catch (err: any) {
