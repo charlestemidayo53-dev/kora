@@ -1,5 +1,5 @@
 export const SITE_NAME = "Kora";
-export const SITE_URL = "https://www.korafrica.com";
+export const SITE_URL = "https://korafrica.com";
 export const DEFAULT_TITLE = "Kora | African B2B Marketplace";
 export const DEFAULT_DESCRIPTION =
   "Kora connects African businesses with suppliers, manufacturers, producers, distributors and buyers for bulk trade. Source agricultural and industrial products, request quotes and trade across Africa.";
