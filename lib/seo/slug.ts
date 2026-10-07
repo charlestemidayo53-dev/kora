@@ -9,10 +9,32 @@ export function slugify(input: string | null | undefined, max = 60): string {
   return base.slice(0, max).replace(/-+$/g, "");
 }
 
+// "Agriculture & Food" -> "agriculture-food"
+export function categorySlugFrom(input: string | null | undefined): string {
+  return (input || "")
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/g, "");
+}
+
+export function titleCaseSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); })
+    .join(" ");
+}
+
 export function shortId(id: string): string {
   return String(id || "").slice(0, 8).toLowerCase();
 }
 
+// Last "-xxxxxxxx" (8 hex chars) of a slug: product id prefix or supplier key.
 export function idPrefixFromSlug(slug: string): string | null {
   let value = slug;
   try {

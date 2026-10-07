@@ -7,12 +7,14 @@ export type SeoProduct = {
   description: string | null;
   images: string[]; // absolute URLs
   category: string | null;
+  categorySlug: string | null;
   subcategory: string | null;
   place: string | null; // state, else city, else location
   price: number | null;
   unit: string | null;
   moq: string | null;
   seller: string | null; // public business name only, never an email
+  supplierKey: string | null; // hash of the owner, never the email itself
   isVerified: boolean;
   brand: string | null;
   createdAt: string | null;
@@ -23,9 +25,37 @@ export type SeoProduct = {
 
 type SlugInput = Pick<SeoProduct, "id" | "name" | "place">;
 
-export function truncate(text: string, max: number): string {
+export function cleanName(text: string): string {
+  return (text || "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.;:])/g, "$1")
+    .replace(/^[\s,.;:-]+/, "")
+    .replace(/[\s,.;:-]+$/, "")
+    .trim();
+}
+
+export function truncate(text: string, max: number, ellipsis = true): string {
   const t = (text || "").replace(/\s+/g, " ").trim();
-  return t.length > max ? t.slice(0, max - 1).trimEnd() + "\u2026" : t;
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(" ");
+  const base = (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).replace(/[\s,.;:-]+$/, "");
+  return ellipsis ? base + "\u2026" : base;
+}
+
+export function plural(n: number, word: string): string {
+  return n + " " + word + (n === 1 ? "" : "s");
+}
+
+export function joinList(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return items.slice(0, -1).join(", ") + " and " + items[items.length - 1];
+}
+
+export function formatPrice(p: SeoProduct): string | null {
+  if (p.price === null || p.isEstimatedPrice) return null;
+  const whole = Math.round(p.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return "\u20A6" + whole + (p.unit ? " / " + p.unit : "");
 }
 
 export function productSlug(p: SlugInput): string {
@@ -44,19 +74,19 @@ export function productIsIndexable(p: SeoProduct): boolean {
 }
 
 export function productMetaTitle(p: SeoProduct): string {
-  const name = truncate(p.name, 34);
+  const name = truncate(p.name, 34, false);
   const prefix = /^bulk\b/i.test(name) ? "" : "Bulk ";
-  const where = p.place ? truncate(p.place, 22) : "Africa";
+  const where = p.place ? truncate(p.place, 22, false) : "Africa";
   return prefix + name + " Supplier in " + where;
 }
 
 export function productMetaDescription(p: SeoProduct): string {
   const where = p.place || "Africa";
   const verified = p.isVerified ? "verified " : "";
+  const base = "Source " + p.name + " in bulk from a " + verified + "supplier in " + where + " on Kora.";
   const moq = p.moq ? " Minimum order: " + p.moq + (p.unit ? " " + p.unit : "") + "." : "";
-  return truncate(
-    "Source " + p.name + " in bulk from a " + verified + "supplier in " + where + " on Kora." + moq +
-      " Connect directly with the supplier to discuss quantities, pricing and trade requirements.",
-    158,
-  );
+  const tail = " Connect directly with the supplier to discuss quantities, pricing and trade requirements.";
+  if ((base + moq + tail).length <= 158) return base + moq + tail;
+  if ((base + tail).length <= 158) return base + tail;
+  return truncate(base + tail, 158);
 }

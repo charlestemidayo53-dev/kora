@@ -46,3 +46,11 @@ export const BLOCKED_QUERY_PARAMS = ["sort", "view", "location", "q"];
 // Bulk-imported "discovered" listings are not seller-uploaded. They stay out of Google
 // (noindex + not in the sitemap) until you confirm they are real, current supply.
 export const INDEX_DISCOVERED_LISTINGS = false;
+// products.category holds mixed values ("Agriculture & Food", "agriculture-food", "Agriculture").
+// Aliases fold near-duplicates into one canonical category slug.
+export const CATEGORY_ALIASES: Record<string, string> = {
+  agriculture: "agriculture-food",
+};
+
+// Category pages with fewer products than this stay noindex and out of the sitemap.
+export const MIN_CATEGORY_PRODUCTS_TO_INDEX = 3;
