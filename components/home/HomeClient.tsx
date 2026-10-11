@@ -33,6 +33,11 @@ type Product = {
 
 const CATEGORY_PILLS = CATEGORY_DATA.map(function (c) {
   return { name: c.name, slug: c.id };
+}).sort(function (a, b) {
+  // Agriculture & Food first; every other category keeps its existing order
+  const aFirst = /^agri/i.test(a.name) || /^agri/i.test(a.slug) ? 0 : 1;
+  const bFirst = /^agri/i.test(b.name) || /^agri/i.test(b.slug) ? 0 : 1;
+  return aFirst - bFirst;
 });
 
 const SEARCH_PLACEHOLDERS = [
