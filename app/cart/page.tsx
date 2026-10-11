@@ -275,7 +275,7 @@ export default function CartPage() {
                     </svg>
                   </div>
                   <p className="text-[10px] font-bold text-[#6B7280] leading-relaxed uppercase tracking-tight">
-                    <span className="text-[#111827]">Kora Escrow.</span> Secure payment until delivery.
+                    <span className="text-[#111827]">Escrow option.</span> Eligible orders hold your payment until delivery is confirmed.
                   </p>
                 </div>
               </div>

@@ -46,7 +46,7 @@ export function createMetadata(input: CreateMetadataInput = {}): Metadata {
       type: "website",
       url,
       siteName: SITE_NAME,
-      locale: "en_NG",
+      locale: "en_GB",
       title: socialTitle,
       description,
       images: [{ url: imageUrl }],
