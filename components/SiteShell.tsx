@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
@@ -556,7 +556,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <div className="hidden lg:flex items-center gap-1 ml-auto pl-4 border-l border-gray-100">
               <Link href="/escrow" className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#F97316] transition px-3 py-2.5">
                 <IconLock />
-                Safe Escrow
+                Escrow
               </Link>
               <Link href="/rfq" className="flex items-center gap-1.5 text-xs font-bold text-[#F97316] hover:text-[#c2410c] transition px-3 py-2 bg-[#FFF3E8] rounded-lg mx-1 border border-[#FDBA8C]">
                 <IconPlus />
@@ -625,14 +625,14 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   </div>
                 </div>
                 <p className="text-sm text-[#F97316]/80 leading-relaxed max-w-xs mb-5">
-                  Nigeria's trusted B2B trading platform connecting buyers and verified suppliers across all 36 states and beyond.
+                  Kora Marketplace is an African B2B marketplace connecting buyers, suppliers, manufacturers and wholesalers across Africa and internationally.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Verified Suppliers
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />African Suppliers
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded-full font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Escrow Protected
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />Escrow Option
                   </span>
                 </div>
               </div>
@@ -643,7 +643,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     { label: "Browse Products", href: "/marketplace" },
                     { label: "Find Suppliers",  href: "/suppliers" },
                     { label: "Post RFQ",        href: "/rfq" },
-                    { label: "Trade Assurance", href: "/escrow" },
+                    { label: "Escrow Payments", href: "/escrow" },
                     { label: "Categories",      href: "/categories" },
                   ].map(function (item) {
                     return (<li key={item.label}><Link href={item.href} className="text-sm text-[#F97316]/80 hover:text-[#c2410c] transition">{item.label}</Link></li>);

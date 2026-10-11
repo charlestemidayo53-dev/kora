@@ -37,7 +37,7 @@ export default function AboutPage() {
       <div className="bg-gradient-to-r from-[#ea580c] to-[#c2410c] text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-black mb-4">About Kora</h1>
-          <p className="text-xl text-white/80">Africa's leading B2B marketplace connecting verified suppliers with bulk buyers</p>
+          <p className="text-xl text-white/80">An African B2B marketplace connecting buyers, suppliers, manufacturers and wholesalers</p>
         </div>
       </div>
 
@@ -48,18 +48,18 @@ export default function AboutPage() {
             <div>
               <h2 className="text-3xl font-black text-[#c2410c] mb-4">Our Mission</h2>
               <p className="text-gray-600 mb-4 leading-relaxed">
-                We're building the infrastructure for African trade. Kora connects verified suppliers with bulk buyers, eliminating middlemen and enabling direct, secure transactions across all 36 Nigerian states and beyond.
+                We're building the infrastructure for African trade. Kora connects buyers with suppliers, manufacturers, producers and wholesalers across African markets and internationally, helping businesses discover products and trade directly.
               </p>
               <p className="text-gray-600 leading-relaxed">
-                By combining technology, trust, and escrow-protected payments, we're making B2B trade faster, safer, and more profitable for everyone.
+                By combining technology with an optional escrow payment feature, we're helping make B2B trade simpler and more transparent for businesses.
               </p>
             </div>
             <div className="bg-[#fff7ed] rounded-2xl p-8">
               <div className="space-y-4">
                 {[
                   "Direct supplier-buyer connections",
-                  "Escrow-protected payments",
-                  "Verified supplier network",
+                  "Optional escrow payments",
+                  "Supplier discovery across Africa",
                   "Pan-African reach",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -112,7 +112,7 @@ export default function AboutPage() {
               {
                 Icon: Globe,
                 title: "Pan-African",
-                description: "Starting in Nigeria, expanding across Africa. One platform for continental trade."
+                description: "Discover products, connect with trading partners and explore bulk trade across African markets and internationally."
               },
             ].map((value, i) => (
               <div key={i} className="bg-white rounded-2xl p-8 border border-gray-100">

@@ -1,19 +1,20 @@
-export const SITE_NAME = "Kora";
+export const SITE_NAME = "Kora Marketplace";
+export const SITE_TAGLINE = "Discover. Connect. Trade.";
 export const SITE_URL = "https://korafrica.com";
-export const DEFAULT_TITLE = "Kora | African B2B Marketplace";
+export const DEFAULT_TITLE = "Kora Marketplace | African B2B Trading Platform";
 export const DEFAULT_DESCRIPTION =
-  "Kora connects African businesses with suppliers, manufacturers, producers, distributors and buyers for bulk trade. Source agricultural and industrial products, request quotes and trade across Africa.";
+  "Discover African suppliers, manufacturers, wholesalers and bulk products on Kora Marketplace. Connect with business trading partners across Africa and international markets.";
 
 export const SEO_KEYWORDS = [
   "African B2B marketplace",
-  "bulk products Africa",
-  "Nigerian suppliers",
+  "African suppliers",
   "African manufacturers",
-  "wholesale suppliers Nigeria",
-  "agricultural exports Africa",
-  "buy in bulk Africa",
+  "wholesale suppliers Africa",
+  "bulk products Africa",
+  "buy African products",
   "African exporters",
-  "industrial supplies Nigeria",
+  "agricultural products Africa",
+  "buy in bulk Africa",
   "B2B trade Africa",
 ];
 
@@ -31,6 +32,7 @@ export const PRIVATE_PATHS = [
   "/order-review",
   "/b2b-orders",
   "/wallet",
+  "/escrow",
   "/settings",
   "/seller-dashboard",
   "/complete-profile",

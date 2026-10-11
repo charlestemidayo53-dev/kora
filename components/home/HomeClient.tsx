@@ -265,16 +265,15 @@ function HomePageInner() {
 
         <div className="relative z-10 flex-1 flex flex-col justify-center max-w-4xl mx-auto px-5 sm:px-8 text-center pt-16 sm:pt-20">
           <span className="inline-block w-fit mx-auto mb-4 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white/80 text-[11px] sm:text-xs font-semibold tracking-wide uppercase">
-            Africa's B2B Trading Platform
+            African B2B Marketplace
           </span>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white leading-[1.1] mb-4">
-            Source. Trade. <span className="text-[#F97316]">Grow.</span>
+            Discover. Connect. <span className="text-[#F97316]">Trade.</span>
           </h1>
 
           <p className="text-sm sm:text-lg text-white/80 max-w-xl mx-auto mb-8">
-            Connecting African buyers and verified suppliers for secure,
-            large-scale trade — all in one marketplace.
+            Discover African suppliers, manufacturers, wholesalers and distributors. Connect with trading partners and explore bulk trade across Africa and international markets.
           </p>
 
           <div className="w-full max-w-xl mx-auto mb-7">
@@ -331,12 +330,12 @@ function HomePageInner() {
               <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Categories</p>
             </div>
             <div className="border-x border-white/10">
-              <p className="text-white font-black text-lg sm:text-2xl">Secure</p>
-              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Escrow Protection</p>
+              <p className="text-white font-black text-lg sm:text-2xl">Escrow</p>
+              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Payment Option</p>
             </div>
             <div>
-              <p className="text-white font-black text-lg sm:text-2xl">Nationwide</p>
-              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Reach</p>
+              <p className="text-white font-black text-lg sm:text-2xl">Africa</p>
+              <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Market Focus</p>
             </div>
           </div>
         </div>

@@ -181,7 +181,7 @@ export default function ContactPage() {
                 },
                 {
                   q: "Are payments secure?",
-                  a: "Yes! All transactions are protected by our escrow system. Payment is only released after delivery confirmation."
+                  a: "Eligible orders can use Kora's escrow option, which holds buyer payment until delivery is confirmed. See our Refund and Dispute Policy for details."
                 },
                 {
                   q: "What's your response time?",

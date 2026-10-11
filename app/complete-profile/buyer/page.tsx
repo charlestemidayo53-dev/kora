@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -97,7 +97,7 @@ export default function CompleteBuyerProfile() {
             </div>
             <div>
               <p className="font-bold text-[#111827]">Meet Suppliers</p>
-              <p className="text-xs text-[#6B7280] mt-0.5">Browse verified suppliers on Kora</p>
+              <p className="text-xs text-[#6B7280] mt-0.5">Browse suppliers on Kora</p>
             </div>
           </button>
 

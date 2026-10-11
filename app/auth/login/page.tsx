@@ -75,8 +75,8 @@ export default function LoginPage() {
           </h2>
           <div className="space-y-6">
             {[
-              { title: "Escrow-protected payments", desc: "Your money is held safely until delivery is confirmed." },
-              { title: "Verified suppliers only", desc: "Every supplier is screened before listing on Kora." },
+              { title: "Escrow payment option", desc: "Eligible orders can hold your payment until delivery is confirmed." },
+              { title: "Supplier profiles", desc: "Browse supplier profiles and verification badges before you trade." },
               { title: "Pan-African reach", desc: "Trade across all 36 Nigerian states and beyond." },
             ].map(function (item) {
               return (

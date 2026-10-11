@@ -30,7 +30,7 @@ export function createMetadata(input: CreateMetadataInput = {}): Metadata {
   } = input;
 
   // The root layout title template already appends "| Kora".
-  const cleanTitle = title ? title.replace(/\s*\|\s*Kora\s*$/i, "").trim() : "";
+  const cleanTitle = title ? title.replace(/\s*\|\s*Kora(\s+Marketplace)?\s*$/i, "").trim() : "";
   const url = absoluteUrl(path);
   const imageUrl = absoluteUrl(image);
   const socialTitle = cleanTitle ? cleanTitle + " | " + SITE_NAME : DEFAULT_TITLE;

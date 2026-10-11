@@ -206,7 +206,7 @@ export default function SellerDashboardPage() {
       </div>
 
       <div className="text-center py-10 text-xs font-bold text-[#6B7280] uppercase tracking-[0.2em] border-t border-[#E5E7EB]">
-        © 2026 Kora Marketplace · Verified Supplier Dashboard
+        © 2026 Kora Marketplace · Supplier Dashboard
       </div>
     </div>
   );

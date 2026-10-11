@@ -123,8 +123,8 @@ export default function RegisterPage() {
           </h2>
           <div className="space-y-6">
             {[
-              { label: "Buyers", desc: "Find verified suppliers, compare prices, order in bulk — all in one place." },
-              { label: "Suppliers", desc: "List your products, reach buyers across Africa, get paid securely via escrow." },
+              { label: "Buyers", desc: "Find suppliers, compare prices, order in bulk — all in one place." },
+              { label: "Suppliers", desc: "List your products, reach buyers across Africa, get paid through Kora's payment options." },
             ].map(function (item) {
               return (
                 <div key={item.label} className="bg-white/10 border border-white/20 rounded-xl p-6">
