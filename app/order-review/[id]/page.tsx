@@ -173,7 +173,7 @@ export default function OrderReviewPage({
   if (!product) return null;
 
   const statusLabel =
-    paymentStatus === "paid" ? "Paid (Escrow)"
+    paymentStatus === "paid" ? "Paid"
     : paymentStatus === "verifying" ? "Verifying Payment..."
     : paymentStatus === "failed" ? "Payment Failed — Awaiting Payment"
     : "Awaiting Payment";
@@ -306,7 +306,7 @@ export default function OrderReviewPage({
                   : `Pay Now — ₦${total.toLocaleString()}`}
               </button>
               <p className="text-xs text-gray-400 text-center mt-3">
-                Your payment is processed securely by Flutterwave. Funds are held until delivery is confirmed.
+                Your payment is processed securely by Flutterwave. Kora does not currently offer escrow or payment protection, so agree delivery terms with the supplier.
               </p>
             </div>
           </div>

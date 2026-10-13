@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -95,7 +95,7 @@ export default function EscrowPage() {
 
   const statusLabel = (order: Order) => {
     if (order.escrow_status === "released") return "Completed";
-    if (order.escrow_status === "holding") return "Funds in Escrow";
+    if (order.escrow_status === "holding") return "Payment Confirmed";
     if (order.status === "pending") return "Awaiting Payment";
     return order.status;
   };
@@ -154,18 +154,18 @@ export default function EscrowPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <span className="text-orange-200 text-xs sm:text-sm font-semibold uppercase tracking-wide">Secure Escrow</span>
+              <span className="text-orange-200 text-xs sm:text-sm font-semibold uppercase tracking-wide">Order Payments</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Payments</h1>
             <p className="text-orange-100 text-xs sm:text-sm max-w-lg">
-              Every order paid through Kora is held securely until you confirm delivery — then funds are released to the seller.
+              Orders paid through Kora are recorded here. Kora does not currently offer escrow or payment protection, so agree delivery terms with the supplier.
             </p>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-5 sm:mt-6">
               {[
                 { step: "1", label: "Buyer Pays Securely" },
-                { step: "2", label: "Funds Held in Escrow" },
-                { step: "3", label: "Buyer Confirms — Funds Released" },
+                { step: "2", label: "Payment Confirmed" },
+                { step: "3", label: "Seller Delivers the Order" },
               ].map((s) => (
                 <div key={s.step} className="bg-white/10 rounded-xl p-2.5 sm:p-3 text-center">
                   <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-1.5 sm:mb-2 text-[11px] sm:text-xs font-bold">
@@ -199,7 +199,7 @@ export default function EscrowPage() {
             <div className="text-xl sm:text-2xl font-bold text-purple-600">
               {orders.filter((o) => o.escrow_status === "holding").length}
             </div>
-            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">In Escrow</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-1">Paid</div>
           </div>
 
           <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm border border-gray-100">
@@ -288,15 +288,7 @@ export default function EscrowPage() {
                       </div>
 
                       {/* Action: buyer confirms delivery to release funds */}
-                      {activeTab === "buyer" && order.escrow_status === "holding" && (
-                        <button
-                          onClick={() => handleConfirmDelivery(order)}
-                          disabled={confirmingId === order.id}
-                          className="w-full md:w-auto bg-[#ea580c] hover:bg-[#c2410c] disabled:bg-gray-300 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition whitespace-nowrap"
-                        >
-                          {confirmingId === order.id ? "Confirming..." : "Confirm Delivery"}
-                        </button>
-                      )}
+                      
 
                       {activeTab === "seller" && order.escrow_status === "holding" && (
                         <div className="w-full md:w-auto text-center bg-[#fff7ed] border border-[#fed7aa] text-[#ea580c] px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
@@ -306,7 +298,7 @@ export default function EscrowPage() {
 
                       {order.escrow_status === "released" && (
                         <div className="w-full md:w-auto text-center bg-green-50 border border-green-200 text-green-700 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
-                          Funds Released
+                          Completed
                         </div>
                       )}
                     </div>
@@ -319,7 +311,7 @@ export default function EscrowPage() {
       </div>
 
       <div className="text-center py-6 sm:py-8 text-xs text-gray-400 mt-6 sm:mt-10">
-        2025 Kora Marketplace · Secure Escrow Payments
+        2025 Kora Marketplace · Payments
       </div>
     </div>
   );
