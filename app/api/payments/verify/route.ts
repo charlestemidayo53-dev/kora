@@ -1,38 +1,44 @@
 // app/api/payments/verify/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { fulfillFlutterwavePayment } from "@/lib/payments/fulfill";
+import { getAuthenticatedUser } from "@/lib/supabase-admin";
+
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { transaction_id } = await req.json();
-
-    if (!transaction_id) {
-      return NextResponse.json(
-        { error: "transaction_id is required." },
-        { status: 400 }
-      );
+    const user = await getAuthenticatedUser(req);
+    if (!user?.email) {
+      return NextResponse.json({ error: "Please sign in again to verify this payment." }, { status: 401 });
     }
 
-    const result = await fulfillFlutterwavePayment(String(transaction_id));
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+    }
 
-    // Check if the result is NOT ok
+    const transactionId = String(body?.transaction_id ?? "").trim();
+    if (!/^\d{1,20}$/.test(transactionId)) {
+      return NextResponse.json({ error: "A valid transaction_id is required." }, { status: 400 });
+    }
+
+    const result: any = await fulfillFlutterwavePayment(transactionId, {
+      expectedBuyerEmail: user.email,
+    });
+
     if (!result.ok) {
-      // We cast to any or the specific error type to satisfy TypeScript
-      // if narrowing is failing.
-      const errorMessage = (result as any).reason || "Verification failed.";
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+      return NextResponse.json({ error: result.reason || "Verification failed." }, { status: 400 });
     }
 
-    // Now TypeScript knows result.ok is true
+    const o = result.order || {};
     return NextResponse.json({
-      order: result.order,
+      order: { id: o.id, status: o.status, payment_status: o.payment_status },
       alreadyProcessed: result.alreadyProcessed,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Payment verify error:", err);
-    return NextResponse.json(
-      { error: err.message || "Verification failed." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 500 });
   }
 }

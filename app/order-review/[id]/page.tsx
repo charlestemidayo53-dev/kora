@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
@@ -123,7 +123,7 @@ export default function OrderReviewPage({
           try {
             const verifyRes = await fetch("/api/payments/verify", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
               body: JSON.stringify({ transaction_id: response.transaction_id }),
             });
             const verifyData = await verifyRes.json();
