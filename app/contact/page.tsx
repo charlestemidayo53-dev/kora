@@ -198,7 +198,7 @@ export default function ContactPage() {
               },
               {
                 q: "Are payments secure?",
-                a: "Eligible orders can use Kora's escrow option, which holds buyer payment until delivery is confirmed. See our Refund and Dispute Policy for details.",
+                a: "Kora does not currently offer escrow or payment protection. Online payments are processed by Flutterwave, so agree delivery terms with the supplier before you pay.",
               },
               {
                 q: "What's your response time?",

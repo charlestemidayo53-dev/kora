@@ -335,7 +335,7 @@ function HomePageInner() {
               <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Categories</p>
             </div>
             <div className="border-x border-white/10">
-              <p className="text-white font-black text-lg sm:text-2xl">Escrow</p>
+              <p className="text-white font-black text-lg sm:text-2xl">Payments</p>
               <p className="text-white/60 text-[10px] sm:text-xs tracking-wide uppercase mt-0.5">Payment Option</p>
             </div>
             <div>

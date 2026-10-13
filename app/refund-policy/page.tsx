@@ -49,12 +49,9 @@ export default function RefundPolicyPage() {
           </section>
 
           <section className={sectionClasses}>
-            <h2 className={sectionTitleClasses}>2. Escrow Protection</h2>
+            <h2 className={sectionTitleClasses}>2. Payments and Escrow</h2>
             <p className={paragraphClasses}>
-              Where an order uses Kora&apos;s escrow option, the buyer&apos;s payment is
-              held until the buyer confirms satisfactory receipt of goods, or
-              until an agreed inspection period has passed. Funds are released
-              to the seller once these conditions are met.
+              Kora does not currently offer escrow or payment protection. Payments made on the Platform are processed by Flutterwave and are not held pending delivery. Buyers should agree delivery and inspection terms with the seller before paying.
             </p>
           </section>
 
@@ -84,10 +81,7 @@ export default function RefundPolicyPage() {
             <h2 className={sectionTitleClasses}>5. Resolution</h2>
             <p className={paragraphClasses}>
               Kora will attempt to mediate a resolution between the buyer and
-              seller. Where escrow applies, Kora may release funds to the
-              seller, refund the buyer, or apply a partial refund, based on the
-              evidence provided. Kora&apos;s decision on the release of escrowed
-              funds is final.
+              seller. Refunds are agreed between the buyer and the seller. Kora may help by reviewing the records on the Platform, but it does not hold buyer funds and cannot guarantee a refund.
             </p>
           </section>
 

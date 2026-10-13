@@ -125,7 +125,7 @@ export default function AboutPage() {
           <SectionHeading title="Milestones" />
           <div className="mt-8 max-w-[980px] space-y-6 text-[15px] leading-7 text-gray-600">
             <p>Kora was created to solve a simple problem: businesses should be able to find the right products and trading partners without unnecessary barriers.</p>
-            <p>From our first marketplace connections to our growing supplier and buyer network, we are building practical tools that help businesses trade with greater confidence. Our platform brings discovery, communication and optional escrow protection into one clear experience.</p>
+            <p>From our first marketplace connections to our growing supplier and buyer network, we are building practical tools that help businesses trade with greater confidence. Our platform brings discovery, communication and ordering into one clear experience.</p>
           </div>
 
           <div className="mt-12 grid gap-4 border-t border-gray-200 pt-8 md:grid-cols-[120px_1fr]">
@@ -166,7 +166,7 @@ export default function AboutPage() {
           <div className="mt-9 grid gap-2 md:grid-cols-3">
             <BusinessCard title="Kora Marketplace" icon={<Globe className="h-10 w-10 text-[#f26b21]" />} text="Discover products and connect with suppliers across African markets." />
             <BusinessCard title="Kora Trade" icon={<Zap className="h-10 w-10 text-[#f26b21]" />} text="Tools that help buyers and sellers communicate, quote and trade faster." />
-            <BusinessCard title="Kora Protection" icon={<CheckCircle className="h-10 w-10 text-[#f26b21]" />} text="Optional escrow payment features that add confidence to transactions." />
+            <BusinessCard title="Verified Profiles" icon={<CheckCircle className="h-10 w-10 text-[#f26b21]" />} text="Supplier profiles and verification badges that show who you are trading with." />
           </div>
           <p className="mt-6 text-right text-xs text-gray-400">Kora — making business easier across Africa</p>
         </div>

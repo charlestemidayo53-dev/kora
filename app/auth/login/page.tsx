@@ -57,8 +57,16 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex">
 
       {/* ── Left branding panel ── */}
-      <div className="hidden lg:flex lg:w-[40%] bg-[#F97316] flex-col justify-between p-16">
-        <div className="flex items-center gap-3">
+      <div
+        className="relative hidden overflow-hidden bg-[#F97316] p-16 lg:flex lg:w-[40%] lg:flex-col lg:justify-between"
+        style={{
+          backgroundImage: "url('/login.webp')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#9A3412]/90 via-[#EA580C]/78 to-[#7C2D12]/90" aria-hidden="true" />
+        <div className="relative z-10 flex items-center gap-3">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
             <svg viewBox="0 0 40 40" className="w-6 h-6" fill="none">
               <rect x="7" y="7" width="4.5" height="26" rx="2" fill="white" />
@@ -69,13 +77,13 @@ export default function LoginPage() {
           <span className="text-white font-bold text-2xl tracking-tight">Kora</span>
         </div>
 
-        <div>
+        <div className="relative z-10">
           <h2 className="text-white text-5xl font-bold leading-[1.1] mb-8">
             Africa's #1 B2B Trading Platform
           </h2>
           <div className="space-y-6">
             {[
-              { title: "Escrow payment option", desc: "Eligible orders can hold your payment until delivery is confirmed." },
+              { title: "Online payment", desc: "Pay by card or bank transfer through Flutterwave." },
               { title: "Supplier profiles", desc: "Browse supplier profiles and verification badges before you trade." },
               { title: "Pan-African reach", desc: "Trade across all 36 Nigerian states and beyond." },
             ].map(function (item) {
@@ -96,7 +104,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-white/50 text-sm">© 2026 Kora Marketplace</p>
+        <p className="relative z-10 text-white/70 text-sm">© 2026 Kora Marketplace</p>
       </div>
 
       {/* ── Right form panel ── */}

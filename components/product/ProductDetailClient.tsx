@@ -183,7 +183,7 @@ export default function ProductDetailPage({
   const touchDeltaX = useRef(0);
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"escrow" | "direct">("escrow");
+  const [paymentMethod] = useState<"online">("online");
 
   useEffect(
     function () {
@@ -469,9 +469,9 @@ export default function ProductDetailPage({
                 <IconShield />
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-800">Secure Escrow Payment</p>
+                <p className="text-sm font-bold text-gray-800">Online Payment</p>
                 <p className="text-xs text-gray-500 leading-relaxed mt-0.5">
-                  Payments made through KORA Escrow are held securely until both buyer and seller complete the transaction according to the agreed terms.
+                  Pay by card or bank transfer through Flutterwave. Kora does not currently offer escrow or payment protection, so agree delivery terms with the supplier.
                 </p>
               </div>
             </div>
@@ -643,35 +643,7 @@ export default function ProductDetailPage({
               </button>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={function () { setPaymentMethod("escrow"); }}
-                className={
-                  "w-full text-left p-4 rounded-2xl border-2 transition " +
-                  (paymentMethod === "escrow" ? "border-[#F97316] bg-[#FFF3E8]" : "border-gray-200")
-                }
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-sm text-gray-800">Secure Escrow Payment</span>
-                  <span className="text-[10px] font-bold text-white bg-[#F97316] px-2 py-0.5 rounded-full">RECOMMENDED</span>
-                </div>
-                {paymentMethod === "escrow" && (
-                  <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-                    KORA securely holds your payment until the transaction is completed according to the agreed terms between you and the supplier.
-                  </p>
-                )}
-              </button>
-
-              <button
-                onClick={function () { setPaymentMethod("direct"); }}
-                className={
-                  "w-full text-left p-4 rounded-2xl border-2 transition " +
-                  (paymentMethod === "direct" ? "border-[#F97316] bg-[#FFF3E8]" : "border-gray-200")
-                }
-              >
-                <span className="font-bold text-sm text-gray-800">Direct Payment</span>
-              </button>
-            </div>
+            <div className="rounded-2xl border-2 border-[#F97316] bg-[#FFF3E8] p-4"><span className="font-bold text-sm text-gray-800">Online Payment</span><p className="text-xs text-gray-600 mt-2 leading-relaxed">Pay by card or bank transfer through Flutterwave. Kora does not currently offer escrow or payment protection, so agree delivery terms with the supplier.</p></div>
 
             <button
               onClick={handleConfirmOrder}

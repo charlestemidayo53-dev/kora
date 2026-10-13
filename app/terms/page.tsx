@@ -34,7 +34,7 @@ export default function TermsPage() {
     { id: "buyer-obligations", title: "6. Buyer Obligations" },
     { id: "listings", title: "7. Product Listings and Content" },
     { id: "fees", title: "8. Fees and Payments" },
-    { id: "orders-escrow", title: "9. Orders, Escrow, and Delivery" },
+    { id: "orders-escrow", title: "9. Orders, Payment, and Delivery" },
     { id: "prohibited", title: "10. Prohibited Conduct and Items" },
     { id: "intellectual-property", title: "11. Intellectual Property" },
     { id: "disclaimers", title: "12. Disclaimers" },
@@ -198,15 +198,9 @@ export default function TermsPage() {
           </section>
 
           <section id="orders-escrow" className={sectionClasses}>
-            <h2 className={sectionTitleClasses}>9. Orders, Escrow, and Delivery</h2>
+            <h2 className={sectionTitleClasses}>9. Orders, Payment, and Delivery</h2>
             <p className={paragraphClasses}>
-              Where the Platform offers an escrow or protected-payment option,
-              funds paid by a buyer may be held by Kora or a licensed third-party
-              payment partner until the conditions for release agreed between
-              the parties are met, as further described in our Refund and
-              Dispute Policy. Kora is not responsible for the physical shipment,
-              customs clearance, or delivery of goods unless expressly stated
-              for a particular order.
+              Online payments on the Platform are processed by Flutterwave. Kora does not currently offer escrow or any protected-payment service, and does not hold funds on behalf of buyers or sellers. If Kora introduces such a service in future, its terms will be published before it is made available. Kora is not responsible for the physical shipment, customs clearance, or delivery of goods unless expressly stated for a particular order.
             </p>
           </section>
 
