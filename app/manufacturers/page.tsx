@@ -4,6 +4,70 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
+/* ── Local layout helpers ── */
+function PageHero(props: { image: string; alt: string; eyebrow?: string; title: string; subtitle?: string; children?: React.ReactNode }) {
+  return (
+    <section className="relative w-full overflow-hidden bg-gray-900">
+      <img src={props.image} alt={props.alt} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
+      <div className="relative mx-auto flex min-h-[280px] max-w-6xl flex-col justify-center px-4 py-14 sm:min-h-[340px] md:min-h-[420px] md:px-6">
+        {props.eyebrow && <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-400">{props.eyebrow}</p>}
+        <h1 className="max-w-2xl text-3xl font-black leading-tight text-white sm:text-4xl md:text-5xl">{props.title}</h1>
+        {props.subtitle && <p className="mt-4 max-w-xl text-sm text-gray-200 sm:text-base">{props.subtitle}</p>}
+        {props.children && <div className="mt-6">{props.children}</div>}
+      </div>
+    </section>
+  );
+}
+
+function SectionTabs({ tabs }: { tabs: { id: string; label: string }[] }) {
+  const [active, setActive] = useState(tabs[0]?.id);
+  return (
+    <nav className="sticky top-0 z-20 border-b border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-6xl gap-6 overflow-x-auto px-4 md:gap-10 md:px-6">
+        {tabs.map(function (t) {
+          return (
+            <a
+              key={t.id}
+              href={"#" + t.id}
+              onClick={function () { setActive(t.id); }}
+              className={"whitespace-nowrap border-b-2 py-4 text-sm font-semibold transition " + (active === t.id ? "border-[#ea580c] text-[#ea580c]" : "border-transparent text-gray-600 hover:text-[#ea580c]")}
+            >
+              {t.label}
+            </a>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="mb-8 md:mb-10">
+      <h2 className="text-2xl font-black text-gray-900 md:text-3xl">{title}</h2>
+      <div className="mt-3 h-[3px] w-12 bg-[#ea580c]" />
+      {subtitle && <p className="mt-4 max-w-2xl text-sm text-gray-600 md:text-base">{subtitle}</p>}
+    </div>
+  );
+}
+
+function InfoGrid({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="grid gap-px border border-gray-200 bg-gray-200 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map(function (it, i) {
+        return (
+          <div key={it.title} className="bg-white p-6 md:p-8">
+            <p className="mb-3 text-sm font-black text-[#ea580c]">{String(i + 1).padStart(2, "0")}</p>
+            <h3 className="mb-2 text-base font-black text-gray-900">{it.title}</h3>
+            <p className="text-sm leading-relaxed text-gray-600">{it.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 type Seller = {
   owner: string;       // email — unique identifier
   seller: string;      // display name
@@ -110,32 +174,45 @@ export default function ManufacturersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fff7ed]">
+    <div className="min-h-screen bg-white">
+      <PageHero
+        image="/manufactures.webp"
+        alt="Industrial factory production floor representing Kora's manufacturers"
+        eyebrow="Kora Directory"
+        title="Connect With Manufacturers"
+        subtitle="Find manufacturers and production partners, and buy directly from the people who make the products."
+      />
 
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white px-4 py-10">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-orange-300 text-xs font-black uppercase tracking-widest mb-2">
-            Kora Directory
-          </p>
-          <h1 className="text-3xl font-black mb-1">Manufacturers</h1>
-          <p className="text-orange-200 text-sm mb-6">
-            Browse manufacturers and producers selling directly on Kora
-          </p>
+      <SectionTabs
+        tabs={[
+          { id: "directory", label: "Manufacturer Directory" },
+          { id: "capability", label: "Production Capability" },
+          { id: "quality", label: "Quality" },
+          { id: "connections", label: "Direct Connections" },
+        ]}
+      />
 
-          {/* Search */}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-3xl">
+      {/* ── Directory ── */}
+      <section id="directory" className="scroll-mt-16 bg-gray-50 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <SectionHeading
+            title="Manufacturer Directory"
+            subtitle="Browse manufacturers and producers selling directly on Kora."
+          />
+
+          {/* Search + filters */}
+          <div className="mb-6 flex flex-col gap-3 border border-gray-200 bg-white p-4 md:flex-row md:p-5">
             <input
               type="text"
               value={search}
               onChange={function (e) { setSearch(e.target.value); }}
               placeholder="Search by name, category, or location..."
-              className="flex-1 px-4 py-3 rounded-xl text-sm text-gray-800 bg-white placeholder-gray-400 focus:outline-none"
+              className="flex-1 border border-gray-300 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-[#ea580c] focus:outline-none"
             />
             <select
               value={selectedState}
               onChange={function (e) { setSelectedState(e.target.value); }}
-              className="px-4 py-3 rounded-xl text-sm text-gray-800 bg-white focus:outline-none min-w-[150px]"
+              className="border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-[#ea580c] focus:outline-none md:min-w-[160px]"
             >
               <option value="">All States</option>
               {states.map(function (s) {
@@ -145,7 +222,7 @@ export default function ManufacturersPage() {
             <select
               value={selectedCategory}
               onChange={function (e) { setSelectedCategory(e.target.value); }}
-              className="px-4 py-3 rounded-xl text-sm text-gray-800 bg-white focus:outline-none min-w-[170px]"
+              className="border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 focus:border-[#ea580c] focus:outline-none md:min-w-[180px]"
             >
               <option value="">All Categories</option>
               {categories.map(function (c) {
@@ -153,94 +230,130 @@ export default function ManufacturersPage() {
               })}
             </select>
           </div>
-        </div>
-      </div>
 
-      {/* ── Results ── */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-
-        {/* Count */}
-        {!loading && (
-          <p className="text-sm text-gray-500 font-semibold mb-5">
-            {filtered.length} seller{filtered.length !== 1 ? "s" : ""} found
-          </p>
-        )}
-
-        {loading ? (
-          <div className="flex justify-center py-24">
-            <div className="w-10 h-10 border-[3px] border-[#ea580c] border-t-transparent rounded-full animate-spin" />
-          </div>
-
-        ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 py-20 text-center">
-            <p className="font-black text-gray-700 mb-1">No manufacturers found</p>
-            <p className="text-sm text-gray-400">
-              {search || selectedState || selectedCategory
-                ? "Try adjusting your filters"
-                : "No manufacturers have listed products yet"}
+          {/* Count */}
+          {!loading && (
+            <p className="mb-5 text-sm font-semibold text-gray-500">
+              {filtered.length} seller{filtered.length !== 1 ? "s" : ""} found
             </p>
-          </div>
+          )}
 
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(function (s) {
-              return (
-                <div
-                  key={s.owner}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#ea580c] transition flex flex-col"
-                >
-                  {/* Top */}
-                  <div className="p-5 flex items-center gap-4 border-b border-gray-50">
-                    <div className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white font-black text-lg">
-                      {s.profile_image ? (
-                        <img
-                          src={s.profile_image}
-                          alt={s.seller + " profile"}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        initials(s.seller)
-                      )}
+          {loading ? (
+            <div className="flex justify-center py-24">
+              <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-[#ea580c] border-t-transparent" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="border border-gray-200 bg-white py-20 text-center">
+              <p className="mb-1 font-black text-gray-700">No manufacturers found</p>
+              <p className="text-sm text-gray-400">
+                {search || selectedState || selectedCategory
+                  ? "Try adjusting your filters"
+                  : "No manufacturers have listed products yet"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map(function (s) {
+                return (
+                  <div
+                    key={s.owner}
+                    className="flex flex-col border border-gray-200 bg-white shadow-sm transition hover:border-[#ea580c] hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-4 border-b border-gray-100 p-5">
+                      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden bg-[#ea580c] text-lg font-black text-white">
+                        {s.profile_image ? (
+                          <img
+                            src={s.profile_image}
+                            alt={s.seller + " profile"}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          initials(s.seller)
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-black text-gray-800">{s.seller}</h3>
+                        {s.category && <p className="mt-0.5 text-xs text-gray-500">{s.category}</p>}
+                        {s.location && (
+                          <p className="text-xs text-gray-500">{s.location}{s.state ? ", " + s.state : ""}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-black text-gray-800 text-sm truncate">{s.seller}</h3>
-                      {s.category && (
-                        <p className="text-xs text-gray-400 mt-0.5">{s.category}</p>
-                      )}
-                      {s.location && (
-                        <p className="text-xs text-gray-400">{s.location}{s.state ? ", " + s.state : ""}</p>
-                      )}
+
+                    <div className="px-5 py-4">
+                      <span className="inline-block border-l-2 border-[#ea580c] bg-[#fff7ed] px-3 py-1 text-xs font-black text-[#ea580c]">
+                        {s.product_count} active listing{s.product_count !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    <div className="mt-auto grid grid-cols-2 gap-2 p-5 pt-0">
+                      <Link
+                        href={"/marketplace?owner=" + encodeURIComponent(s.owner)}
+                        className="bg-[#ea580c] py-2.5 text-center text-xs font-black text-white transition hover:bg-[#c2410c]"
+                      >
+                        View Listings
+                      </Link>
+                      <Link
+                        href={"/message?to=" + encodeURIComponent(s.owner)}
+                        className="border border-gray-300 py-2.5 text-center text-xs font-bold text-gray-600 transition hover:border-[#ea580c] hover:text-[#ea580c]"
+                      >
+                        Contact
+                      </Link>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
 
-                  {/* Listing count */}
-                  <div className="px-5 py-4">
-                    <span className="inline-block text-xs font-black px-3 py-1 rounded-full bg-[#fff7ed] text-[#ea580c]">
-                      {s.product_count} active listing{s.product_count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
+      {/* ── Production capability ── */}
+      <section id="capability" className="scroll-mt-16 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <SectionHeading title="Production Capability" subtitle="Understand what a manufacturer can produce before you place an order." />
+          <InfoGrid
+            items={[
+              { title: "Product categories", text: "Filter manufacturers by the categories they produce and list on Kora." },
+              { title: "Location", text: "Find production partners by state to plan logistics and delivery." },
+              { title: "Active listings", text: "See how many products each manufacturer currently has on the marketplace." },
+            ]}
+          />
+        </div>
+      </section>
 
-                  {/* Actions */}
-                  <div className="grid grid-cols-2 gap-2 p-5 pt-0 mt-auto">
-                    <Link
-                      href={"/marketplace?owner=" + encodeURIComponent(s.owner)}
-                      className="text-center text-xs font-black py-2.5 rounded-xl bg-[#ea580c] text-white hover:bg-[#c2410c] transition"
-                    >
-                      View Listings
-                    </Link>
-                    <Link
-                      href={"/message?to=" + encodeURIComponent(s.owner)}
-                      className="text-center text-xs font-bold py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:border-[#ea580c] hover:text-[#ea580c] transition"
-                    >
-                      Contact
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
+      {/* ── Quality ── */}
+      <section id="quality" className="scroll-mt-16 bg-gray-50 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <SectionHeading title="Quality" subtitle="Confirm quality expectations before you commit." />
+          <InfoGrid
+            items={[
+              { title: "Review the listings", text: "Open a manufacturer's listings to check product details and specifications." },
+              { title: "Ask the maker", text: "Message manufacturers directly about standards, samples, and packaging." },
+              { title: "Put it in writing", text: "State your quality requirements clearly in a request for quotation." },
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* ── Direct connections ── */}
+      <section id="connections" className="scroll-mt-16 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
+          <SectionHeading title="Direct Business Connections" subtitle="Skip the middlemen and work with producers directly." />
+          <InfoGrid
+            items={[
+              { title: "Direct messaging", text: "Contact manufacturers straight from their directory card." },
+              { title: "Bulk sourcing", text: "Discuss volumes and delivery terms for larger orders." },
+              { title: "Custom requests", text: "Post an RFQ and let manufacturers respond with their best offer." },
+            ]}
+          />
+          <div className="mt-8">
+            <Link href="/post-rfq" className="inline-block bg-[#ea580c] px-6 py-3 text-sm font-black text-white transition hover:bg-[#c2410c]">
+              Post a Request
+            </Link>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
