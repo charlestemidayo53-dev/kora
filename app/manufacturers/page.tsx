@@ -109,7 +109,7 @@ export default function ManufacturersPage() {
 
       if (ownerEmails.length > 0) {
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("email, avatar_url")
           .in("email", ownerEmails);
 

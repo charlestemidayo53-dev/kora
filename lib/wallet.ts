@@ -251,9 +251,11 @@ export async function verifyBankAccount(
   accountNumber: string
 ): Promise<{ success: boolean; accountName: string; bankCode: string; error?: string }> {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token || "";
     const res = await fetch("/api/wallet/verify-bank", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
       body: JSON.stringify({ bankCode, accountNumber }),
     });
     const json = await res.json();

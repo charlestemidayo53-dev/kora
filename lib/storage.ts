@@ -1,4 +1,4 @@
-﻿import { supabase } from "./supabase";
+import { supabase } from "./supabase";
 
 /**
  * DATABASE OPERATIONS - PRODUCTS
@@ -210,36 +210,6 @@ export async function updateOrder(id: string, updates: any) {
  * PAYMENTS — Flutterwave integration
  */
 
-type CreatePaidOrderInput = {
-  productId: string;
-  productName: string;
-  buyer: string;
-  seller: string;
-  amount: number;
-  txRef: string;
-  flwTransactionId: string;
-};
-
-export async function createPaidOrder(input: CreatePaidOrderInput) {
-  const { data, error } = await supabase
-    .from("orders")
-    .insert([{
-      product_id: input.productId,
-      product_name: input.productName,
-      buyer: input.buyer,
-      seller: input.seller,
-      amount: input.amount,
-      status: "paid",
-      payment_status: "paid",
-      tx_ref: input.txRef,
-      flw_transaction_id: input.flwTransactionId,
-    }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
 
 /**
  * DATABASE OPERATIONS - INQUIRIES
@@ -321,8 +291,8 @@ export async function markMessagesAsRead(receiverEmail: string, senderEmail: str
 
 export async function getSellerProfile(email: string) {
   const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
+    .from("public_profiles")
+    .select("id, email, company_name, full_name, avatar_url, about_business, city, state, country, verification_level, year_established, main_products, export_capable")
     .eq("email", email)
     .maybeSingle();
 
@@ -448,56 +418,7 @@ export async function getSubcategories(categoryId: string) {
   });
 }
 
-type CreatePendingOrderInput = {
-  productId: string;
-  productName: string;
-  buyer: string;
-  seller: string;
-  amount: number;
-  sellerAmount: number;
-  commissionAmount: number;
-  quantity: number;
-  txRef: string;
-};
 
-export async function createPendingOrder(input: CreatePendingOrderInput) {
-  const { data, error } = await supabase
-    .from("orders")
-    .insert([{
-      product_id: input.productId,
-      product_name: input.productName,
-      buyer: input.buyer,
-      seller: input.seller,
-      amount: input.amount,
-      seller_amount: input.sellerAmount,
-      commission_amount: input.commissionAmount,
-      quantity: input.quantity,
-      status: "pending",
-      payment_status: "pending",
-      tx_ref: input.txRef,
-    }])
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-}
-
-export async function markOrderPaid(orderId: string, flwTransactionId: string) {
-  const { data, error } = await supabase
-    .from("orders")
-    .update({
-      status: "paid",
-      payment_status: "paid",
-      flw_transaction_id: flwTransactionId,
-      escrow_status: "holding",
-    })
-    .eq("id", orderId)
-    .select()
-    .single();
-
-  return data;
-}
 
 /**
  * PRODUCT DISCOVERY — "Request This Product"

@@ -288,7 +288,7 @@ export type PublicProfile = {
 async function getPublicProfile(ownerEmail: string): Promise<PublicProfile | null> {
   try {
     const { data, error } = await db()
-      .from("profiles")
+      .from("public_profiles")
       .select("about_business, city, state, country, verification_level, year_established, main_products, export_capable")
       .eq("email", ownerEmail)
       .maybeSingle();
