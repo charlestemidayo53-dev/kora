@@ -1,12 +1,28 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
-import { addProduct, uploadProductImage, getParentCategories, getSubcategories } from "@/lib/storage";
+import { useEffect, useRef, useState } from "react";
+import { uploadProductImage, getParentCategories, getSubcategories } from "@/lib/storage";
 import { getUser } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 const inputClass = "w-full border border-[#E5E7EB] bg-white px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FB923C] focus:border-transparent transition";
 const labelClass = "block text-sm font-medium text-[#111827] mb-2";
+
+const MAX_IMAGES = 10;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_BATCH = 20;
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+const UNITS: [string, string][] = [
+  ["kg", "Kilograms (kg)"],
+  ["tonnes", "Tonnes"],
+  ["bags", "Bags"],
+  ["litres", "Litres"],
+  ["units", "Units"],
+  ["crates", "Crates"],
+  ["cartons", "Cartons"],
+  ["pieces", "Pieces"],
+];
 
 const nigerianStates = [
   "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa",
@@ -21,6 +37,7 @@ type QueuedProduct = {
   name: string;
   price: string;
   quantity: string;
+  minimumOrder: string;
   unit: string;
   category: string;
   subcategory: string;
@@ -29,11 +46,20 @@ type QueuedProduct = {
   previews: string[];
 };
 
+function cleanNumber(value: string) {
+  return value.replace(/,/g, "").trim();
+}
+
+function isPositiveNumber(value: string) {
+  return /^\d+(\.\d+)?$/.test(value) && Number(value) > 0;
+}
+
 export default function AddProduct() {
   const [user, setUser] = useState<any>(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [minimumOrder, setMinimumOrder] = useState("");
   const [unit, setUnit] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
@@ -41,7 +67,7 @@ export default function AddProduct() {
   const [city, setCity] = useState("");
   const [description, setDescription] = useState("");
   const [sellerName, setSellerName] = useState("");
-  const [businessType, setBusinessType] = useState("");
+  const [profileCompany, setProfileCompany] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,12 +75,13 @@ export default function AddProduct() {
   const [progressText, setProgressText] = useState("");
 
   const [queue, setQueue] = useState<QueuedProduct[]>([]);
+  const uploadedRef = useRef<Map<QueuedProduct, string[]>>(new Map());
 
   const [parentCategories, setParentCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
   const [loadingCats, setLoadingCats] = useState(true);
 
-  useEffect(function() {
+  useEffect(function () {
     async function loadUser() {
       const currentUser = await getUser();
       if (!currentUser) {
@@ -66,21 +93,24 @@ export default function AddProduct() {
     loadUser();
   }, []);
 
-  useEffect(function() {
+  useEffect(function () {
     async function loadProfile() {
       if (!user?.id) return;
       const { data } = await supabase
         .from("profiles")
-        .select("business_type, company_name")
+        .select("company_name")
         .eq("id", user.id)
-        .single();
-      if (data?.business_type) setBusinessType(data.business_type);
-      if (data?.company_name) setSellerName(function(prev) { return prev || data.company_name; });
+        .maybeSingle();
+      const company = data?.company_name ? String(data.company_name).trim() : "";
+      if (company) {
+        setProfileCompany(company);
+        setSellerName(company);
+      }
     }
     loadProfile();
   }, [user]);
 
-  useEffect(function() {
+  useEffect(function () {
     async function loadCategories() {
       try {
         const cats = await getParentCategories();
@@ -99,7 +129,7 @@ export default function AddProduct() {
     setSubcategory("");
     setSubcategories([]);
 
-    const selected = parentCategories.find(function(c) { return c.id === catName; });
+    const selected = parentCategories.find(function (c) { return c.id === catName; });
     if (selected?.id) {
       const subs = await getSubcategories(selected.id);
       setSubcategories(Array.isArray(subs) ? subs : []);
@@ -108,14 +138,41 @@ export default function AddProduct() {
 
   function handleImageFilesChange(files: FileList | null) {
     if (!files || files.length === 0) return;
-    const newFiles = Array.from(files);
-    setImageFiles(function(prev) { return [...prev, ...newFiles]; });
-    setPreviews(function(prev) { return [...prev, ...newFiles.map(function(f) { return URL.createObjectURL(f); })]; });
+    setError("");
+    const accepted: File[] = [];
+    let rejected = "";
+
+    Array.from(files).forEach(function (file) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        rejected = file.name + " is not a supported image. Use JPG, PNG, WEBP or GIF.";
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        rejected = file.name + " is larger than 10MB.";
+        return;
+      }
+      accepted.push(file);
+    });
+
+    const room = Math.max(MAX_IMAGES - imageFiles.length, 0);
+    const toAdd = accepted.slice(0, room);
+    if (accepted.length > toAdd.length) {
+      rejected = "You can add up to " + MAX_IMAGES + " images per product.";
+    }
+    if (rejected) setError(rejected);
+    if (toAdd.length === 0) return;
+
+    setImageFiles(function (prev) { return [...prev, ...toAdd]; });
+    setPreviews(function (prev) {
+      return [...prev, ...toAdd.map(function (f) { return URL.createObjectURL(f); })];
+    });
   }
 
   function removeImageAt(index: number) {
-    setImageFiles(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
-    setPreviews(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
+    const url = previews[index];
+    if (url) URL.revokeObjectURL(url);
+    setImageFiles(function (prev) { return prev.filter(function (_, i) { return i !== index; }); });
+    setPreviews(function (prev) { return prev.filter(function (_, i) { return i !== index; }); });
   }
 
   function currentFormIsFilled() {
@@ -126,6 +183,7 @@ export default function AddProduct() {
     setName("");
     setPrice("");
     setQuantity("");
+    setMinimumOrder("");
     setUnit("");
     setCategory("");
     setSubcategory("");
@@ -136,13 +194,39 @@ export default function AddProduct() {
   }
 
   function validateCurrentProduct(): string | null {
-    if (!name.trim()) return "Product name is required.";
-    if (!price.trim()) return "Price is required.";
-    if (!quantity.trim()) return "Quantity is required.";
+    if (name.trim().length < 3) return "Product name must be at least 3 characters.";
+    if (!isPositiveNumber(cleanNumber(price))) return "Enter a valid price above zero.";
+    if (!isPositiveNumber(cleanNumber(quantity))) return "Enter a valid quantity above zero.";
+    if (minimumOrder.trim()) {
+      const moq = cleanNumber(minimumOrder);
+      if (!isPositiveNumber(moq)) return "Minimum order must be a number above zero.";
+      if (Number(moq) > Number(cleanNumber(quantity))) return "Minimum order cannot be more than the quantity available.";
+    }
     if (!unit) return "Unit is required.";
     if (!category) return "Category is required.";
     if (imageFiles.length === 0) return "Please upload at least one image.";
     return null;
+  }
+
+  function validateShared(): string | null {
+    if (!state) return "Please select a state. It applies to every product in this batch.";
+    if (sellerName.trim().length < 2) return "Enter your business or seller name.";
+    return null;
+  }
+
+  function buildItem(): QueuedProduct {
+    return {
+      name: name.trim(),
+      price: cleanNumber(price),
+      quantity: cleanNumber(quantity),
+      minimumOrder: cleanNumber(minimumOrder),
+      unit,
+      category,
+      subcategory,
+      description: description.trim(),
+      imageFiles,
+      previews,
+    };
   }
 
   function handleAddToList() {
@@ -152,60 +236,70 @@ export default function AddProduct() {
       setError(validationError);
       return;
     }
-    if (!state) {
-      setError("Please select a state before adding products \u2014 it applies to every item in this batch.");
+    const sharedError = validateShared();
+    if (sharedError) {
+      setError(sharedError);
       return;
     }
-
-    setQueue(function(prev) {
-      return [...prev, { name, price, quantity, unit, category, subcategory, description, imageFiles, previews }];
-    });
+    if (queue.length >= MAX_BATCH) {
+      setError("You can line up at most " + MAX_BATCH + " products at a time.");
+      return;
+    }
+    setQueue(function (prev) { return [...prev, buildItem()]; });
     resetProductFields();
   }
 
   function removeFromQueue(index: number) {
-    setQueue(function(prev) { return prev.filter(function(_, i) { return i !== index; }); });
+    const item = queue[index];
+    if (item) {
+      item.previews.forEach(function (url) { URL.revokeObjectURL(url); });
+      uploadedRef.current.delete(item);
+    }
+    setQueue(function (prev) { return prev.filter(function (_, i) { return i !== index; }); });
   }
 
   async function publishOne(item: QueuedProduct) {
-    const normalizedPrice = item.price.replace(/,/g, "").trim();
-    const imageUrls: string[] = [];
-    for (const file of item.imageFiles) {
-      const url = await uploadProductImage(file);
-      if (!url) throw new Error("Image upload failed for \"" + item.name + "\". Please check your storage settings.");
-      imageUrls.push(url);
+    let urls = uploadedRef.current.get(item);
+    if (!urls) {
+      const fresh: string[] = [];
+      for (const file of item.imageFiles) {
+        const url = await uploadProductImage(file);
+        if (!url) throw new Error("Image upload failed for \"" + item.name + "\".");
+        fresh.push(url);
+      }
+      uploadedRef.current.set(item, fresh);
+      urls = fresh;
     }
 
-    await addProduct({
-      name: item.name,
-      price: normalizedPrice,
-      location: city ? city + ", " + state : state,
-      quantity: item.quantity,
-      unit: item.unit,
-      image: imageUrls[0],
-      images: imageUrls,
-      category: item.category,
-      subcategory: item.subcategory,
-      state,
-      city,
-      description: item.description,
-      seller: sellerName || user.email || "Unknown Seller",
-      owner: user.email || "unknown",
-      business_type: businessType || "Trading Company",
+    const { error: rpcError } = await supabase.rpc("create_product", {
+      p_name: item.name,
+      p_price: Number(item.price),
+      p_quantity: item.quantity,
+      p_unit: item.unit,
+      p_category: item.category,
+      p_subcategory: item.subcategory || null,
+      p_state: state,
+      p_city: city.trim() || null,
+      p_description: item.description || null,
+      p_images: urls,
+      p_minimum_order_quantity: item.minimumOrder ? Number(item.minimumOrder) : null,
+      p_seller_name: sellerName.trim() || null,
     });
+    if (rpcError) throw new Error(rpcError.message || "Could not publish \"" + item.name + "\".");
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading || !user) return;
     setError("");
 
-    if (!user) return;
-    if (!state) {
-      setError("Please select a state.");
+    const sharedError = validateShared();
+    if (sharedError) {
+      setError(sharedError);
       return;
     }
 
-    const finalList: QueuedProduct[] = [...queue];
+    let toPublish: QueuedProduct[] = queue;
 
     if (currentFormIsFilled()) {
       const validationError = validateCurrentProduct();
@@ -213,24 +307,40 @@ export default function AddProduct() {
         setError(validationError);
         return;
       }
-      finalList.push({ name, price, quantity, unit, category, subcategory, description, imageFiles, previews });
+      if (queue.length >= MAX_BATCH) {
+        setError("You can publish at most " + MAX_BATCH + " products at a time.");
+        return;
+      }
+      toPublish = [...queue, buildItem()];
+      setQueue(toPublish);
+      resetProductFields();
     }
 
-    if (finalList.length === 0) {
+    if (toPublish.length === 0) {
       setError("Add at least one product before publishing.");
       return;
     }
 
     setLoading(true);
+    let published = 0;
     try {
-      for (let i = 0; i < finalList.length; i++) {
-        setProgressText("Publishing " + (i + 1) + " of " + finalList.length + "...");
-        await publishOne(finalList[i]);
+      for (const item of toPublish) {
+        setProgressText("Publishing " + (published + 1) + " of " + toPublish.length + "...");
+        await publishOne(item);
+        published += 1;
+        uploadedRef.current.delete(item);
+        item.previews.forEach(function (url) { URL.revokeObjectURL(url); });
+        setQueue(function (prev) { return prev.filter(function (q) { return q !== item; }); });
       }
       window.location.href = "/seller-dashboard";
     } catch (err: any) {
-      console.error("Product Upload Error:", err);
-      setError(err.message || "Failed to upload product. Please try again.");
+      console.error("Product publish error:", err);
+      const base = err?.message || "Failed to publish.";
+      setError(
+        published > 0
+          ? base + " " + published + " product" + (published === 1 ? " was" : "s were") + " published. The rest are still in your list. Press Publish to retry."
+          : base + " Your list is kept. Press Publish to retry."
+      );
     } finally {
       setLoading(false);
       setProgressText("");
@@ -279,7 +389,7 @@ export default function AddProduct() {
           <div className="bg-[#FFF7ED] border border-[#FDBA8C] rounded-xl p-5 mb-6">
             <h3 className="text-sm font-bold text-[#111827] mb-3">Products ready to publish ({queue.length})</h3>
             <div className="space-y-2">
-              {queue.map(function(item, i) {
+              {queue.map(function (item, i) {
                 return (
                   <div key={i} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-[#FED7AA]">
                     <div className="flex items-center gap-3 min-w-0">
@@ -288,10 +398,15 @@ export default function AddProduct() {
                       )}
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-[#111827] truncate">{item.name}</p>
-                        <p className="text-xs text-[#6B7280]">₦{item.price} &middot; {item.imageFiles.length} image{item.imageFiles.length !== 1 ? "s" : ""}</p>
+                        <p className="text-xs text-[#6B7280]">&#8358;{Number(item.price).toLocaleString("en-NG")} - {item.imageFiles.length} image{item.imageFiles.length !== 1 ? "s" : ""}</p>
                       </div>
                     </div>
-                    <button type="button" onClick={function() { removeFromQueue(i); }} className="text-xs text-red-500 hover:text-red-700 font-semibold flex-shrink-0 ml-3">
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={function () { removeFromQueue(i); }}
+                      className="text-xs text-red-500 hover:text-red-700 font-semibold flex-shrink-0 ml-3 disabled:text-gray-300"
+                    >
                       Remove
                     </button>
                   </div>
@@ -315,36 +430,36 @@ export default function AddProduct() {
             {/* Section 1: Basic Info */}
             <div>
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Basic Information</h3>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className={labelClass}>Product Name *</label>
                   <input
                     className={inputClass}
-                    placeholder=""
+                    maxLength={150}
                     value={name}
-                    onChange={function(e) { setName(e.target.value); }}
+                    onChange={function (e) { setName(e.target.value); }}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Price (₦) *</label>
+                  <label className={labelClass}>Price (&#8358;) *</label>
                   <input
                     className={inputClass}
-                    placeholder=""
+                    inputMode="decimal"
                     value={price}
-                    onChange={function(e) { setPrice(e.target.value); }}
+                    onChange={function (e) { setPrice(e.target.value); }}
                   />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 mt-6">
                 <div>
-                  <label className={labelClass}>Quantity *</label>
+                  <label className={labelClass}>Quantity Available *</label>
                   <input
                     className={inputClass}
-                    placeholder=""
+                    inputMode="decimal"
                     value={quantity}
-                    onChange={function(e) { setQuantity(e.target.value); }}
+                    onChange={function (e) { setQuantity(e.target.value); }}
                   />
                 </div>
                 <div>
@@ -352,39 +467,45 @@ export default function AddProduct() {
                   <select
                     className={inputClass}
                     value={unit}
-                    onChange={function(e) { setUnit(e.target.value); }}
+                    onChange={function (e) { setUnit(e.target.value); }}
                   >
                     <option value="">Select unit</option>
-                    <option value="kg">Kilograms (kg)</option>
-                    <option value="tonnes">Tonnes</option>
-                    <option value="bags">Bags</option>
-                    <option value="litres">Litres</option>
-                    <option value="units">Units</option>
-                    <option value="crates">Crates</option>
-                    <option value="cartons">Cartons</option>
-                    <option value="pieces">Pieces</option>
+                    {UNITS.map(function (u) {
+                      return <option key={u[0]} value={u[0]}>{u[1]}</option>;
+                    })}
                   </select>
                 </div>
+              </div>
+
+              <div className="mt-6 md:w-1/2 md:pr-3">
+                <label className={labelClass}>Minimum Order Quantity</label>
+                <input
+                  className={inputClass}
+                  inputMode="decimal"
+                  value={minimumOrder}
+                  onChange={function (e) { setMinimumOrder(e.target.value); }}
+                />
+                <p className="text-xs text-[#6B7280] mt-1.5">Optional. Buyers cannot request a quote below this amount.</p>
               </div>
             </div>
 
             {/* Section 2: Category */}
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Category</h3>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className={labelClass}>Category *</label>
                   <select
                     className={inputClass}
                     value={category}
-                    onChange={function(e) { handleCategoryChange(e.target.value); }}
+                    onChange={function (e) { handleCategoryChange(e.target.value); }}
                     disabled={loadingCats}
                   >
                     <option value="">
                       {loadingCats ? "Loading..." : "Select category"}
                     </option>
-                    {parentCategories.map(function(cat) {
+                    {parentCategories.map(function (cat) {
                       return (
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                       );
@@ -396,13 +517,13 @@ export default function AddProduct() {
                   <select
                     className={inputClass}
                     value={subcategory}
-                    onChange={function(e) { setSubcategory(e.target.value); }}
+                    onChange={function (e) { setSubcategory(e.target.value); }}
                     disabled={subcategories.length === 0}
                   >
                     <option value="">
                       {subcategories.length === 0 ? "Select category first" : "Select subcategory"}
                     </option>
-                    {subcategories.map(function(sub) {
+                    {subcategories.map(function (sub) {
                       return (
                         <option key={sub.id} value={sub.name}>{sub.name}</option>
                       );
@@ -416,17 +537,17 @@ export default function AddProduct() {
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Location</h3>
               <p className="text-xs text-[#6B7280] -mt-4 mb-6">Applies to every product in this batch.</p>
-              
+
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className={labelClass}>State *</label>
                   <select
                     className={inputClass}
                     value={state}
-                    onChange={function(e) { setState(e.target.value); }}
+                    onChange={function (e) { setState(e.target.value); }}
                   >
                     <option value="">Select state</option>
-                    {nigerianStates.map(function(s) {
+                    {nigerianStates.map(function (s) {
                       return (
                         <option key={s} value={s}>{s}</option>
                       );
@@ -438,8 +559,9 @@ export default function AddProduct() {
                   <input
                     className={inputClass}
                     placeholder="Kano Municipal"
+                    maxLength={100}
                     value={city}
-                    onChange={function(e) { setCity(e.target.value); }}
+                    onChange={function (e) { setCity(e.target.value); }}
                   />
                 </div>
               </div>
@@ -449,30 +571,40 @@ export default function AddProduct() {
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Business Information</h3>
               <p className="text-xs text-[#6B7280] -mt-4 mb-6">Applies to every product in this batch.</p>
-              
-              <div>
-                <label className={labelClass}>Business / Seller Name *</label>
-                <input
-                  className={inputClass}
-                  placeholder="Your business name"
-                  value={sellerName}
-                  onChange={function(e) { setSellerName(e.target.value); }}
-                />
-              </div>
+
+              {profileCompany ? (
+                <div>
+                  <label className={labelClass}>Business / Seller Name</label>
+                  <input className={inputClass + " bg-[#F9FAFB]"} value={profileCompany} readOnly />
+                  <p className="text-xs text-[#6B7280] mt-1.5">Taken from your profile. Update it in Profile Settings.</p>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Business / Seller Name *</label>
+                  <input
+                    className={inputClass}
+                    placeholder="Your business name"
+                    maxLength={120}
+                    value={sellerName}
+                    onChange={function (e) { setSellerName(e.target.value); }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Section 5: Description */}
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-6">Details</h3>
-              
+
               <div>
                 <label className={labelClass}>Product Description</label>
                 <textarea
                   rows={4}
+                  maxLength={5000}
                   className={inputClass + " resize-none"}
-                  placeholder="Quality, grade, processing method, delivery options, minimum order..."
+                  placeholder="Quality, grade, processing method, delivery options..."
                   value={description}
-                  onChange={function(e) { setDescription(e.target.value); }}
+                  onChange={function (e) { setDescription(e.target.value); }}
                 />
               </div>
             </div>
@@ -480,20 +612,21 @@ export default function AddProduct() {
             {/* Section 6: Images */}
             <div className="border-t border-[#E5E7EB] pt-8">
               <h3 className="text-lg font-semibold text-[#111827] mb-2">Product Images</h3>
-              <p className="text-xs text-[#6B7280] mb-6">Minimum 1 image required. Add as many as you like.</p>
+              <p className="text-xs text-[#6B7280] mb-6">At least 1 image, up to {MAX_IMAGES}. JPG, PNG, WEBP or GIF, 10MB each.</p>
 
               {previews.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-4">
-                  {previews.map(function(src, i) {
+                  {previews.map(function (src, i) {
                     return (
-                      <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-[#E5E7EB]">
+                      <div key={src} className="relative aspect-square rounded-lg overflow-hidden border border-[#E5E7EB]">
                         <img src={src} alt="" className="w-full h-full object-cover" />
                         <button
                           type="button"
-                          onClick={function() { removeImageAt(i); }}
+                          onClick={function () { removeImageAt(i); }}
+                          aria-label="Remove image"
                           className="absolute top-1 right-1 w-6 h-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xs"
                         >
-                          ✕
+                          &times;
                         </button>
                         {i === 0 && (
                           <span className="absolute bottom-1 left-1 bg-[#F97316] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Cover</span>
@@ -507,11 +640,11 @@ export default function AddProduct() {
               <div className="border-2 border-dashed border-[#FED7AA] rounded-lg p-6 text-center hover:border-[#F97316] transition bg-[#FFF7ED]">
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   multiple
                   className="hidden"
                   id="image-upload"
-                  onChange={function(e) {
+                  onChange={function (e) {
                     handleImageFilesChange(e.target.files);
                     e.target.value = "";
                   }}
@@ -525,7 +658,6 @@ export default function AddProduct() {
                   <p className="text-[#111827] font-medium text-sm">
                     {previews.length > 0 ? "Add more images" : "Click to upload images"}
                   </p>
-                  <p className="text-[#6B7280] text-xs mt-1">PNG, JPG, GIF up to 10MB each</p>
                 </label>
               </div>
             </div>
@@ -534,8 +666,9 @@ export default function AddProduct() {
             <div className="border-t border-[#E5E7EB] pt-8">
               <button
                 type="button"
+                disabled={loading}
                 onClick={handleAddToList}
-                className="w-full bg-white border-2 border-[#F97316] text-[#F97316] hover:bg-[#FFF7ED] font-semibold py-3 px-6 rounded-lg transition"
+                className="w-full bg-white border-2 border-[#F97316] text-[#F97316] hover:bg-[#FFF7ED] font-semibold py-3 px-6 rounded-lg transition disabled:opacity-50"
               >
                 + Add This Product to the List
               </button>
@@ -574,4 +707,3 @@ export default function AddProduct() {
     </div>
   );
 }
-
