@@ -5,7 +5,6 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getUser } from "@/lib/auth";
 
-/* ── Local layout helpers ── */
 function PageHero(props: { image: string; alt: string; eyebrow?: string; title: string; subtitle?: string }) {
   return (
     <section className="relative w-full overflow-hidden bg-gray-900">
@@ -48,64 +47,108 @@ const categories = [
   "Wholesale & Bulk",
 ];
 
+const units = ["kg", "ton", "liter", "pieces", "boxes", "bags"];
+const urgencies = ["low", "medium", "high"];
+
+const emptyForm = {
+  title: "",
+  description: "",
+  category: "",
+  quantity: "",
+  unit: "kg",
+  budget: "",
+  deadline: "",
+  location: "",
+  urgency: "medium",
+};
+
+function todayISO() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+
 export default function PostRFQPage() {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category: "",
-    quantity: "",
-    unit: "kg",
-    budget: "",
-    deadline: "",
-    location: "",
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
+    const title = formData.title.trim();
+    const description = formData.description.trim();
+    const location = formData.location.trim();
+    const quantity = Number(formData.quantity);
+    const budget = Number(formData.budget);
+
+    if (title.length < 3 || title.length > 200) {
+      setError("Title must be between 3 and 200 characters.");
+      return;
+    }
+    if (description.length < 10 || description.length > 5000) {
+      setError("Description must be between 10 and 5000 characters.");
+      return;
+    }
+    if (!formData.category || !categories.includes(formData.category)) {
+      setError("Select a category.");
+      return;
+    }
+    if (!(quantity > 0)) {
+      setError("Enter a quantity greater than zero.");
+      return;
+    }
+    if (!(budget > 0)) {
+      setError("Enter a budget greater than zero.");
+      return;
+    }
+    if (!formData.deadline || formData.deadline < todayISO()) {
+      setError("Choose a delivery date that is today or later.");
+      return;
+    }
+    if (location.length < 2 || location.length > 200) {
+      setError("Enter a delivery location.");
+      return;
+    }
+    if (!units.includes(formData.unit) || !urgencies.includes(formData.urgency)) {
+      setError("Invalid unit or urgency.");
+      return;
+    }
+
+    setLoading(true);
     try {
       const user = await getUser();
-      if (!user) {
+      if (!user || !user.email) {
         window.location.href = "/auth/login";
         return;
       }
 
       const { error: insertError } = await supabase.from("rfqs").insert({
-        title: formData.title,
-        description: formData.description,
+        title,
+        description,
         category: formData.category,
-        quantity: formData.quantity + " " + formData.unit,
-        budget: "₦" + Number(formData.budget).toLocaleString(),
+        quantity: quantity.toLocaleString("en-NG") + " " + formData.unit,
+        budget: "N" + budget.toLocaleString("en-NG"),
         deadline: formData.deadline,
-        urgency: "medium",
-        buyer: user.user_metadata?.full_name || user.email?.split("@")[0] || "Buyer",
-        buyer_email: user.email,
-        location: formData.location,
+        urgency: formData.urgency,
+        buyer: user.user_metadata?.full_name || user.email.split("@")[0] || "Buyer",
+        buyer_email: user.email.toLowerCase(),
+        location,
+        status: "open",
       });
 
       if (insertError) throw insertError;
 
       setSuccess(true);
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        quantity: "",
-        unit: "kg",
-        budget: "",
-        deadline: "",
-        location: "",
-      });
+      setFormData(emptyForm);
     } catch (err: any) {
       console.error("RFQ post error:", err);
       setError(err.message || "Failed to post request. Please try again.");
@@ -136,8 +179,8 @@ export default function PostRFQPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="mb-2 text-2xl font-black text-gray-900">Request Posted Successfully!</h2>
-            <p className="mb-6 text-gray-600">Your RFQ is now live and suppliers can start responding.</p>
+            <h2 className="mb-2 text-2xl font-black text-gray-900">Request Posted</h2>
+            <p className="mb-6 text-gray-600">Your request is live and suppliers can now send quotations.</p>
             <div className="space-y-3">
               <Link href="/rfq" className="block w-full bg-[#ea580c] py-3 font-bold text-white transition hover:bg-[#c2410c]">
                 View All Requests
@@ -164,7 +207,6 @@ export default function PostRFQPage() {
 
       <section className="bg-gray-50 py-12 md:py-16">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 md:px-6 lg:grid-cols-3">
-          {/* How it works */}
           <aside className="lg:order-2">
             <SectionHeading title="How It Works" />
             <ol className="space-y-6">
@@ -188,17 +230,15 @@ export default function PostRFQPage() {
             </ol>
           </aside>
 
-          {/* Form */}
           <div className="lg:order-1 lg:col-span-2">
             <div className="border border-gray-200 bg-white p-6 shadow-sm md:p-8">
               {error && (
                 <div className="mb-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  <strong>Error:</strong> {error}
+                  {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Request details */}
                 <div className="space-y-5">
                   <h3 className={groupClass}>Request Details</h3>
                   <div>
@@ -209,6 +249,7 @@ export default function PostRFQPage() {
                       value={formData.title}
                       onChange={handleChange}
                       placeholder="e.g., Bulk Honey Purchase - 5000 kg"
+                      maxLength={200}
                       required
                       className={inputClass}
                     />
@@ -221,28 +262,22 @@ export default function PostRFQPage() {
                       onChange={handleChange}
                       placeholder="Provide details about your requirements, quality standards, delivery preferences, etc."
                       rows={5}
+                      maxLength={5000}
                       required
                       className={inputClass}
                     />
                   </div>
                   <div>
                     <label className={labelClass}>Product Category</label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      required
-                      className={inputClass}
-                    >
+                    <select name="category" value={formData.category} onChange={handleChange} required className={inputClass}>
                       <option value="">Select a category</option>
-                      {categories.map(cat => (
+                      {categories.map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
                   </div>
                 </div>
 
-                {/* Quantity & budget */}
                 <div className="space-y-5">
                   <h3 className={groupClass}>Quantity & Budget</h3>
                   <div className="grid gap-4 md:grid-cols-2">
@@ -251,6 +286,8 @@ export default function PostRFQPage() {
                       <input
                         type="number"
                         name="quantity"
+                        min="0"
+                        step="any"
                         value={formData.quantity}
                         onChange={handleChange}
                         placeholder="e.g., 5000"
@@ -260,25 +297,20 @@ export default function PostRFQPage() {
                     </div>
                     <div>
                       <label className={labelClass}>Unit</label>
-                      <select
-                        name="unit"
-                        value={formData.unit}
-                        onChange={handleChange}
-                        className={inputClass}
-                      >
-                        <option value="kg">Kilogram (kg)</option>
-                        <option value="ton">Ton</option>
-                        <option value="liter">Liter</option>
-                        <option value="pieces">Pieces</option>
-                        <option value="boxes">Boxes</option>
+                      <select name="unit" value={formData.unit} onChange={handleChange} className={inputClass}>
+                        {units.map((u) => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
                   <div>
-                    <label className={labelClass}>Budget (₦)</label>
+                    <label className={labelClass}>Total Budget (N)</label>
                     <input
                       type="number"
                       name="budget"
+                      min="0"
+                      step="any"
                       value={formData.budget}
                       onChange={handleChange}
                       placeholder="e.g., 4250000"
@@ -288,7 +320,6 @@ export default function PostRFQPage() {
                   </div>
                 </div>
 
-                {/* Delivery */}
                 <div className="space-y-5">
                   <h3 className={groupClass}>Delivery</h3>
                   <div className="grid gap-4 md:grid-cols-2">
@@ -297,6 +328,7 @@ export default function PostRFQPage() {
                       <input
                         type="date"
                         name="deadline"
+                        min={todayISO()}
                         value={formData.deadline}
                         onChange={handleChange}
                         required
@@ -311,14 +343,22 @@ export default function PostRFQPage() {
                         value={formData.location}
                         onChange={handleChange}
                         placeholder="e.g., Lagos, Nigeria"
+                        maxLength={200}
                         required
                         className={inputClass}
                       />
                     </div>
                   </div>
+                  <div>
+                    <label className={labelClass}>Urgency</label>
+                    <select name="urgency" value={formData.urgency} onChange={handleChange} className={inputClass}>
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
                 </div>
 
-                {/* Submit */}
                 <button
                   type="submit"
                   disabled={loading}

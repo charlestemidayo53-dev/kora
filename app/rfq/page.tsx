@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -232,9 +232,7 @@ export default function RFQPage() {
                         <p className="mb-1 text-xs text-gray-500">Responses</p>
                         <p className="text-2xl font-black text-[#ea580c]">{rfq.responses || 0}</p>
                       </div>
-                      <button className="whitespace-nowrap bg-[#ea580c] px-6 py-2.5 text-sm font-bold text-white transition hover:bg-[#c2410c]">
-                        View & Respond
-                      </button>
+                      <Link href={"/rfq/" + rfq.id} className="whitespace-nowrap bg-[#ea580c] px-6 py-2.5 text-sm font-bold text-white transition hover:bg-[#c2410c]">View & Respond</Link>
                     </div>
                   </div>
                 </div>

@@ -93,52 +93,50 @@ export default function SuppliersPage() {
   return (
     <div className="min-h-screen bg-[#fff7ed]">
 
-      {/* ── Header ── */}
-      <div className="bg-gradient-to-br from-[#ea580c] to-[#c2410c] text-white px-4 py-10">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-orange-300 text-xs font-black uppercase tracking-widest mb-2">
-            Kora Directory
-          </p>
-          <h1 className="text-3xl font-black mb-1">Suppliers</h1>
-          <p className="text-orange-200 text-sm mb-6">
-            Browse traders, wholesalers, and distributors selling on Kora
-          </p>
+      {/* ── Hero and search ── */}
+      <section className="relative overflow-hidden bg-[#27313b]">
+        <img
+          src="/suppliers.webp"
+          alt="Warehouse operations and supplier fulfillment on Kora"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#17212b]/90 via-[#17212b]/70 to-[#f97316]/45" />
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
+          <p className="mb-3 text-xs font-black uppercase tracking-[0.2em] text-orange-300">Kora Directory</p>
+          <h1 className="mb-2 text-4xl font-black tracking-tight text-white sm:text-5xl">Find trusted suppliers</h1>
+          <p className="mb-8 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">Browse traders, wholesalers, and distributors selling on Kora. Search by business, category, or location.</p>
 
-          {/* Search */}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-3xl">
+          {/* Existing search and filters preserved */}
+          <div className="flex max-w-5xl flex-col gap-3 rounded-2xl border border-white/20 bg-black/20 p-3 backdrop-blur-sm sm:flex-row">
             <input
               type="text"
               value={search}
               onChange={function (e) { setSearch(e.target.value); }}
               placeholder="Search by name, category, or location..."
-              className="flex-1 px-4 py-3 rounded-xl text-sm text-gray-800 bg-white placeholder-gray-400 focus:outline-none"
+              className="min-w-0 flex-1 rounded-xl bg-white px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-300"
             />
             <select
               value={selectedState}
               onChange={function (e) { setSelectedState(e.target.value); }}
-              className="px-4 py-3 rounded-xl text-sm text-gray-800 bg-white focus:outline-none min-w-[150px]"
+              className="rounded-xl bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none min-w-[150px]"
             >
               <option value="">All States</option>
-              {states.map(function (s) {
-                return <option key={s} value={s}>{s}</option>;
-              })}
+              {states.map(function (s) { return <option key={s} value={s}>{s}</option>; })}
             </select>
             <select
               value={selectedCategory}
               onChange={function (e) { setSelectedCategory(e.target.value); }}
-              className="px-4 py-3 rounded-xl text-sm text-gray-800 bg-white focus:outline-none min-w-[170px]"
+              className="rounded-xl bg-white px-4 py-3 text-sm text-gray-800 focus:outline-none min-w-[170px]"
             >
               <option value="">All Categories</option>
-              {categories.map(function (c) {
-                return <option key={c} value={c}>{c}</option>;
-              })}
+              {categories.map(function (c) { return <option key={c} value={c}>{c}</option>; })}
             </select>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* ── Results ── */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
 
         {/* Count */}
         {!loading && (
