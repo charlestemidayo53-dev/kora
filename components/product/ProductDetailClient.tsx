@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState, use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getProductById, getProducts, getSellerProfile } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
@@ -12,11 +13,9 @@ type Product = {
   location: string;
   quantity: string;
   image?: string;
-  // NEW — optional multi-image gallery. Falls back to `image` alone if absent.
   images?: string[];
   category: string;
   subcategory?: string;
-  // NEW — optional fields, only rendered when present.
   brand?: string;
   minimum_order_quantity?: string | number;
   seller: string;
@@ -28,9 +27,7 @@ type Product = {
   unit?: string;
   created_at?: string;
   estimated_delivery?: string;
-  // NEW — dynamic specs object, e.g. { Origin: "Nigeria", Grade: "A" }.
   specifications?: Record<string, string>;
-  // NEW — fallback individual spec fields, used only if `specifications` is absent.
   origin?: string;
   weight?: string;
   packaging?: string;
@@ -55,19 +52,18 @@ type SellerProfile = {
   verification_badge?: string;
   rating?: number;
   total_sales?: number;
-  // NEW — optional, only rendered when present.
   logo_url?: string;
   years_on_kora?: number;
   response_rate?: number;
 };
 
-// ─── Formatting helpers ─────────────────────────────────────────────────────
+// Formatting helpers
 function formatNaira(price: string | number | undefined): string {
-  if (price === undefined || price === null || price === "") return "₦0";
+  if (price === undefined || price === null || price === "") return "\u20A60";
   const numeric =
     typeof price === "number" ? price : parseFloat(String(price).replace(/[^0-9.]/g, ""));
-  if (isNaN(numeric)) return "₦" + price;
-  return "₦" + numeric.toLocaleString("en-NG", { maximumFractionDigits: 0 });
+  if (isNaN(numeric)) return "\u20A6" + price;
+  return "\u20A6" + numeric.toLocaleString("en-NG", { maximumFractionDigits: 0 });
 }
 
 function formatUnitLabel(unit?: string): string | null {
@@ -97,6 +93,13 @@ function formatUnitLabel(unit?: string): string | null {
   };
   if (map[normalized]) return map[normalized];
   return "Per " + unit.charAt(0).toUpperCase() + unit.slice(1);
+}
+
+function todayISO() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
 }
 
 function buildSpecs(product: Product): { label: string; value: string }[] {
@@ -131,7 +134,7 @@ function buildSpecs(product: Product): { label: string; value: string }[] {
     .map(function ([label, value]) { return { label, value: value as string }; });
 }
 
-// ─── Small icon components ──────────────────────────────────────────────────
+// Small icon components
 function IconTruck() {
   return (
     <svg className="w-5 h-5 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,6 +167,10 @@ function IconChevronRight() {
   );
 }
 
+const quoteInputClass =
+  "w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-[#F97316] focus:outline-none focus:ring-1 focus:ring-[#F97316]";
+const quoteLabelClass = "mb-1.5 block text-xs font-bold text-gray-800";
+
 export default function ProductDetailPage({
   params,
 }: {
@@ -184,6 +191,16 @@ export default function ProductDetailPage({
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod] = useState<"online">("online");
+
+  // Request Quote modal
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quoteQty, setQuoteQty] = useState("");
+  const [quoteDeadline, setQuoteDeadline] = useState("");
+  const [quoteLocation, setQuoteLocation] = useState("");
+  const [quoteMessage, setQuoteMessage] = useState("");
+  const [quoteError, setQuoteError] = useState("");
+  const [quoteSubmitting, setQuoteSubmitting] = useState(false);
+  const [quoteSentId, setQuoteSentId] = useState<string | null>(null);
 
   useEffect(
     function () {
@@ -240,6 +257,11 @@ export default function ProductDetailPage({
     return product ? buildSpecs(product) : [];
   }, [product]);
 
+  const isOwnProduct =
+    !!user?.email &&
+    !!product?.owner &&
+    String(product.owner).toLowerCase() === String(user.email).toLowerCase();
+
   function handleGalleryTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
     touchDeltaX.current = 0;
@@ -269,6 +291,7 @@ export default function ProductDetailPage({
       router.push("/auth/login");
       return;
     }
+    if (isOwnProduct) return;
     if (!product?.owner) return;
     router.push(`/message?to=${encodeURIComponent(product.owner)}`);
   }
@@ -278,13 +301,109 @@ export default function ProductDetailPage({
       router.push("/auth/login");
       return;
     }
+    if (isOwnProduct) return;
     setShowPaymentModal(true);
   }
 
   function handleConfirmOrder() {
-    if (!product?.id) return;
+    if (!product?.id || isOwnProduct) return;
     router.push(`/order-review/${product.id}?payment=${paymentMethod}`);
     setShowPaymentModal(false);
+  }
+
+  function handleRequestQuoteClick() {
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+    if (isOwnProduct) return;
+    setQuoteError("");
+    setQuoteSentId(null);
+    setQuoteQty(product?.minimum_order_quantity ? String(product.minimum_order_quantity).replace(/[^0-9.]/g, "") : "");
+    setShowQuoteModal(true);
+  }
+
+  function closeQuoteModal() {
+    setShowQuoteModal(false);
+    setQuoteError("");
+    setQuoteSubmitting(false);
+    if (quoteSentId) {
+      setQuoteSentId(null);
+      setQuoteQty("");
+      setQuoteDeadline("");
+      setQuoteLocation("");
+      setQuoteMessage("");
+    }
+  }
+
+  async function handleSubmitQuote(e: React.FormEvent) {
+    e.preventDefault();
+    setQuoteError("");
+
+    if (!user?.email || !product?.id || !product.owner) {
+      router.push("/auth/login");
+      return;
+    }
+    if (isOwnProduct) {
+      setQuoteError("You cannot request a quote on your own product.");
+      return;
+    }
+
+    const qty = Number(quoteQty);
+    const location = quoteLocation.trim();
+    const note = quoteMessage.trim();
+
+    if (!(qty > 0) || qty > 1000000000) {
+      setQuoteError("Enter a valid quantity.");
+      return;
+    }
+    const moq = parseFloat(String(product.minimum_order_quantity ?? "").replace(/[^0-9.]/g, ""));
+    if (!isNaN(moq) && moq > 0 && qty < moq) {
+      setQuoteError("The minimum order for this product is " + moq.toLocaleString("en-NG") + (product.unit ? " " + product.unit : "") + ".");
+      return;
+    }
+    if (!quoteDeadline || quoteDeadline < todayISO()) {
+      setQuoteError("Choose a needed-by date that is today or later.");
+      return;
+    }
+    if (location.length < 2 || location.length > 200) {
+      setQuoteError("Enter a delivery location.");
+      return;
+    }
+    if (note.length > 2000) {
+      setQuoteError("Your message is too long (2000 characters maximum).");
+      return;
+    }
+
+    setQuoteSubmitting(true);
+    try {
+      const { data, error } = await supabase
+        .from("rfqs")
+        .insert({
+          title: ("Quote request: " + product.name).slice(0, 200),
+          description: note || "Requesting a quotation for " + product.name + ".",
+          category: product.category,
+          quantity: qty.toLocaleString("en-NG") + (product.unit ? " " + product.unit : ""),
+          deadline: quoteDeadline,
+          urgency: "medium",
+          buyer: user.user_metadata?.full_name || String(user.email).split("@")[0] || "Buyer",
+          buyer_email: String(user.email).toLowerCase(),
+          location,
+          status: "open",
+          product_id: product.id,
+          target_seller_email: String(product.owner).toLowerCase(),
+        })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+      setQuoteSentId(data?.id ? String(data.id) : "sent");
+    } catch (err: any) {
+      console.error("Quote request error:", err);
+      setQuoteError(err?.message || "Could not send your request. Please try again.");
+    } finally {
+      setQuoteSubmitting(false);
+    }
   }
 
   function goToSellerProfile() {
@@ -325,7 +444,7 @@ export default function ProductDetailPage({
 
   return (
     <div className="min-h-screen bg-[#f5f7f6] pb-[calc(var(--mobile-nav-height,4rem)+5rem)] md:pb-28">
-      {/* ── Top nav ─────────────────────────────────────────────────────── */}
+      {/* Top nav */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <button
@@ -345,7 +464,7 @@ export default function ProductDetailPage({
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-5">
-        {/* ── Product gallery ───────────────────────────────────────────── */}
+        {/* Product gallery */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div
             className="relative aspect-square sm:aspect-[4/3] bg-[#FFF3E8] overflow-hidden"
@@ -409,7 +528,7 @@ export default function ProductDetailPage({
           </div>
         </div>
 
-        {/* ── Price + core info ─────────────────────────────────────────── */}
+        {/* Price + core info */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <p className="text-3xl font-black text-[#F97316]">{formatNaira(product.price)}</p>
           {unitLabel && <p className="text-sm text-gray-500 font-medium mt-1">{unitLabel}</p>}
@@ -440,7 +559,7 @@ export default function ProductDetailPage({
           )}
         </div>
 
-        {/* ── Delivery ───────────────────────────────────────────────────── */}
+        {/* Delivery */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-2 mb-4">
             <IconTruck />
@@ -460,7 +579,7 @@ export default function ProductDetailPage({
           )}
         </div>
 
-        {/* ── Buyer Protection ───────────────────────────────────────────── */}
+        {/* Buyer Protection */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-sm font-bold text-gray-800 mb-4">Buyer Protection</h2>
           <div className="space-y-4">
@@ -489,7 +608,7 @@ export default function ProductDetailPage({
           </div>
         </div>
 
-        {/* ── Specifications ─────────────────────────────────────────────── */}
+        {/* Specifications */}
         {specs.length > 0 && (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-sm font-bold text-gray-800 mb-4">Specifications</h2>
@@ -506,7 +625,7 @@ export default function ProductDetailPage({
           </div>
         )}
 
-        {/* ── Seller info ────────────────────────────────────────────────── */}
+        {/* Seller info */}
         <div
           onClick={goToSellerProfile}
           className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 cursor-pointer hover:border-[#FDBA8C] transition"
@@ -569,7 +688,7 @@ export default function ProductDetailPage({
           </button>
         </div>
 
-        {/* ── Related products ───────────────────────────────────────────── */}
+        {/* Related products */}
         {relatedProducts.length > 0 && (
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-1">
@@ -609,28 +728,36 @@ export default function ProductDetailPage({
         )}
       </div>
 
-      {/* ── Sticky bottom action bar ───────────────────────────────────────
-          Sits just above MobileBottomNav on mobile. That nav is 64px
-          (h-16) plus env(safe-area-inset-bottom) on notched phones, so we
-          offset by the same amount. On desktop MobileBottomNav is hidden,
-          so this pins to the very bottom instead. z-50 so it's always
-          above the nav's z-40 regardless of DOM order. */}
-      <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height,4rem)] md:bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 z-50">
-        <button
-          onClick={handleMessage}
-          className="flex-1 bg-white border border-[#F97316] text-[#F97316] hover:bg-[#FFF3E8] py-3 rounded-xl font-semibold text-sm transition"
-        >
-          Message Supplier
-        </button>
-        <button
-          onClick={handleOrderNowClick}
-          className="flex-1 bg-[#F97316] hover:bg-[#ea6a0c] text-white py-3 rounded-xl font-semibold text-sm transition"
-        >
-          Order Now
-        </button>
+      {/* Sticky bottom action bar: Message Supplier, Request Quote, Order Now */}
+      <div className="fixed inset-x-0 bottom-[var(--mobile-nav-height,4rem)] md:bottom-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-2 sm:gap-3 z-50">
+        {isOwnProduct ? (
+          <p className="flex-1 text-center text-sm font-medium text-gray-500 py-3">This is your listing.</p>
+        ) : (
+          <>
+            <button
+              onClick={handleMessage}
+              className="flex-1 bg-white border border-[#F97316] text-[#F97316] hover:bg-[#FFF3E8] py-3 rounded-xl font-semibold text-xs sm:text-sm transition"
+            >
+              <span className="hidden sm:inline">Message Supplier</span>
+              <span className="sm:hidden">Message</span>
+            </button>
+            <button
+              onClick={handleRequestQuoteClick}
+              className="flex-1 bg-white border border-[#F97316] text-[#F97316] hover:bg-[#FFF3E8] py-3 rounded-xl font-semibold text-xs sm:text-sm transition"
+            >
+              Request Quote
+            </button>
+            <button
+              onClick={handleOrderNowClick}
+              className="flex-1 bg-[#F97316] hover:bg-[#ea6a0c] text-white py-3 rounded-xl font-semibold text-xs sm:text-sm transition"
+            >
+              Order Now
+            </button>
+          </>
+        )}
       </div>
 
-      {/* ── Order Now / payment method modal ─────────────────────────────── */}
+      {/* Order Now / payment method modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">
           <div className="bg-white w-full sm:max-w-md rounded-3xl p-6 max-h-[85vh] overflow-y-auto">
@@ -651,6 +778,120 @@ export default function ProductDetailPage({
             >
               Continue
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Request Quote modal */}
+      {showQuoteModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white w-full sm:max-w-md rounded-3xl p-6 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-black text-gray-900">Request a Quote</h3>
+              <button onClick={closeQuoteModal} className="text-gray-400 hover:text-gray-600" aria-label="Close">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {quoteSentId ? (
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF3E8]">
+                  <svg className="h-7 w-7 text-[#F97316]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-sm font-bold text-gray-900">Request sent to {seller?.business_name || product.seller || "the supplier"}</p>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                  The supplier will reply with a quotation. You can compare and accept it from your request page.
+                </p>
+                {quoteSentId !== "sent" && (
+                  <Link
+                    href={"/rfq/" + quoteSentId}
+                    className="mt-5 block w-full rounded-xl bg-[#F97316] py-3 text-sm font-bold text-white transition hover:bg-[#ea6a0c]"
+                  >
+                    View My Request
+                  </Link>
+                )}
+                <button
+                  onClick={closeQuoteModal}
+                  className="mt-3 w-full rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-600 transition hover:border-[#F97316] hover:text-[#F97316]"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitQuote} className="space-y-4">
+                <p className="text-xs leading-relaxed text-gray-500">
+                  This request goes only to {seller?.business_name || product.seller || "this supplier"} for <span className="font-semibold text-gray-700">{product.name}</span>.
+                </p>
+
+                {quoteError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">{quoteError}</div>
+                )}
+
+                <div>
+                  <label className={quoteLabelClass}>
+                    Quantity needed{product.unit ? " (" + product.unit + ")" : ""}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={quoteQty}
+                    onChange={function (e) { setQuoteQty(e.target.value); }}
+                    required
+                    className={quoteInputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={quoteLabelClass}>Needed by</label>
+                  <input
+                    type="date"
+                    min={todayISO()}
+                    value={quoteDeadline}
+                    onChange={function (e) { setQuoteDeadline(e.target.value); }}
+                    required
+                    className={quoteInputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={quoteLabelClass}>Delivery location</label>
+                  <input
+                    type="text"
+                    maxLength={200}
+                    value={quoteLocation}
+                    onChange={function (e) { setQuoteLocation(e.target.value); }}
+                    placeholder="e.g., Lagos, Nigeria"
+                    required
+                    className={quoteInputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={quoteLabelClass}>Message to supplier (optional)</label>
+                  <textarea
+                    rows={3}
+                    maxLength={2000}
+                    value={quoteMessage}
+                    onChange={function (e) { setQuoteMessage(e.target.value); }}
+                    placeholder="Quality, packaging, delivery terms, anything the supplier should know."
+                    className={quoteInputClass}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={quoteSubmitting}
+                  className="w-full rounded-xl bg-[#F97316] py-3.5 text-sm font-bold text-white transition hover:bg-[#ea6a0c] disabled:bg-gray-300"
+                >
+                  {quoteSubmitting ? "Sending..." : "Send Request"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
