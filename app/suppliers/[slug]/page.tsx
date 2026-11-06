@@ -5,13 +5,15 @@ import ProductGrid from "@/components/seo/ProductGrid";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import BreadcrumbJsonLd from "@/components/seo/BreadcrumbJsonLd";
 import SupplierJsonLd from "@/components/seo/SupplierJsonLd";
+import ShareStorefront from "@/components/seo/ShareStorefront";
+import RequestQuote from "@/components/seo/RequestQuote";
 import { getSupplierPageData } from "@/lib/seo/data";
 import { categoryPath } from "@/lib/seo/category";
 import { truncate, joinList, plural } from "@/lib/seo/product";
 import type { SupplierSummary } from "@/lib/seo/supplier";
 import { createMetadata, absoluteUrl } from "@/lib/seo/metadata";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -94,6 +96,8 @@ export default async function SupplierPage({ params }: Props) {
           )}
         </div>
 
+        <ShareStorefront url={absoluteUrl("/suppliers/" + summary.slug)} name={summary.name} />
+        <RequestQuote supplierName={summary.name} products={products.slice(0, 50).map(function (p) { return { id: p.id, name: p.name }; })} />
         {profile && profile.description && (
           <p className="text-sm text-gray-700 mb-5 max-w-3xl">{profile.description}</p>
         )}

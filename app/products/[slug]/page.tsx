@@ -13,6 +13,7 @@ import {
   productMetaTitle,
   productMetaDescription,
   productIsIndexable,
+  formatPrice,
 } from "@/lib/seo/product";
 import { categoryPath, type CategorySummary } from "@/lib/seo/category";
 import { supplierPath } from "@/lib/seo/supplier";
@@ -63,6 +64,9 @@ export default async function ProductPage({ params }: Props) {
       ? supplierPath(product.seller, product.supplierKey)
       : null;
 
+  const priceText = formatPrice(product);
+  const moqText = product.moq ? product.moq + (product.unit ? " " + product.unit : "") : null;
+
   const crumbs = [
     { name: "Home", path: "/" },
     category
@@ -106,6 +110,42 @@ export default async function ProductPage({ params }: Props) {
       )}
 
       <ProductDetailClient params={Promise.resolve({ id: product.id })} />
+
+      {indexable && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-8">
+          <h2 className="text-base sm:text-xl font-black text-gray-900 mb-3">
+            About {product.name}
+          </h2>
+          {product.description && (
+            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">
+              {product.description}
+            </p>
+          )}
+          <ul className="text-sm text-gray-700 space-y-1">
+            {priceText && <li>Price: {priceText}</li>}
+            {moqText && <li>Minimum order: {moqText}</li>}
+            {product.place && <li>Location: {product.place}</li>}
+            {product.brand && <li>Brand: {product.brand}</li>}
+            {category && (
+              <li>
+                Category:{" "}
+                <Link href={categoryPath(category.slug)} className="text-[#F97316] hover:text-[#c2410c] transition">
+                  {category.name}
+                </Link>
+              </li>
+            )}
+            {supplierHref && product.seller && (
+              <li>
+                Supplier:{" "}
+                <Link href={supplierHref} className="text-[#F97316] hover:text-[#c2410c] transition">
+                  {product.seller}
+                </Link>
+                {product.isVerified ? " (verified)" : ""}
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 sm:pb-10">
